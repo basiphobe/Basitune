@@ -38,6 +38,12 @@
             </div>
         `;
         
+        // Create reopen button
+        const reopenBtn = document.createElement('button');
+        reopenBtn.id = 'basitune-reopen';
+        reopenBtn.innerHTML = '◀';
+        reopenBtn.title = 'Open sidebar';
+        
         // Add styles
         const style = document.createElement('style');
         style.textContent = `
@@ -318,6 +324,36 @@
                 display: block;
             }
             
+            /* Reopen button */
+            #basitune-reopen {
+                position: fixed;
+                top: 50%;
+                right: 0;
+                transform: translateY(-50%);
+                background: linear-gradient(135deg, #ff0000 0%, #cc0000 100%);
+                border: none;
+                color: #fff;
+                font-size: 18px;
+                cursor: pointer;
+                padding: 16px 8px;
+                border-radius: 8px 0 0 8px;
+                box-shadow: -2px 2px 8px rgba(0, 0, 0, 0.3);
+                z-index: 9999;
+                transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+                opacity: 0;
+                pointer-events: none;
+            }
+            
+            #basitune-reopen.visible {
+                opacity: 1;
+                pointer-events: auto;
+            }
+            
+            #basitune-reopen:hover {
+                padding-right: 12px;
+                box-shadow: -4px 4px 12px rgba(0, 0, 0, 0.5);
+            }
+            
             /* Adjust YouTube Music main content */
             ytmusic-app {
                 margin-right: 380px;
@@ -331,6 +367,7 @@
         
         document.head.appendChild(style);
         document.body.appendChild(sidebar);
+        document.body.appendChild(reopenBtn);
         
         // Prevent scroll bleed-through to main page
         const sidebarContent = document.getElementById('basitune-sidebar-content');
@@ -349,6 +386,9 @@
         
         // Toggle button functionality
         document.getElementById('basitune-toggle').addEventListener('click', toggleSidebar);
+        
+        // Reopen button functionality
+        reopenBtn.addEventListener('click', toggleSidebar);
         
         // Tab switching functionality
         document.querySelectorAll('.basitune-tab').forEach(tab => {
@@ -388,13 +428,16 @@
     function toggleSidebar() {
         sidebarVisible = !sidebarVisible;
         const sidebar = document.getElementById('basitune-sidebar');
+        const reopenBtn = document.getElementById('basitune-reopen');
         const ytmusicApp = document.querySelector('ytmusic-app');
         
         if (sidebarVisible) {
             sidebar.classList.remove('hidden');
+            reopenBtn.classList.remove('visible');
             ytmusicApp.classList.remove('sidebar-hidden');
         } else {
             sidebar.classList.add('hidden');
+            reopenBtn.classList.add('visible');
             ytmusicApp.classList.add('sidebar-hidden');
         }
     }
