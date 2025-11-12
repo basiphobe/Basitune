@@ -243,7 +243,7 @@
         return null;
     }
     
-    // Fetch artist info from Wikipedia via Tauri
+    // Fetch artist info from AI via Tauri
     async function fetchArtistInfo(artist) {
         try {
             const bioDiv = document.getElementById('basitune-artist-bio');
@@ -252,51 +252,45 @@
             bioDiv.innerHTML = '<p class="basitune-loading">Loading artist information...</p>';
             imageDiv.innerHTML = '';
             
-            console.log('[Basitune] Fetching info for:', artist);
+            console.log('[Basitune] Fetching AI info for:', artist);
             
-            // Call Tauri command
-            const result = await window.__TAURI__.core.invoke('get_artist_info', { artist });
+            // Call Tauri command - now returns plain text
+            const bio = await window.__TAURI__.core.invoke('get_artist_info', { artist });
             
-            console.log('[Basitune] Received result:', result);
+            console.log('[Basitune] Received AI bio');
             
             // Display artist bio
             bioDiv.innerHTML = `
                 <h4>${artist}</h4>
-                <p>${result.extract}</p>
+                <p>${bio}</p>
             `;
             
-            // Display thumbnail if available
-            if (result.thumbnail) {
-                imageDiv.innerHTML = `<img src="${result.thumbnail.source}" alt="${artist}">`;
-            }
-            
-            console.log('[Basitune] Loaded info for:', artist);
+            console.log('[Basitune] Loaded AI info for:', artist);
         } catch (error) {
             console.error('[Basitune] Error fetching artist info:', error);
-            console.error('[Basitune] Error details:', JSON.stringify(error));
             const bioDiv = document.getElementById('basitune-artist-bio');
             bioDiv.innerHTML = `<p class="basitune-placeholder">Could not load artist information<br><small>${error}</small></p>`;
         }
     }
     
-    // Fetch lyrics from Genius via Tauri
+    // Fetch lyrics from AI via Tauri
     async function fetchLyrics(title, artist) {
         try {
             const lyricsDiv = document.getElementById('basitune-lyrics-content');
             
             lyricsDiv.innerHTML = '<p class="basitune-loading">Loading lyrics...</p>';
             
-            console.log('[Basitune] Fetching lyrics for:', title, '-', artist);
+            console.log('[Basitune] Fetching AI lyrics for:', title, '-', artist);
             
-            // Call Tauri command
+            // Call Tauri command - now returns plain text
             const lyrics = await window.__TAURI__.core.invoke('get_lyrics', { title, artist });
             
-            console.log('[Basitune] Received lyrics');
+            console.log('[Basitune] Received AI lyrics');
             
             // Display lyrics
             lyricsDiv.textContent = lyrics;
             
-            console.log('[Basitune] Loaded lyrics for:', title);
+            console.log('[Basitune] Loaded AI lyrics for:', title);
         } catch (error) {
             console.error('[Basitune] Error fetching lyrics:', error);
             const lyricsDiv = document.getElementById('basitune-lyrics-content');

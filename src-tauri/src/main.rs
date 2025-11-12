@@ -6,16 +6,12 @@ use serde::{Deserialize, Serialize};
 use std::fs;
 use std::path::PathBuf;
 use std::time::Duration;
-use scraper::{Html, Selector};
 
 // Volume normalization script
 const VOLUME_NORMALIZER_SCRIPT: &str = include_str!("../../volume-normalizer.js");
 
 // Artist info sidebar script
 const SIDEBAR_SCRIPT: &str = include_str!("../../sidebar.js");
-
-// Genius API token
-const GENIUS_ACCESS_TOKEN: &str = "REMOVED_TOKEN";
 
 #[derive(Debug, Serialize, Deserialize)]
 struct WindowState {
@@ -27,14 +23,27 @@ struct WindowState {
 }
 
 #[derive(Debug, Serialize, Deserialize)]
-struct WikipediaResponse {
-    extract: String,
-    thumbnail: Option<WikipediaThumbnail>,
+struct OpenAIRequest {
+    model: String,
+    messages: Vec<OpenAIMessage>,
+    max_tokens: u32,
+    temperature: f32,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
-struct WikipediaThumbnail {
-    source: String,
+struct OpenAIMessage {
+    role: String,
+    content: String,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+struct OpenAIResponse {
+    choices: Vec<OpenAIChoice>,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+struct OpenAIChoice {
+    message: OpenAIMessage,
 }
 
 impl Default for WindowState {
@@ -49,280 +58,74 @@ impl Default for WindowState {
     }
 }
 
-#[tauri::command]
-async fn get_artist_info(artist: String) -> Result<WikipediaResponse, String> {
-    println!("[Basitune] Fetching Wikipedia info for: {}", artist);
+async fn call_openai(prompt: String) -> Result<String, String> {
+    let api_key = std::env::var("OPENAI_API_KEY")
+        .map_err(|_| "OPENAI_API_KEY environment variable not set".to_string())?;
     
-    // First try with "(band)" appended
-    let band_result = try_fetch_wikipedia(&format!("{} (band)", artist)).await;
-    
-    if let Ok(response) = band_result {
-        if !response.extract.contains("refer to:") && !response.extract.contains("may also refer to") {
-            println!("[Basitune] Found band-specific page");
-            return Ok(response);
-        }
-    }
-    
-    // If that fails or is a disambiguation, try with "(musician)"
-    let musician_result = try_fetch_wikipedia(&format!("{} (musician)", artist)).await;
-    
-    if let Ok(response) = musician_result {
-        if !response.extract.contains("refer to:") && !response.extract.contains("may also refer to") {
-            println!("[Basitune] Found musician-specific page");
-            return Ok(response);
-        }
-    }
-    
-    // Fall back to exact artist name
-    println!("[Basitune] Trying exact artist name");
-    try_fetch_wikipedia(&artist).await
-}
-
-async fn try_fetch_wikipedia(search_term: &str) -> Result<WikipediaResponse, String> {
-    let url = format!(
-        "https://en.wikipedia.org/api/rest_v1/page/summary/{}",
-        urlencoding::encode(search_term)
-    );
-    
-    println!("[Basitune] Wikipedia URL: {}", url);
+    let request = OpenAIRequest {
+        model: "gpt-4o-mini".to_string(),
+        messages: vec![OpenAIMessage {
+            role: "user".to_string(),
+            content: prompt,
+        }],
+        max_tokens: 500,
+        temperature: 0.7,
+    };
     
     let client = reqwest::Client::builder()
-        .user_agent("Basitune/0.1.0 (https://github.com/basiphobe/Basitune)")
-        .timeout(std::time::Duration::from_secs(10))
+        .timeout(Duration::from_secs(30))
         .build()
         .map_err(|e| e.to_string())?;
     
     let response = client
-        .get(&url)
+        .post("https://api.openai.com/v1/chat/completions")
+        .header("Authorization", format!("Bearer {}", api_key))
+        .header("Content-Type", "application/json")
+        .json(&request)
         .send()
         .await
-        .map_err(|e| format!("Request failed: {}", e))?;
+        .map_err(|e| format!("OpenAI request failed: {}", e))?;
     
-    let status = response.status();
-    println!("[Basitune] Wikipedia response status: {}", status);
-    
-    if !status.is_success() {
-        if status.as_u16() == 404 {
-            return Err("Not found".to_string());
-        }
-        return Err(format!("Wikipedia API returned status: {}", status));
+    if !response.status().is_success() {
+        let status = response.status();
+        let error_text = response.text().await.unwrap_or_default();
+        return Err(format!("OpenAI API error {}: {}", status, error_text));
     }
     
-    let json: serde_json::Value = response
+    let result: OpenAIResponse = response
         .json()
         .await
-        .map_err(|e| format!("Failed to parse JSON: {}", e))?;
+        .map_err(|e| format!("Failed to parse OpenAI response: {}", e))?;
     
-    println!("[Basitune] Received JSON response");
+    result
+        .choices
+        .first()
+        .map(|choice| choice.message.content.clone())
+        .ok_or_else(|| "No response from OpenAI".to_string())
+}
+
+#[tauri::command]
+async fn get_artist_info(artist: String) -> Result<String, String> {
+    println!("[Basitune] Fetching AI artist info for: {}", artist);
     
-    let extract = json["extract"]
-        .as_str()
-        .unwrap_or("No information available.")
-        .to_string();
+    let prompt = format!(
+        "Provide a brief, 2-3 paragraph summary about the music artist/band '{}'. Include their genre, notable achievements, and impact on music. Keep it concise and informative.",
+        artist
+    );
     
-    let thumbnail = json["thumbnail"]["source"]
-        .as_str()
-        .map(|s| WikipediaThumbnail {
-            source: s.to_string(),
-        });
-    
-    Ok(WikipediaResponse { extract, thumbnail })
-}
-
-#[derive(Debug, Serialize, Deserialize)]
-struct GeniusSearchResponse {
-    response: GeniusResponseData,
-}
-
-#[derive(Debug, Serialize, Deserialize)]
-struct GeniusResponseData {
-    hits: Vec<GeniusHit>,
-}
-
-#[derive(Debug, Serialize, Deserialize)]
-struct GeniusHit {
-    result: GeniusResult,
-}
-
-#[derive(Debug, Serialize, Deserialize)]
-struct GeniusResult {
-    url: String,
-    title: String,
-    primary_artist: GeniusArtist,
-}
-
-#[derive(Debug, Serialize, Deserialize)]
-struct GeniusArtist {
-    name: String,
+    call_openai(prompt).await
 }
 
 #[tauri::command]
 async fn get_lyrics(title: String, artist: String) -> Result<String, String> {
-    println!("[Basitune] Fetching lyrics for: {} - {}", artist, title);
+    println!("[Basitune] Fetching AI lyrics for: {} - {}", artist, title);
     
-    // Clean up title - remove extra info like (Acoustic), (Remastered), etc. for better matching
-    let clean_title = title
-        .replace("(Acoustic)", "")
-        .replace("(acoustic)", "")
-        .replace("(Remastered)", "")
-        .replace("(remastered)", "")
-        .replace("(Live)", "")
-        .replace("(live)", "")
-        .trim()
-        .to_string();
-    
-    // Search Genius API for the song
-    let search_query = format!("{} {}", artist, clean_title);
-    let search_url = format!(
-        "https://api.genius.com/search?q={}",
-        urlencoding::encode(&search_query)
+    let prompt = format!(
+        "Provide the lyrics for the song '{}' by '{}'. Only return the lyrics text, nothing else. If you don't know the exact lyrics, politely say you cannot provide them.",
+        title, artist
     );
     
-    let client = reqwest::Client::builder()
-        .user_agent("Basitune/0.1.0 (https://github.com/basiphobe/Basitune)")
-        .timeout(Duration::from_secs(10))
-        .build()
-        .map_err(|e| e.to_string())?;
-    
-    let response = client
-        .get(&search_url)
-        .header("Authorization", format!("Bearer {}", GENIUS_ACCESS_TOKEN))
-        .send()
-        .await
-        .map_err(|e| format!("Search request failed: {}", e))?;
-    
-    if !response.status().is_success() {
-        return Err(format!("Genius API returned status: {}", response.status()));
-    }
-    
-    let search_result: GeniusSearchResponse = response
-        .json()
-        .await
-        .map_err(|e| format!("Failed to parse search results: {}", e))?;
-    
-    // Find best matching result
-    let best_match = search_result
-        .response
-        .hits
-        .iter()
-        .find(|hit| {
-            // Check if artist name matches (case-insensitive, approximate)
-            let result_artist = hit.result.primary_artist.name.to_lowercase();
-            let search_artist = artist.to_lowercase();
-            
-            // Check if title matches (case-insensitive, approximate)
-            let result_title = hit.result.title.to_lowercase();
-            let search_title = clean_title.to_lowercase();
-            
-            // Artist must contain or match closely
-            let artist_match = result_artist.contains(&search_artist) || search_artist.contains(&result_artist);
-            
-            // Title must contain the main words (not just be mentioned in a playlist)
-            let title_match = result_title.contains(&search_title) || search_title.contains(&result_title);
-            
-            artist_match && title_match
-        })
-        .or_else(|| search_result.response.hits.first())
-        .ok_or("No results found")?;
-    
-    let song_url = &best_match.result.url;
-    
-    println!("[Basitune] Found song URL: {} (Artist: {}, Title: {})", 
-             song_url, best_match.result.primary_artist.name, best_match.result.title);
-    
-    // Scrape lyrics from the song page
-    let lyrics_response = client
-        .get(song_url.as_str())
-        .send()
-        .await
-        .map_err(|e| format!("Failed to fetch lyrics page: {}", e))?;
-    
-    let html = lyrics_response
-        .text()
-        .await
-        .map_err(|e| format!("Failed to read HTML: {}", e))?;
-    
-    extract_lyrics_from_html(&html)
-}
-
-fn extract_lyrics_from_html(html: &str) -> Result<String, String> {
-    let document = Html::parse_document(html);
-    
-    // Genius uses data-lyrics-container attribute for lyrics containers
-    let selector = Selector::parse("[data-lyrics-container='true']")
-        .map_err(|e| format!("Invalid selector: {:?}", e))?;
-    
-    let mut lyrics = String::new();
-    
-    for element in document.select(&selector) {
-        // Get text content, preserving line breaks
-        for node in element.descendants() {
-            if let Some(text) = node.value().as_text() {
-                lyrics.push_str(text);
-            } else if node.value().is_element() {
-                let element_ref = scraper::ElementRef::wrap(node).unwrap();
-                if element_ref.value().name() == "br" {
-                    lyrics.push('\n');
-                }
-            }
-        }
-        lyrics.push_str("\n\n");
-    }
-    
-    let lyrics = lyrics.trim().to_string();
-    
-    if lyrics.is_empty() {
-        return Err("Could not extract lyrics from page".to_string());
-    }
-    
-    // Clean up the lyrics - remove common non-lyric content
-    let cleaned = clean_genius_lyrics(&lyrics);
-    
-    if cleaned.is_empty() {
-        Err("Could not extract clean lyrics from page".to_string())
-    } else {
-        Ok(cleaned)
-    }
-}
-
-fn clean_genius_lyrics(lyrics: &str) -> String {
-    let mut lines: Vec<&str> = lyrics.lines().collect();
-    
-    // Remove common Genius page elements from the beginning
-    while !lines.is_empty() {
-        let first_line = lines[0].trim();
-        
-        // Check if it's a common header pattern
-        if first_line.is_empty()
-            || first_line.ends_with("Contributors")
-            || first_line.ends_with("Lyrics")
-            || first_line.starts_with("\"")
-            || first_line.contains("is a song about")
-            || first_line.contains("Read More")
-            || (first_line.len() < 50 && first_line.chars().filter(|c| c.is_uppercase()).count() > first_line.len() / 2)
-        {
-            lines.remove(0);
-        } else {
-            break;
-        }
-    }
-    
-    // Remove "Embed" and other footers from the end
-    while !lines.is_empty() {
-        let last_line = lines[lines.len() - 1].trim();
-        
-        if last_line.is_empty()
-            || last_line == "Embed"
-            || last_line.starts_with("See ")
-            || last_line.contains("Lyrics")
-        {
-            lines.pop();
-        } else {
-            break;
-        }
-    }
-    
-    lines.join("\n").trim().to_string()
+    call_openai(prompt).await
 }
 
 fn get_state_path(app_handle: &tauri::AppHandle) -> PathBuf {
