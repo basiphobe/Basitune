@@ -1,6 +1,6 @@
 app-id: com.basiphobe.basitune
 runtime: org.freedesktop.Platform
-runtime-version: '23.08'
+runtime-version: '24.08'
 sdk: org.freedesktop.Sdk
 command: basitune
 
@@ -41,7 +41,7 @@ modules:
     sources:
       # This will be replaced with actual release artifacts in CI
       - type: file
-        path: ../src-tauri/target/release/basitune
+        path: src-tauri/target/release/basitune
       
       - type: file
         path: basitune.desktop
