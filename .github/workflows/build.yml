@@ -64,6 +64,11 @@ jobs:
       - name: Install NPM dependencies
         run: npm install
 
+      - name: Prepare frontend assets
+        run: |
+          mkdir -p dist
+          cp index.html dist/
+
       - name: Build Basitune
         run: npm run build
         env:
