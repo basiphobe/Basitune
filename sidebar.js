@@ -1,5 +1,6 @@
 // Artist Info Sidebar for YouTube Music
 // Monitors current song and displays artist bio from Wikipedia
+// Version: 1.1.0
 
 (function() {
     'use strict';
