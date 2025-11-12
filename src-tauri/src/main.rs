@@ -375,6 +375,7 @@ fn save_window_state(app_handle: &tauri::AppHandle, state: &WindowState) {
 fn main() {
     tauri::Builder::default()
         .plugin(tauri_plugin_shell::init())
+        .plugin(tauri_plugin_updater::Builder::new().build())
         .plugin(tauri_plugin_single_instance::init(|app, _args, _cwd| {
             // When a second instance is attempted, focus the existing window
             let windows = app.webview_windows();
@@ -386,6 +387,35 @@ fn main() {
         }))
         .invoke_handler(tauri::generate_handler![get_artist_info, get_song_context, get_lyrics])
         .setup(|app| {
+            // Check for updates on startup
+            let app_handle = app.handle().clone();
+            tauri::async_runtime::spawn(async move {
+                use tauri_plugin_updater::UpdaterExt;
+                
+                match app_handle.updater() {
+                    Ok(updater) => {
+                        match updater.check().await {
+                            Ok(Some(update)) => {
+                                println!("[Basitune] Update available: {}", update.version);
+                                
+                                // Download and install with progress callbacks
+                                let download_result = update.download_and_install(
+                                    |_chunk_length, _content_length| {},  // Download progress
+                                    || {}  // Before exit
+                                ).await;
+                                
+                                if let Err(e) = download_result {
+                                    eprintln!("[Basitune] Failed to install update: {}", e);
+                                }
+                            }
+                            Ok(None) => println!("[Basitune] No updates available"),
+                            Err(e) => eprintln!("[Basitune] Failed to check for updates: {}", e),
+                        }
+                    }
+                    Err(e) => eprintln!("[Basitune] Failed to get updater: {}", e),
+                }
+            });
+            
             // Get the main window
             let window = app.get_webview_window("main").expect("Failed to get main window");
             

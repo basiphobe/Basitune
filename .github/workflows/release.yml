@@ -246,3 +246,59 @@ jobs:
                 data: fs.readFileSync(path.join(bundleDir, 'nsis', file))
               });
             }
+
+  create-updater-manifest:
+    needs: [create-release, build-release]
+    runs-on: ubuntu-latest
+    
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Get version
+        id: get_version
+        run: |
+          echo "VERSION=${GITHUB_REF#refs/tags/v}" >> $GITHUB_OUTPUT
+      
+      - name: Create updater manifest
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const version = '${{ steps.get_version.outputs.VERSION }}';
+            const releaseId = ${{ needs.create-release.outputs.release_id }};
+            
+            // Get all release assets
+            const { data: release } = await github.rest.repos.getRelease({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              release_id: releaseId
+            });
+            
+            // Create update manifest
+            const manifest = {
+              version: `v${version}`,
+              notes: release.body || 'New version available',
+              pub_date: new Date().toISOString(),
+              platforms: {
+                'linux-x86_64': {
+                  signature: '',
+                  url: release.assets.find(a => a.name.endsWith('.AppImage'))?.browser_download_url || ''
+                },
+                'darwin-x86_64': {
+                  signature: '',
+                  url: release.assets.find(a => a.name.endsWith('.dmg'))?.browser_download_url || ''
+                },
+                'windows-x86_64': {
+                  signature: '',
+                  url: release.assets.find(a => a.name.endsWith('.msi'))?.browser_download_url || ''
+                }
+              }
+            };
+            
+            // Upload latest.json
+            await github.rest.repos.uploadReleaseAsset({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              release_id: releaseId,
+              name: 'latest.json',
+              data: JSON.stringify(manifest, null, 2)
+            });

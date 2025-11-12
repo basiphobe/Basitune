@@ -48,5 +48,15 @@
       "csp": null
     },
     "withGlobalTauri": true
+  },
+  "plugins": {
+    "updater": {
+      "active": true,
+      "endpoints": [
+        "https://github.com/basiphobe/Basitune/releases/latest/download/latest.json"
+      ],
+      "dialog": true,
+      "pubkey": ""
+    }
   }
 }
