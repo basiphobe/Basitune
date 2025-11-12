@@ -3,13 +3,45 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Basitune</title>
+    <title>Basitune - Loading</title>
+    <style>
+        body {
+            background: #030303;
+            color: #fff;
+            font-family: system-ui, -apple-system, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+        }
+        #status { margin-top: 20px; font-size: 14px; color: #999; }
+    </style>
     <script>
-        // Redirect to YouTube Music immediately
-        window.location.replace('https://music.youtube.com');
+        console.log('[Basitune] index.html loaded');
+        console.log('[Basitune] Current URL:', window.location.href);
+        
+        // Update status
+        function updateStatus(msg) {
+            console.log('[Basitune]', msg);
+            document.getElementById('status').textContent = msg;
+        }
+        
+        window.addEventListener('DOMContentLoaded', function() {
+            updateStatus('DOM loaded, redirecting in 2 seconds...');
+            
+            setTimeout(function() {
+                updateStatus('Redirecting to YouTube Music...');
+                console.log('[Basitune] Starting redirect to https://music.youtube.com');
+                window.location.replace('https://music.youtube.com');
+            }, 2000);
+        });
     </script>
 </head>
 <body>
-    <p>Redirecting to YouTube Music...</p>
+    <h1>Basitune</h1>
+    <p>Loading YouTube Music...</p>
+    <div id="status">Initializing...</div>
 </body>
 </html>

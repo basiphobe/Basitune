@@ -419,6 +419,8 @@ fn main() {
             // Get the main window
             let window = app.get_webview_window("main").expect("Failed to get main window");
             
+            println!("[Basitune] Window created");
+            
             // Set the window title
             window.set_title("Basitune").unwrap();
             
@@ -471,8 +473,25 @@ fn main() {
             // Clone window for async operations
             let window_clone = window.clone();
             
-            // Inject scripts after a delay to ensure page is loaded
+            // Inject debug script immediately to test if JS is running
             std::thread::spawn(move || {
+                std::thread::sleep(Duration::from_secs(1));
+                
+                let debug_script = r#"
+                    console.log('[Basitune] DEBUG: JavaScript is executing');
+                    console.log('[Basitune] DEBUG: Current URL:', window.location.href);
+                    console.log('[Basitune] DEBUG: Document ready state:', document.readyState);
+                    
+                    // Try to force log to stdout via alert
+                    const info = 'URL: ' + window.location.href + ', Ready: ' + document.readyState;
+                    document.title = 'DEBUG: ' + info;
+                "#;
+                
+                match window_clone.eval(debug_script) {
+                    Ok(_) => println!("[Basitune] Debug script executed"),
+                    Err(e) => eprintln!("[Basitune] Debug script failed: {}", e),
+                }
+                
                 // Retry injection up to 10 times with 2-second intervals
                 for attempt in 1..=10 {
                     std::thread::sleep(Duration::from_secs(2));
