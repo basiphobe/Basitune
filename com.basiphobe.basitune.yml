@@ -1,0 +1,53 @@
+app-id: com.basiphobe.basitune
+runtime: org.freedesktop.Platform
+runtime-version: '23.08'
+sdk: org.freedesktop.Sdk
+command: basitune
+
+finish-args:
+  # X11 and Wayland display access
+  - --share=ipc
+  - --socket=x11
+  - --socket=wayland
+  
+  # Audio output
+  - --socket=pulseaudio
+  
+  # Network access (for YouTube Music)
+  - --share=network
+  
+  # GPU acceleration
+  - --device=dri
+  
+  # Persist user data
+  - --persist=.local/share/com.basiphobe.basitune
+
+modules:
+  - name: basitune
+    buildsystem: simple
+    build-commands:
+      # Copy the binary
+      - install -Dm755 basitune /app/bin/basitune
+      
+      # Copy desktop file
+      - install -Dm644 basitune.desktop /app/share/applications/${FLATPAK_ID}.desktop
+      
+      # Copy icon
+      - install -Dm644 icon.png /app/share/icons/hicolor/128x128/apps/${FLATPAK_ID}.png
+      
+      # Copy metainfo
+      - install -Dm644 basitune.metainfo.xml /app/share/metainfo/${FLATPAK_ID}.metainfo.xml
+    
+    sources:
+      # This will be replaced with actual release artifacts in CI
+      - type: file
+        path: ../src-tauri/target/release/basitune
+      
+      - type: file
+        path: basitune.desktop
+      
+      - type: file
+        path: icon.png
+      
+      - type: file
+        path: basitune.metainfo.xml
