@@ -1,0 +1,28 @@
+{
+  "name": "basitune",
+  "version": "0.1.0",
+  "description": "A lightweight desktop wrapper for YouTube Music",
+  "type": "module",
+  "scripts": {
+    "dev": "tauri dev",
+    "build": "tauri build",
+    "tauri": "tauri",
+    "icon": "tauri icon icon.svg"
+  },
+  "devDependencies": {
+    "@tauri-apps/cli": "^2.0.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/yourusername/basitune.git"
+  },
+  "keywords": [
+    "youtube-music",
+    "tauri",
+    "desktop-app",
+    "music",
+    "electron-alternative"
+  ],
+  "author": "Basitune Contributors",
+  "license": "MIT"
+}
