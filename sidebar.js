@@ -425,7 +425,7 @@
         }
     }
     
-    function toggleSidebar() {
+    async function toggleSidebar() {
         sidebarVisible = !sidebarVisible;
         const sidebar = document.getElementById('basitune-sidebar');
         const reopenBtn = document.getElementById('basitune-reopen');
@@ -439,6 +439,42 @@
             sidebar.classList.add('hidden');
             reopenBtn.classList.add('visible');
             ytmusicApp.classList.add('sidebar-hidden');
+        }
+        
+        // Save preference
+        try {
+            await window.__TAURI__.core.invoke('set_sidebar_visible', { visible: sidebarVisible });
+        } catch (error) {
+            console.error('[Basitune] Failed to save sidebar state:', error);
+        }
+    }
+    
+    // Restore sidebar visibility state from saved preference
+    async function restoreSidebarState() {
+        try {
+            const visible = await window.__TAURI__.core.invoke('get_sidebar_visible');
+            console.log('[Basitune] Restored sidebar visibility:', visible);
+            
+            if (visible !== sidebarVisible) {
+                // State differs from default, toggle it
+                const sidebar = document.getElementById('basitune-sidebar');
+                const reopenBtn = document.getElementById('basitune-reopen');
+                const ytmusicApp = document.querySelector('ytmusic-app');
+                
+                sidebarVisible = visible;
+                
+                if (sidebarVisible) {
+                    sidebar.classList.remove('hidden');
+                    reopenBtn.classList.remove('visible');
+                    ytmusicApp.classList.remove('sidebar-hidden');
+                } else {
+                    sidebar.classList.add('hidden');
+                    reopenBtn.classList.add('visible');
+                    ytmusicApp.classList.add('sidebar-hidden');
+                }
+            }
+        } catch (error) {
+            console.error('[Basitune] Failed to restore sidebar state:', error);
         }
     }
     
@@ -667,6 +703,9 @@
                 if (sidebarElement) {
                     console.log('[Basitune] ✓ Sidebar created successfully');
                     console.log('[Basitune] Sidebar dimensions:', sidebarElement.offsetWidth, 'x', sidebarElement.offsetHeight);
+                    
+                    // Restore saved visibility state
+                    restoreSidebarState();
                 } else {
                     console.error('[Basitune] ✗ Sidebar element not found after creation!');
                 }

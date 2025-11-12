@@ -24,6 +24,7 @@ struct WindowState {
     x: i32,
     y: i32,
     maximized: bool,
+    sidebar_visible: bool,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -58,6 +59,7 @@ impl Default for WindowState {
             x: -1,
             y: -1,
             maximized: false,
+            sidebar_visible: true,
         }
     }
 }
@@ -372,6 +374,18 @@ fn save_window_state(app_handle: &tauri::AppHandle, state: &WindowState) {
     }
 }
 
+#[tauri::command]
+fn get_sidebar_visible(app: tauri::AppHandle) -> bool {
+    load_window_state(&app).sidebar_visible
+}
+
+#[tauri::command]
+fn set_sidebar_visible(app: tauri::AppHandle, visible: bool) {
+    let mut state = load_window_state(&app);
+    state.sidebar_visible = visible;
+    save_window_state(&app, &state);
+}
+
 fn main() {
     tauri::Builder::default()
         .plugin(tauri_plugin_shell::init())
@@ -385,7 +399,13 @@ fn main() {
                 println!("[Basitune] Focused existing instance");
             }
         }))
-        .invoke_handler(tauri::generate_handler![get_artist_info, get_song_context, get_lyrics])
+        .invoke_handler(tauri::generate_handler![
+            get_artist_info, 
+            get_song_context, 
+            get_lyrics,
+            get_sidebar_visible,
+            set_sidebar_visible
+        ])
         .setup(|app| {
             // Check for updates on startup
             let app_handle = app.handle().clone();
@@ -453,13 +473,12 @@ fn main() {
                                 if let Ok(position) = window_inner.outer_position() {
                                     let is_maximized = window_inner.is_maximized().unwrap_or(false);
                                     
-                                    let state = WindowState {
-                                        width: size.width,
-                                        height: size.height,
-                                        x: position.x,
-                                        y: position.y,
-                                        maximized: is_maximized,
-                                    };
+                                    let mut state = load_window_state(&app_handle_inner);
+                                    state.width = size.width;
+                                    state.height = size.height;
+                                    state.x = position.x;
+                                    state.y = position.y;
+                                    state.maximized = is_maximized;
                                     
                                     save_window_state(&app_handle_inner, &state);
                                 }
