@@ -20,6 +20,7 @@ finish-args:
   
   # GPU
   - --device=dri
+  - --filesystem=/dev/dri:ro
   
   # User data
   - --persist=.local/share/com.basiphobe.basitune

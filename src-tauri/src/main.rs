@@ -512,22 +512,39 @@ fn main() {
                     if window_clone.eval(SIDEBAR_SCRIPT).is_ok() {
                         println!("[Basitune] Sidebar injected successfully (attempt {})", attempt);
                         
-                        // Verify sidebar was actually created
+                        // Force sidebar visibility
                         std::thread::sleep(Duration::from_secs(2));
-                        let verify_script = r#"
+                        let force_visible = r#"
                             (function() {
                                 const sidebar = document.getElementById('basitune-sidebar');
                                 if (sidebar) {
-                                    return "Sidebar element found: " + sidebar.offsetWidth + "x" + sidebar.offsetHeight;
+                                    // Make it SUPER obvious for testing
+                                    sidebar.style.cssText = `
+                                        position: fixed !important;
+                                        top: 0 !important;
+                                        right: 0 !important;
+                                        width: 350px !important;
+                                        height: 100vh !important;
+                                        background: red !important;
+                                        z-index: 999999 !important;
+                                        display: block !important;
+                                        visibility: visible !important;
+                                        opacity: 1 !important;
+                                        border: 10px solid yellow !important;
+                                    `;
+                                    console.log('[Basitune] Sidebar forced visible (RED TEST):', sidebar.offsetWidth, 'x', sidebar.offsetHeight);
+                                    console.log('[Basitune] Sidebar rect:', sidebar.getBoundingClientRect());
+                                    return 'Sidebar: ' + sidebar.offsetWidth + 'x' + sidebar.offsetHeight;
                                 } else {
-                                    return "ERROR: Sidebar element not found in DOM";
+                                    console.error('[Basitune] Sidebar element not found!');
+                                    return 'ERROR: No sidebar element';
                                 }
                             })()
                         "#;
                         
-                        match window_clone.eval(verify_script) {
-                            Ok(_) => println!("[Basitune] Sidebar verification check completed"),
-                            Err(e) => eprintln!("[Basitune] Sidebar verification failed: {}", e),
+                        match window_clone.eval(force_visible) {
+                            Ok(_) => println!("[Basitune] Sidebar visibility forced"),
+                            Err(e) => eprintln!("[Basitune] Failed to force sidebar visibility: {}", e),
                         }
                         
                         break;
