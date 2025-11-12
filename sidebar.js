@@ -23,9 +23,10 @@
             </div>
             <div id="basitune-sidebar-content">
                 <div id="basitune-artist-tab" class="basitune-tab-content active">
-                    <div id="basitune-artist-image"></div>
                     <div id="basitune-artist-bio">
                         <p class="basitune-placeholder">Play a song to see artist information</p>
+                    </div>
+                    <div id="basitune-song-context">
                     </div>
                 </div>
                 <div id="basitune-lyrics-tab" class="basitune-tab-content">
@@ -124,25 +125,34 @@
                 display: block;
             }
             
-            #basitune-artist-image {
-                margin-bottom: 16px;
-            }
-            
-            #basitune-artist-image img {
-                width: 100%;
-                border-radius: 8px;
-            }
-            
             #basitune-artist-bio {
                 color: #e8e8e8;
                 font-size: 14px;
                 line-height: 1.6;
+                margin-bottom: 20px;
             }
             
             #basitune-artist-bio h4 {
                 color: #fff;
                 margin: 0 0 8px 0;
                 font-size: 16px;
+            }
+            
+            #basitune-song-context {
+                color: #e8e8e8;
+                font-size: 14px;
+                line-height: 1.6;
+                padding: 12px;
+                background: #1a1a1a;
+                border-radius: 8px;
+                border-left: 3px solid #333;
+            }
+            
+            #basitune-song-context h5 {
+                color: #fff;
+                margin: 0 0 8px 0;
+                font-size: 14px;
+                font-weight: 600;
             }
             
             #basitune-lyrics-content {
@@ -247,10 +257,8 @@
     async function fetchArtistInfo(artist) {
         try {
             const bioDiv = document.getElementById('basitune-artist-bio');
-            const imageDiv = document.getElementById('basitune-artist-image');
             
             bioDiv.innerHTML = '<p class="basitune-loading">Loading artist information...</p>';
-            imageDiv.innerHTML = '';
             
             console.log('[Basitune] Fetching AI info for:', artist);
             
@@ -273,24 +281,52 @@
         }
     }
     
-    // Fetch lyrics from AI via Tauri
+    // Fetch song context from AI via Tauri
+    async function fetchSongContext(title, artist) {
+        try {
+            const contextDiv = document.getElementById('basitune-song-context');
+            
+            contextDiv.innerHTML = '<p class="basitune-loading">Loading song context...</p>';
+            
+            console.log('[Basitune] Fetching AI song context for:', title, '-', artist);
+            
+            // Call Tauri command
+            const context = await window.__TAURI__.core.invoke('get_song_context', { title, artist });
+            
+            console.log('[Basitune] Received AI song context');
+            
+            // Display song context
+            contextDiv.innerHTML = `
+                <h5>About "${title}"</h5>
+                <p>${context}</p>
+            `;
+            
+            console.log('[Basitune] Loaded AI song context');
+        } catch (error) {
+            console.error('[Basitune] Error fetching song context:', error);
+            const contextDiv = document.getElementById('basitune-song-context');
+            contextDiv.innerHTML = '';
+        }
+    }
+    
+    // Fetch lyrics from Genius via Tauri
     async function fetchLyrics(title, artist) {
         try {
             const lyricsDiv = document.getElementById('basitune-lyrics-content');
             
             lyricsDiv.innerHTML = '<p class="basitune-loading">Loading lyrics...</p>';
             
-            console.log('[Basitune] Fetching AI lyrics for:', title, '-', artist);
+            console.log('[Basitune] Fetching lyrics for:', title, '-', artist);
             
-            // Call Tauri command - now returns plain text
+            // Call Tauri command - scrapes from Genius
             const lyrics = await window.__TAURI__.core.invoke('get_lyrics', { title, artist });
             
-            console.log('[Basitune] Received AI lyrics');
+            console.log('[Basitune] Received lyrics');
             
             // Display lyrics
             lyricsDiv.textContent = lyrics;
             
-            console.log('[Basitune] Loaded AI lyrics for:', title);
+            console.log('[Basitune] Loaded lyrics for:', title);
         } catch (error) {
             console.error('[Basitune] Error fetching lyrics:', error);
             const lyricsDiv = document.getElementById('basitune-lyrics-content');
@@ -315,9 +351,10 @@
                     fetchArtistInfo(currentArtist);
                 }
                 
-                // Update lyrics if title changed
+                // Update song context and lyrics if title changed
                 if (songInfo.title !== currentTitle) {
                     currentTitle = songInfo.title;
+                    fetchSongContext(currentTitle, currentArtist);
                     fetchLyrics(currentTitle, currentArtist);
                 }
             }
