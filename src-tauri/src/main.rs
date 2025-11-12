@@ -62,7 +62,7 @@ impl Default for WindowState {
     }
 }
 
-async fn call_openai(prompt: String) -> Result<String, String> {
+async fn call_openai(prompt: String, max_tokens: u32) -> Result<String, String> {
     let api_key = std::env::var("OPENAI_API_KEY")
         .map_err(|_| "OPENAI_API_KEY environment variable not set".to_string())?;
     
@@ -72,7 +72,7 @@ async fn call_openai(prompt: String) -> Result<String, String> {
             role: "user".to_string(),
             content: prompt,
         }],
-        max_tokens: 500,
+        max_tokens,
         temperature: 0.7,
     };
     
@@ -117,19 +117,19 @@ async fn get_artist_info(artist: String) -> Result<String, String> {
         artist
     );
     
-    call_openai(prompt).await
+    call_openai(prompt, 500).await
 }
 
 #[tauri::command]
 async fn get_song_context(title: String, artist: String) -> Result<String, String> {
-    println!("[Basitune] Fetching AI song context for: {} - {}", artist, title);
+    println!("[Basitune] Fetching AI song context for: {} - {}", title, artist);
     
     let prompt = format!(
-        "Provide a brief 2-3 sentence summary about the song '{}' by '{}'. Discuss its themes, meaning, or notable aspects. Keep it concise.",
+        "Provide a brief analysis of the song '{}' by {}. Focus on its themes, meaning, and musical significance. Keep it to 2-3 paragraphs.",
         title, artist
     );
     
-    call_openai(prompt).await
+    call_openai(prompt, 500).await
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -245,10 +245,14 @@ async fn get_lyrics(title: String, artist: String) -> Result<String, String> {
         .await
         .map_err(|e| format!("Failed to read HTML: {}", e))?;
     
-    extract_lyrics_from_html(&html)
+    // Extract raw lyrics first (sync operation)
+    let raw_lyrics = extract_raw_lyrics_from_html(&html)?;
+    
+    // Then clean with AI (async operation)
+    format_lyrics_with_ai(&raw_lyrics).await
 }
 
-fn extract_lyrics_from_html(html: &str) -> Result<String, String> {
+fn extract_raw_lyrics_from_html(html: &str) -> Result<String, String> {
     let document = Html::parse_document(html);
     
     // Genius uses data-lyrics-container attribute for lyrics containers
@@ -275,20 +279,27 @@ fn extract_lyrics_from_html(html: &str) -> Result<String, String> {
     let lyrics = lyrics.trim().to_string();
     
     if lyrics.is_empty() {
-        return Err("Could not extract lyrics from page".to_string());
-    }
-    
-    // Clean up the lyrics - remove common non-lyric content
-    let cleaned = clean_genius_lyrics(&lyrics);
-    
-    if cleaned.is_empty() {
-        Err("Could not extract clean lyrics from page".to_string())
+        Err("Could not extract lyrics from page".to_string())
     } else {
-        Ok(cleaned)
+        Ok(lyrics)
     }
 }
 
-fn clean_genius_lyrics(lyrics: &str) -> String {
+async fn format_lyrics_with_ai(raw_lyrics: &str) -> Result<String, String> {
+    let prompt = format!(
+        "Clean and format these song lyrics. Remove any non-lyric content like headers, footers, \
+        contributor names, 'Embed' text, navigation elements, or advertisements. Keep only the actual \
+        song lyrics with proper structure (verses, chorus, bridge, etc.). Preserve line breaks and spacing \
+        that are part of the song structure. Return ONLY the cleaned lyrics, nothing else.\n\n{}",
+        raw_lyrics
+    );
+    
+    call_openai(prompt, 500).await
+}
+
+#[allow(dead_code)]
+fn _clean_genius_lyrics_old(lyrics: &str) -> String {
+    // Old regex-based cleaning - kept for reference
     let mut lines: Vec<&str> = lyrics.lines().collect();
     
     // Remove common Genius page elements from the beginning
