@@ -19,7 +19,8 @@ if [ ! -f "src-tauri/target/release/basitune" ]; then
     echo "📦 Building Tauri application..."
     npm run build
 else
-    echo "✓ Using existing Tauri binary"
+    echo "🔨 Rebuilding Tauri application..."
+    cd src-tauri && cargo build --release && cd ..
 fi
 
 # Generate icon
