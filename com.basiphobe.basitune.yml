@@ -23,6 +23,18 @@ finish-args:
   
   # Persist user data
   - --persist=.local/share/com.basiphobe.basitune
+  
+  # WebView needs
+  - --filesystem=xdg-download
+  - --filesystem=xdg-run/dconf
+  - --filesystem=~/.config/dconf:ro
+  - --talk-name=ca.desrt.dconf
+  - --env=DCONF_USER_CONFIG_DIR=.config/dconf
+  - --talk-name=org.freedesktop.Notifications
+  - --own-name=org.mpris.MediaPlayer2.basitune
+  
+  # Allow subprocess spawning (needed for WebView)
+  - --allow=devel
 
 modules:
   - name: basitune
