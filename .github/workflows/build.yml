@@ -85,10 +85,13 @@ jobs:
           convert icon.svg -resize 128x128 icon.png
           
           # Add Flathub repo for dependencies
-          flatpak remote-add --if-not-exists --user flathub https://dl.flathub.org/repo/flathub.flatpakrepo
+          sudo flatpak remote-add --if-not-exists flathub https://dl.flathub.org/repo/flathub.flatpakrepo
+          
+          # Install required runtime and SDK
+          sudo flatpak install -y flathub org.freedesktop.Platform//24.08 org.freedesktop.Sdk//24.08
           
           # Build Flatpak
-          flatpak-builder --repo=repo --force-clean --install-deps-from=flathub \
+          flatpak-builder --repo=repo --force-clean \
             --disable-rofiles-fuse build-flatpak com.basiphobe.basitune.yml
           
           # Create single-file bundle
