@@ -19,7 +19,7 @@ Basitune is a minimal desktop application that provides a dedicated window for Y
 - **Persistent login**: Your Google/YouTube Music login persists across app restarts
 - **Volume normalization**: Automatically adjusts audio levels for consistent playback across songs
 - **Lyrics display**: Shows real-time lyrics from Genius for the currently playing song
-- **Artist info sidebar**: Displays Wikipedia artist information with bio and image while playing
+- **Artist info sidebar**: AI-generated artist information and song context with OpenAI integration
 - **Window state memory**: Remembers window size, position, and maximized state
 - **Single instance**: Only one app instance can run at a time - launching again focuses existing window
 - **Lightweight**: Uses the system's native webview instead of bundling a browser
@@ -78,13 +78,21 @@ To build and run Basitune, you need:
 
 ## Installation & Development
 
-### Important Notes
+### Install Dependencies
 
-**For fish shell users:** After installing Rust, you need to add Cargo to your PATH manually:
-```fish
-set -gx PATH $HOME/.cargo/bin $PATH
+```bash
+npm install
 ```
-Add this to your `~/.config/fish/config.fish` to make it permanent.
+
+### Environment Setup
+
+**Required:** Set your OpenAI API key for AI-powered artist/song context:
+
+```bash
+export OPENAI_API_KEY="your-key-here"
+```
+
+Add to `~/.bashrc` or `~/.config/fish/config.fish` to make it permanent.
 
 ### Install Dependencies
 
@@ -103,7 +111,7 @@ This generates all required icon files from the included `icon.svg`. You can rep
 ### Run in Development Mode
 
 ```bash
-npm run dev
+OPENAI_API_KEY=$OPENAI_API_KEY npm run dev
 ```
 
 This will start the application in development mode with hot-reload enabled.
@@ -138,9 +146,9 @@ Basitune/
 
 Basitune uses Tauri's built-in persistent data storage. When you log into YouTube Music, your cookies and session data are automatically saved to platform-specific locations:
 
-- **Linux**: `~/.local/share/com.basitune.app`
-- **macOS**: `~/Library/Application Support/com.basitune.app`
-- **Windows**: `%APPDATA%\com.basitune.app`
+- **Linux**: `~/.local/share/com.basiphobe.basitune`
+- **macOS**: `~/Library/Application Support/com.basiphobe.basitune`
+- **Windows**: `%APPDATA%\com.basiphobe.basitune`
 
 This means you stay logged in between app restarts without any special configuration.
 
@@ -153,7 +161,7 @@ The application loads `https://music.youtube.com` directly in a webview. It allo
 Key settings are in `src-tauri/tauri.conf.json`:
 
 - **Window size**: Default 1200x800, minimum 800x600
-- **App identifier**: `com.basitune.app` (used for data storage paths)
+- **App identifier**: `com.basiphobe.basitune` (used for data storage paths)
 - **Title**: "Basitune"
 
 ### Volume Normalization
@@ -168,27 +176,33 @@ basitune.getStatus()             // Check current settings
 
 ### Window State
 
-Window size, position, and maximized state are automatically saved to `~/.local/share/com.basitune.app/window-state.json` (Linux) and restored on startup.
+Window size, position, and maximized state are automatically saved to `~/.local/share/com.basiphobe.basitune/window-state.json` (Linux) and restored on startup.
 
-### Artist Info Sidebar
+### Artist Info & Lyrics Sidebar
 
-A collapsible sidebar on the right displays Wikipedia information for the currently playing artist:
-- Automatically fetches artist bio and image from Wikipedia
-- Tries "(band)" and "(musician)" disambiguation for better results
-- Toggle visibility by clicking the × button
-- Adjusts main content width smoothly when shown/hidden
+A collapsible sidebar on the right with two tabs:
+
+**Artist Tab:**
+- AI-generated artist biography (powered by OpenAI GPT-4o-mini)
+- Song context: themes, meaning, and musical analysis
+- Automatically updates when songs change
+
+**Lyrics Tab:**
+- Real-time lyrics from Genius API
+- Clean formatting with smart matching
+- Synced to currently playing track
+
+Toggle sidebar visibility by clicking the × button.
 
 ## Future Enhancements
 
-Possible future features include:
+Possible future features:
 
-- Lyrics display in sidebar
-- System tray integration (minimize to tray, show/hide)
+- System tray integration (minimize to tray)
 - Global media key support (Play/Pause, Next, Previous)
-- Start minimized option
+- Offline lyrics caching
 - Custom keyboard shortcuts
-- Sidebar tabs for different info (discography, similar artists)
-- Optional configuration file for user preferences
+- User preference configuration file
 
 ## Troubleshooting
 
@@ -205,9 +219,16 @@ These plugins provide the H.264, VP8/VP9, AAC, and Opus codecs that YouTube Musi
 
 After installing, restart the app with `npm run dev`.
 
+### Sidebar not showing content
+
+- Ensure `OPENAI_API_KEY` environment variable is set
+- Check console for API errors: right-click → Inspect Element
+- Genius API credentials are embedded (should work automatically)
+
 ### Login doesn't persist
+
 - Check that the app has write permissions to its data directory
-- On Linux: `~/.local/share/com.basitune.app`
+- On Linux: `~/.local/share/com.basiphobe.basitune`
 - Try clearing the data directory and logging in again
 
 ### App won't start
