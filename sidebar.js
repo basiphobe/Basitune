@@ -453,7 +453,8 @@
     async function restoreSidebarState() {
         try {
             const visible = await window.__TAURI__.core.invoke('get_sidebar_visible');
-            console.log('[Basitune] Restored sidebar visibility:', visible);
+            console.log('[Basitune] Restored sidebar visibility from state:', visible);
+            console.log('[Basitune] Current sidebar visibility before restore:', sidebarVisible);
             
             const sidebar = document.getElementById('basitune-sidebar');
             const reopenBtn = document.getElementById('basitune-reopen');
@@ -462,10 +463,12 @@
             sidebarVisible = visible;
             
             if (sidebarVisible) {
+                console.log('[Basitune] Showing sidebar');
                 sidebar.classList.remove('hidden');
                 reopenBtn.classList.remove('visible');
                 ytmusicApp.classList.remove('sidebar-hidden');
             } else {
+                console.log('[Basitune] Hiding sidebar');
                 sidebar.classList.add('hidden');
                 reopenBtn.classList.add('visible');
                 ytmusicApp.classList.add('sidebar-hidden');
