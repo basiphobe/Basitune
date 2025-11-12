@@ -4,6 +4,7 @@ runtime-version: '48'
 sdk: org.gnome.Sdk
 sdk-extensions:
   - org.freedesktop.Sdk.Extension.rust-stable
+  - org.freedesktop.Sdk.Extension.llvm18
 command: basitune
 
 finish-args:
@@ -18,8 +19,9 @@ finish-args:
   # Network access (for YouTube Music)
   - --share=network
   
-  # GPU acceleration
-  - --device=all
+  # GPU acceleration - full access
+  - --device=dri
+  - --socket=fallback-x11
   
   # Persist user data
   - --persist=.local/share/com.basiphobe.basitune
@@ -39,10 +41,6 @@ finish-args:
   # WebKit sandbox needs access to /tmp and shared memory
   - --filesystem=/tmp
   - --device=shm
-  
-  # Force software rendering to avoid GPU buffer issues
-  - --env=WEBKIT_DISABLE_COMPOSITING_MODE=1
-  - --env=WEBKIT_DISABLE_DMABUF_RENDERER=1
 
 modules:
   - name: basitune
