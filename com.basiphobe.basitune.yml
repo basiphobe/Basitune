@@ -39,6 +39,10 @@ finish-args:
   # WebKit sandbox needs access to /tmp and shared memory
   - --filesystem=/tmp
   - --device=shm
+  
+  # Force software rendering to avoid GPU buffer issues
+  - --env=WEBKIT_DISABLE_COMPOSITING_MODE=1
+  - --env=WEBKIT_DISABLE_DMABUF_RENDERER=1
 
 modules:
   - name: basitune
