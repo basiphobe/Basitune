@@ -33,11 +33,11 @@ fi
 # Build Flatpak
 echo "📦 Building Flatpak..."
 flatpak-builder --force-clean --user --install-deps-from=flathub \
-    build-dir com.basiphobe.basitune.yml
+    --disable-rofiles-fuse build-dir com.basiphobe.basitune.yml
 
 # Install locally
 echo "📦 Installing Flatpak locally..."
-flatpak-builder --user --install --force-clean \
+flatpak-builder --user --install --force-clean --disable-rofiles-fuse \
     build-dir com.basiphobe.basitune.yml
 
 echo ""
