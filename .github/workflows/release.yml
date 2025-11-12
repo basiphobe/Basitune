@@ -133,18 +133,6 @@ jobs:
               });
             }
             
-            // Upload .AppImage
-            const appimageFiles = fs.readdirSync(path.join(bundleDir, 'appimage'));
-            for (const file of appimageFiles.filter(f => f.endsWith('.AppImage'))) {
-              await github.rest.repos.uploadReleaseAsset({
-                owner: context.repo.owner,
-                repo: context.repo.repo,
-                release_id: releaseId,
-                name: file,
-                data: fs.readFileSync(path.join(bundleDir, 'appimage', file))
-              });
-            }
-            
             // Upload .rpm
             const rpmFiles = fs.readdirSync(path.join(bundleDir, 'rpm'));
             for (const file of rpmFiles.filter(f => f.endsWith('.rpm'))) {

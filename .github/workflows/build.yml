@@ -85,7 +85,6 @@ jobs:
           name: basitune-linux-x86_64
           path: |
             src-tauri/target/release/bundle/deb/*.deb
-            src-tauri/target/release/bundle/appimage/*.AppImage
             src-tauri/target/release/bundle/rpm/*.rpm
 
       - name: Upload artifacts (macOS)
