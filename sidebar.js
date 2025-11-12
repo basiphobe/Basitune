@@ -455,23 +455,20 @@
             const visible = await window.__TAURI__.core.invoke('get_sidebar_visible');
             console.log('[Basitune] Restored sidebar visibility:', visible);
             
-            if (visible !== sidebarVisible) {
-                // State differs from default, toggle it
-                const sidebar = document.getElementById('basitune-sidebar');
-                const reopenBtn = document.getElementById('basitune-reopen');
-                const ytmusicApp = document.querySelector('ytmusic-app');
-                
-                sidebarVisible = visible;
-                
-                if (sidebarVisible) {
-                    sidebar.classList.remove('hidden');
-                    reopenBtn.classList.remove('visible');
-                    ytmusicApp.classList.remove('sidebar-hidden');
-                } else {
-                    sidebar.classList.add('hidden');
-                    reopenBtn.classList.add('visible');
-                    ytmusicApp.classList.add('sidebar-hidden');
-                }
+            const sidebar = document.getElementById('basitune-sidebar');
+            const reopenBtn = document.getElementById('basitune-reopen');
+            const ytmusicApp = document.querySelector('ytmusic-app');
+            
+            sidebarVisible = visible;
+            
+            if (sidebarVisible) {
+                sidebar.classList.remove('hidden');
+                reopenBtn.classList.remove('visible');
+                ytmusicApp.classList.remove('sidebar-hidden');
+            } else {
+                sidebar.classList.add('hidden');
+                reopenBtn.classList.add('visible');
+                ytmusicApp.classList.add('sidebar-hidden');
             }
         } catch (error) {
             console.error('[Basitune] Failed to restore sidebar state:', error);
