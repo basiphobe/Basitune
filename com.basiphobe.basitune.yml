@@ -19,7 +19,7 @@ finish-args:
   - --share=network
   
   # GPU acceleration
-  - --device=dri
+  - --device=all
   
   # Persist user data
   - --persist=.local/share/com.basiphobe.basitune
@@ -35,6 +35,10 @@ finish-args:
   
   # Allow subprocess spawning (needed for WebView)
   - --allow=devel
+  
+  # WebKit sandbox needs access to /tmp and shared memory
+  - --filesystem=/tmp
+  - --device=shm
 
 modules:
   - name: basitune
