@@ -186,6 +186,21 @@
         document.head.appendChild(style);
         document.body.appendChild(sidebar);
         
+        // Prevent scroll bleed-through to main page
+        const sidebarContent = document.getElementById('basitune-sidebar-content');
+        sidebarContent.addEventListener('wheel', (e) => {
+            const atTop = sidebarContent.scrollTop === 0;
+            const atBottom = sidebarContent.scrollTop + sidebarContent.clientHeight >= sidebarContent.scrollHeight;
+            
+            // Prevent scrolling main page when at boundaries
+            if ((atTop && e.deltaY < 0) || (atBottom && e.deltaY > 0)) {
+                e.preventDefault();
+            }
+            
+            // Always stop propagation to keep scroll in sidebar
+            e.stopPropagation();
+        }, { passive: false });
+        
         // Toggle button functionality
         document.getElementById('basitune-toggle').addEventListener('click', toggleSidebar);
         
