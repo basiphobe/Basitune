@@ -88,7 +88,7 @@ jobs:
           sudo flatpak remote-add --if-not-exists flathub https://dl.flathub.org/repo/flathub.flatpakrepo
           
           # Install required runtime and SDK (GNOME includes WebKit)
-          sudo flatpak install -y flathub org.gnome.Platform//47 org.gnome.Sdk//47
+          sudo flatpak install -y flathub org.gnome.Platform//48 org.gnome.Sdk//48
           
           # Build Flatpak
           flatpak-builder --repo=repo --force-clean \
