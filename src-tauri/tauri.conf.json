@@ -2,11 +2,11 @@
   "$schema": "https://schema.tauri.app/config/2.0",
   "productName": "Basitune",
   "version": "0.1.0",
-  "identifier": "com.basitune.app",
+  "identifier": "com.basiphobe.basitune",
   "build": {
     "beforeDevCommand": "",
     "beforeBuildCommand": "",
-    "frontendDist": "../"
+    "frontendDist": "../dist"
   },
   "bundle": {
     "active": true,
