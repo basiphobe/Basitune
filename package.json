@@ -6,6 +6,8 @@
   "scripts": {
     "dev": "tauri dev",
     "build": "tauri build",
+    "build:all": "npm run build && npm run build:flatpak",
+    "build:flatpak": "./build-flatpak.sh",
     "build:fast": "cd src-tauri && cargo build --profile release-fast",
     "build:optimized": "npm run build",
     "tauri": "tauri",
