@@ -46,7 +46,8 @@ jobs:
         if: matrix.platform == 'ubuntu-latest'
         run: |
           sudo apt-get update
-          sudo apt-get install -y libwebkit2gtk-4.1-dev \
+          sudo apt-get install -y \
+            libwebkit2gtk-4.1-dev \
             build-essential \
             curl \
             wget \
@@ -54,8 +55,7 @@ jobs:
             libxdo-dev \
             libssl-dev \
             libayatana-appindicator3-dev \
-            librsvg2-dev \
-            flatpak-builder \
+            librsvg2-dev
             imagemagick
 
       - name: Install dependencies (macOS)
@@ -78,25 +78,6 @@ jobs:
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY || 'sk-dummy-key-for-ci-build' }}
           TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
 
-      - name: Build Flatpak (Linux)
-        if: matrix.platform == 'ubuntu-latest'
-        run: |
-          # Generate icon for Flatpak
-          convert icon.svg -resize 128x128 icon.png
-          
-          # Add Flathub repo for dependencies
-          sudo flatpak remote-add --if-not-exists flathub https://dl.flathub.org/repo/flathub.flatpakrepo
-          
-          # Install required runtime and SDK (GNOME includes WebKit)
-          sudo flatpak install -y flathub org.gnome.Platform//48 org.gnome.Sdk//48
-          
-          # Build Flatpak
-          flatpak-builder --repo=repo --force-clean \
-            --disable-rofiles-fuse build-flatpak com.basiphobe.basitune.yml
-          
-          # Create single-file bundle
-          flatpak build-bundle repo basitune.flatpak com.basiphobe.basitune
-
       - name: Upload artifacts (Linux)
         if: matrix.platform == 'ubuntu-latest'
         uses: actions/upload-artifact@v4
@@ -106,7 +87,6 @@ jobs:
             src-tauri/target/release/bundle/deb/*.deb
             src-tauri/target/release/bundle/appimage/*.AppImage
             src-tauri/target/release/bundle/rpm/*.rpm
-            basitune.flatpak
 
       - name: Upload artifacts (macOS)
         if: matrix.platform == 'macos-latest'
