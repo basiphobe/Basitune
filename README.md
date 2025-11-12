@@ -18,7 +18,9 @@ Basitune is a minimal desktop application that provides a dedicated window for Y
 - **Single-purpose window**: Opens YouTube Music in a dedicated application window
 - **Persistent login**: Your Google/YouTube Music login persists across app restarts
 - **Volume normalization**: Automatically adjusts audio levels for consistent playback across songs
+- **Artist info sidebar**: Displays Wikipedia artist information with bio and image while playing
 - **Window state memory**: Remembers window size, position, and maximized state
+- **Single instance**: Only one app instance can run at a time - launching again focuses existing window
 - **Lightweight**: Uses the system's native webview instead of bundling a browser
 - **Cross-platform**: Runs on Linux, Windows, and macOS
 - **Simple and clean**: No unnecessary features, just YouTube Music in a desktop app
@@ -167,14 +169,24 @@ basitune.getStatus()             // Check current settings
 
 Window size, position, and maximized state are automatically saved to `~/.local/share/com.basitune.app/window-state.json` (Linux) and restored on startup.
 
+### Artist Info Sidebar
+
+A collapsible sidebar on the right displays Wikipedia information for the currently playing artist:
+- Automatically fetches artist bio and image from Wikipedia
+- Tries "(band)" and "(musician)" disambiguation for better results
+- Toggle visibility by clicking the × button
+- Adjusts main content width smoothly when shown/hidden
+
 ## Future Enhancements
 
 Possible future features include:
 
+- Lyrics display in sidebar
 - System tray integration (minimize to tray, show/hide)
 - Global media key support (Play/Pause, Next, Previous)
 - Start minimized option
 - Custom keyboard shortcuts
+- Sidebar tabs for different info (discography, similar artists)
 - Optional configuration file for user preferences
 
 ## Troubleshooting

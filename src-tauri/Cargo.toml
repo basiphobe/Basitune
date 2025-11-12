@@ -17,6 +17,10 @@ tauri = { version = "2.0", features = ["devtools"] }
 tauri-plugin-shell = "2.0"
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
+reqwest = { version = "0.12", features = ["json"] }
+tokio = { version = "1", features = ["full"] }
+urlencoding = "2.1"
+tauri-plugin-single-instance = "2.3.6"
 
 [profile.release]
 panic = "abort"
@@ -24,3 +28,9 @@ codegen-units = 1
 lto = true
 opt-level = "s"
 strip = true
+
+# Faster release build (use with: cargo build --profile release-fast)
+[profile.release-fast]
+inherits = "release"
+lto = "thin"        # Much faster than full LTO, still good optimization
+codegen-units = 16  # Parallel compilation

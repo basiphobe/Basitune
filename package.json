@@ -6,6 +6,8 @@
   "scripts": {
     "dev": "tauri dev",
     "build": "tauri build",
+    "build:fast": "cd src-tauri && cargo build --profile release-fast",
+    "build:optimized": "npm run build",
     "tauri": "tauri",
     "icon": "tauri icon icon.svg"
   },

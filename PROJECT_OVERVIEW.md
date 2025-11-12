@@ -128,7 +128,9 @@ npm run build
 **Features implemented:**
 - **Volume Normalization**: Injects JavaScript to normalize audio levels to -14 LUFS
 - **Window State Persistence**: Saves and restores window size, position, and maximized state
-- **Automatic Script Injection**: Loads normalization script 3 seconds after app starts
+- **Artist Info Sidebar**: Displays Wikipedia artist bio and image for currently playing song
+- **Single Instance Lock**: Prevents multiple app instances, focuses existing window
+- **Automatic Script Injection**: Loads normalization and sidebar scripts 3 seconds after app starts
 
 #### `volume-normalizer.js`
 ```javascript
@@ -138,6 +140,16 @@ npm run build
 // - Smooth gain adjustments (0.1x - 3x range)
 // - Configurable target volume (-14 LUFS default)
 // - Browser console API for control
+```
+
+#### `sidebar.js`
+```javascript
+// Artist info sidebar
+// - Monitors current song via MutationObserver
+// - Fetches Wikipedia data via Tauri backend
+// - Collapsible UI with toggle button
+// - Auto-adjusts YouTube Music content width
+// - Displays artist bio and thumbnail image
 ```
 
 #### `src-tauri/src/lib.rs`

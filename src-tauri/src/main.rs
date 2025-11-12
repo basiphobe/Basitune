@@ -10,6 +10,9 @@ use std::time::Duration;
 // Volume normalization script
 const VOLUME_NORMALIZER_SCRIPT: &str = include_str!("../../volume-normalizer.js");
 
+// Artist info sidebar script
+const SIDEBAR_SCRIPT: &str = include_str!("../../sidebar.js");
+
 #[derive(Debug, Serialize, Deserialize)]
 struct WindowState {
     width: u32,
@@ -17,6 +20,17 @@ struct WindowState {
     x: i32,
     y: i32,
     maximized: bool,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+struct WikipediaResponse {
+    extract: String,
+    thumbnail: Option<WikipediaThumbnail>,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+struct WikipediaThumbnail {
+    source: String,
 }
 
 impl Default for WindowState {
@@ -29,6 +43,86 @@ impl Default for WindowState {
             maximized: false,
         }
     }
+}
+
+#[tauri::command]
+async fn get_artist_info(artist: String) -> Result<WikipediaResponse, String> {
+    println!("[Basitune] Fetching Wikipedia info for: {}", artist);
+    
+    // First try with "(band)" appended
+    let band_result = try_fetch_wikipedia(&format!("{} (band)", artist)).await;
+    
+    if let Ok(response) = band_result {
+        if !response.extract.contains("refer to:") && !response.extract.contains("may also refer to") {
+            println!("[Basitune] Found band-specific page");
+            return Ok(response);
+        }
+    }
+    
+    // If that fails or is a disambiguation, try with "(musician)"
+    let musician_result = try_fetch_wikipedia(&format!("{} (musician)", artist)).await;
+    
+    if let Ok(response) = musician_result {
+        if !response.extract.contains("refer to:") && !response.extract.contains("may also refer to") {
+            println!("[Basitune] Found musician-specific page");
+            return Ok(response);
+        }
+    }
+    
+    // Fall back to exact artist name
+    println!("[Basitune] Trying exact artist name");
+    try_fetch_wikipedia(&artist).await
+}
+
+async fn try_fetch_wikipedia(search_term: &str) -> Result<WikipediaResponse, String> {
+    let url = format!(
+        "https://en.wikipedia.org/api/rest_v1/page/summary/{}",
+        urlencoding::encode(search_term)
+    );
+    
+    println!("[Basitune] Wikipedia URL: {}", url);
+    
+    let client = reqwest::Client::builder()
+        .user_agent("Basitune/0.1.0 (https://github.com/basiphobe/Basitune)")
+        .timeout(std::time::Duration::from_secs(10))
+        .build()
+        .map_err(|e| e.to_string())?;
+    
+    let response = client
+        .get(&url)
+        .send()
+        .await
+        .map_err(|e| format!("Request failed: {}", e))?;
+    
+    let status = response.status();
+    println!("[Basitune] Wikipedia response status: {}", status);
+    
+    if !status.is_success() {
+        if status.as_u16() == 404 {
+            return Err("Not found".to_string());
+        }
+        return Err(format!("Wikipedia API returned status: {}", status));
+    }
+    
+    let json: serde_json::Value = response
+        .json()
+        .await
+        .map_err(|e| format!("Failed to parse JSON: {}", e))?;
+    
+    println!("[Basitune] Received JSON response");
+    
+    let extract = json["extract"]
+        .as_str()
+        .unwrap_or("No information available.")
+        .to_string();
+    
+    let thumbnail = json["thumbnail"]["source"]
+        .as_str()
+        .map(|s| WikipediaThumbnail {
+            source: s.to_string(),
+        });
+    
+    Ok(WikipediaResponse { extract, thumbnail })
 }
 
 fn get_state_path(app_handle: &tauri::AppHandle) -> PathBuf {
@@ -67,6 +161,16 @@ fn save_window_state(app_handle: &tauri::AppHandle, state: &WindowState) {
 fn main() {
     tauri::Builder::default()
         .plugin(tauri_plugin_shell::init())
+        .plugin(tauri_plugin_single_instance::init(|app, _args, _cwd| {
+            // When a second instance is attempted, focus the existing window
+            let windows = app.webview_windows();
+            if let Some(window) = windows.values().next() {
+                let _ = window.set_focus();
+                let _ = window.unminimize();
+                println!("[Basitune] Focused existing instance");
+            }
+        }))
+        .invoke_handler(tauri::generate_handler![get_artist_info])
         .setup(|app| {
             // Get the main window
             let window = app.get_webview_window("main").expect("Failed to get main window");
@@ -123,11 +227,15 @@ fn main() {
             // Clone window for async operations
             let window_clone = window.clone();
             
-            // Inject volume normalization script after a delay to ensure page is loaded
+            // Inject scripts after a delay to ensure page is loaded
             std::thread::spawn(move || {
                 std::thread::sleep(Duration::from_secs(3));
                 let _ = window_clone.eval(VOLUME_NORMALIZER_SCRIPT);
                 println!("[Basitune] Volume normalization injected");
+                
+                // Inject sidebar script
+                let _ = window_clone.eval(SIDEBAR_SCRIPT);
+                println!("[Basitune] Sidebar injected");
             });
             
             // Tauri automatically uses a persistent data directory for webviews
