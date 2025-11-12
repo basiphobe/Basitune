@@ -23,10 +23,10 @@
             </div>
             <div id="basitune-sidebar-content">
                 <div id="basitune-artist-tab" class="basitune-tab-content active">
+                    <div id="basitune-song-context">
+                    </div>
                     <div id="basitune-artist-bio">
                         <p class="basitune-placeholder">Play a song to see artist information</p>
-                    </div>
-                    <div id="basitune-song-context">
                     </div>
                 </div>
                 <div id="basitune-lyrics-tab" class="basitune-tab-content">
