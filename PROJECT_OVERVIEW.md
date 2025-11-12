@@ -118,9 +118,26 @@ npm run build
 ```rust
 // Application entry point
 // - Initializes Tauri builder
-// - Sets up main window
+// - Sets up main window with saved state
+// - Implements volume normalization injection
+// - Saves/restores window size and position
 // - Configures window title
 // - Comments explain persistent storage
+```
+
+**Features implemented:**
+- **Volume Normalization**: Injects JavaScript to normalize audio levels to -14 LUFS
+- **Window State Persistence**: Saves and restores window size, position, and maximized state
+- **Automatic Script Injection**: Loads normalization script 3 seconds after app starts
+
+#### `volume-normalizer.js`
+```javascript
+// Volume normalization engine
+// - Real-time audio analysis using Web Audio API
+// - RMS to LUFS conversion
+// - Smooth gain adjustments (0.1x - 3x range)
+// - Configurable target volume (-14 LUFS default)
+// - Browser console API for control
 ```
 
 #### `src-tauri/src/lib.rs`

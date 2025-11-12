@@ -17,6 +17,8 @@ Basitune is a minimal desktop application that provides a dedicated window for Y
 
 - **Single-purpose window**: Opens YouTube Music in a dedicated application window
 - **Persistent login**: Your Google/YouTube Music login persists across app restarts
+- **Volume normalization**: Automatically adjusts audio levels for consistent playback across songs
+- **Window state memory**: Remembers window size, position, and maximized state
 - **Lightweight**: Uses the system's native webview instead of bundling a browser
 - **Cross-platform**: Runs on Linux, Windows, and macOS
 - **Simple and clean**: No unnecessary features, just YouTube Music in a desktop app
@@ -151,13 +153,26 @@ Key settings are in `src-tauri/tauri.conf.json`:
 - **App identifier**: `com.basitune.app` (used for data storage paths)
 - **Title**: "Basitune"
 
+### Volume Normalization
+
+Volume normalization is enabled by default and normalizes audio to -14 LUFS (standard for streaming services). To control it via the browser console:
+
+```javascript
+basitune.disableNormalization()  // Turn off
+basitune.enableNormalization()   // Turn on
+basitune.getStatus()             // Check current settings
+```
+
+### Window State
+
+Window size, position, and maximized state are automatically saved to `~/.local/share/com.basitune.app/window-state.json` (Linux) and restored on startup.
+
 ## Future Enhancements
 
 Possible future features include:
 
 - System tray integration (minimize to tray, show/hide)
 - Global media key support (Play/Pause, Next, Previous)
-- Remember window size and position
 - Start minimized option
 - Custom keyboard shortcuts
 - Optional configuration file for user preferences
