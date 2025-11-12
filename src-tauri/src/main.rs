@@ -353,11 +353,14 @@ fn load_window_state(app_handle: &tauri::AppHandle) -> WindowState {
     let state_path = get_state_path(app_handle);
     
     if let Ok(contents) = fs::read_to_string(&state_path) {
-        if let Ok(state) = serde_json::from_str(&contents) {
+        if let Ok(state) = serde_json::from_str::<WindowState>(&contents) {
+            println!("[Basitune] Loaded window state: {}x{} at ({}, {}), maximized={}, sidebar_visible={}", 
+                     state.width, state.height, state.x, state.y, state.maximized, state.sidebar_visible);
             return state;
         }
     }
     
+    println!("[Basitune] Using default window state");
     WindowState::default()
 }
 
@@ -370,6 +373,8 @@ fn save_window_state(app_handle: &tauri::AppHandle, state: &WindowState) {
     }
     
     if let Ok(json) = serde_json::to_string_pretty(state) {
+        println!("[Basitune] Saving window state: {}x{} at ({}, {}), maximized={}, sidebar_visible={}", 
+                 state.width, state.height, state.x, state.y, state.maximized, state.sidebar_visible);
         let _ = fs::write(&state_path, json);
     }
 }
@@ -381,6 +386,7 @@ fn get_sidebar_visible(app: tauri::AppHandle) -> bool {
 
 #[tauri::command]
 fn set_sidebar_visible(app: tauri::AppHandle, visible: bool) {
+    println!("[Basitune] set_sidebar_visible called with: {}", visible);
     let mut state = load_window_state(&app);
     state.sidebar_visible = visible;
     save_window_state(&app, &state);
@@ -469,16 +475,18 @@ fn main() {
                         std::thread::spawn(move || {
                             std::thread::sleep(Duration::from_millis(500));
                             
-                            if let Ok(size) = window_inner.outer_size() {
+                            if let Ok(size) = window_inner.inner_size() {
                                 if let Ok(position) = window_inner.outer_position() {
                                     let is_maximized = window_inner.is_maximized().unwrap_or(false);
                                     
                                     let mut state = load_window_state(&app_handle_inner);
+                                    // Preserve sidebar_visible - only update geometry
                                     state.width = size.width;
                                     state.height = size.height;
                                     state.x = position.x;
                                     state.y = position.y;
                                     state.maximized = is_maximized;
+                                    // sidebar_visible is preserved from load_window_state
                                     
                                     save_window_state(&app_handle_inner, &state);
                                 }
