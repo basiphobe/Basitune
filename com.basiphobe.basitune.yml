@@ -4,41 +4,27 @@ runtime-version: '48'
 sdk: org.gnome.Sdk
 sdk-extensions:
   - org.freedesktop.Sdk.Extension.rust-stable
-  - org.freedesktop.Sdk.Extension.llvm18
 command: basitune
 
 finish-args:
-  # X11 and Wayland display access
+  # Display
   - --share=ipc
-  - --socket=x11
+  - --socket=fallback-x11
   - --socket=wayland
   
-  # Audio output
+  # Audio
   - --socket=pulseaudio
   
-  # Network access (for YouTube Music)
+  # Network
   - --share=network
   
-  # GPU acceleration - full access
+  # GPU
   - --device=dri
-  - --socket=fallback-x11
   
-  # Persist user data
+  # User data
   - --persist=.local/share/com.basiphobe.basitune
   
-  # WebView needs
-  - --filesystem=xdg-download
-  - --filesystem=xdg-run/dconf
-  - --filesystem=~/.config/dconf:ro
-  - --talk-name=ca.desrt.dconf
-  - --env=DCONF_USER_CONFIG_DIR=.config/dconf
-  - --talk-name=org.freedesktop.Notifications
-  - --own-name=org.mpris.MediaPlayer2.basitune
-  
-  # Allow subprocess spawning (needed for WebView)
-  - --allow=devel
-  
-  # WebKit sandbox needs access to /tmp and shared memory
+  # WebView essentials
   - --filesystem=/tmp
   - --device=shm
 
