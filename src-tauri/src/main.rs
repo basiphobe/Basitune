@@ -160,8 +160,19 @@ struct GeniusArtist {
 async fn get_lyrics(title: String, artist: String) -> Result<String, String> {
     println!("[Basitune] Fetching lyrics for: {} - {}", artist, title);
     
+    // Clean up title - remove extra info like (Acoustic), (Remastered), etc. for better matching
+    let clean_title = title
+        .replace("(Acoustic)", "")
+        .replace("(acoustic)", "")
+        .replace("(Remastered)", "")
+        .replace("(remastered)", "")
+        .replace("(Live)", "")
+        .replace("(live)", "")
+        .trim()
+        .to_string();
+    
     // Search Genius API for the song
-    let search_query = format!("{} {}", artist, title);
+    let search_query = format!("{} {}", artist, clean_title);
     let search_url = format!(
         "https://api.genius.com/search?q={}",
         urlencoding::encode(&search_query)
@@ -189,21 +200,39 @@ async fn get_lyrics(title: String, artist: String) -> Result<String, String> {
         .await
         .map_err(|e| format!("Failed to parse search results: {}", e))?;
     
-    // Get the first hit
-    let song_url = search_result
+    // Find best matching result
+    let best_match = search_result
         .response
         .hits
-        .first()
-        .ok_or("No results found")?
-        .result
-        .url
-        .clone();
+        .iter()
+        .find(|hit| {
+            // Check if artist name matches (case-insensitive, approximate)
+            let result_artist = hit.result.primary_artist.name.to_lowercase();
+            let search_artist = artist.to_lowercase();
+            
+            // Check if title matches (case-insensitive, approximate)
+            let result_title = hit.result.title.to_lowercase();
+            let search_title = clean_title.to_lowercase();
+            
+            // Artist must contain or match closely
+            let artist_match = result_artist.contains(&search_artist) || search_artist.contains(&result_artist);
+            
+            // Title must contain the main words (not just be mentioned in a playlist)
+            let title_match = result_title.contains(&search_title) || search_title.contains(&result_title);
+            
+            artist_match && title_match
+        })
+        .or_else(|| search_result.response.hits.first())
+        .ok_or("No results found")?;
     
-    println!("[Basitune] Found song URL: {}", song_url);
+    let song_url = &best_match.result.url;
+    
+    println!("[Basitune] Found song URL: {} (Artist: {}, Title: {})", 
+             song_url, best_match.result.primary_artist.name, best_match.result.title);
     
     // Scrape lyrics from the song page
     let lyrics_response = client
-        .get(&song_url)
+        .get(song_url.as_str())
         .send()
         .await
         .map_err(|e| format!("Failed to fetch lyrics page: {}", e))?;
