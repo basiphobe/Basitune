@@ -59,7 +59,7 @@ impl Default for WindowState {
             x: -1,
             y: -1,
             maximized: false,
-            sidebar_visible: true,
+            sidebar_visible: false,
         }
     }
 }

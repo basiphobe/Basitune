@@ -7,7 +7,7 @@
     
     let currentArtist = '';
     let currentTitle = '';
-    let sidebarVisible = true;
+    let sidebarVisible = false;
     let activeTab = 'artist'; // 'artist' or 'lyrics'
     
     // Create sidebar HTML
