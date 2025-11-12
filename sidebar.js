@@ -1,6 +1,6 @@
 // Artist Info Sidebar for YouTube Music
 // Monitors current song and displays artist bio from Wikipedia
-// Version: 1.1.0
+// Version: 1.2.0
 
 (function() {
     'use strict';
@@ -676,7 +676,7 @@
     
     // Initialize
     function init() {
-        console.log('[Basitune] Initializing sidebar v1.1.0');
+        console.log('[Basitune] Initializing sidebar v1.2.0');
         console.log('[Basitune] URL:', window.location.href);
         console.log('[Basitune] Ready state:', document.readyState);
         
