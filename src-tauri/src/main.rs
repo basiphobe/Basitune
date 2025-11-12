@@ -473,17 +473,29 @@ fn main() {
             
             // Inject scripts after a delay to ensure page is loaded
             std::thread::spawn(move || {
-                std::thread::sleep(Duration::from_secs(3));
-                
-                match window_clone.eval(VOLUME_NORMALIZER_SCRIPT) {
-                    Ok(_) => println!("[Basitune] Volume normalization injected successfully"),
-                    Err(e) => eprintln!("[Basitune] Failed to inject volume normalizer: {}", e),
+                // Retry injection up to 10 times with 2-second intervals
+                for attempt in 1..=10 {
+                    std::thread::sleep(Duration::from_secs(2));
+                    
+                    // Try to inject volume normalizer
+                    if window_clone.eval(VOLUME_NORMALIZER_SCRIPT).is_ok() {
+                        println!("[Basitune] Volume normalization injected successfully (attempt {})", attempt);
+                        break;
+                    } else if attempt == 10 {
+                        eprintln!("[Basitune] Failed to inject volume normalizer after {} attempts", attempt);
+                    }
                 }
                 
-                // Inject sidebar script
-                match window_clone.eval(SIDEBAR_SCRIPT) {
-                    Ok(_) => println!("[Basitune] Sidebar injected successfully"),
-                    Err(e) => eprintln!("[Basitune] Failed to inject sidebar: {}", e),
+                // Retry sidebar injection separately
+                for attempt in 1..=10 {
+                    std::thread::sleep(Duration::from_secs(2));
+                    
+                    if window_clone.eval(SIDEBAR_SCRIPT).is_ok() {
+                        println!("[Basitune] Sidebar injected successfully (attempt {})", attempt);
+                        break;
+                    } else if attempt == 10 {
+                        eprintln!("[Basitune] Failed to inject sidebar after {} attempts", attempt);
+                    }
                 }
             });
             
