@@ -444,12 +444,17 @@ fn main() {
             // Inject scripts after a delay to ensure page is loaded
             std::thread::spawn(move || {
                 std::thread::sleep(Duration::from_secs(3));
-                let _ = window_clone.eval(VOLUME_NORMALIZER_SCRIPT);
-                println!("[Basitune] Volume normalization injected");
+                
+                match window_clone.eval(VOLUME_NORMALIZER_SCRIPT) {
+                    Ok(_) => println!("[Basitune] Volume normalization injected successfully"),
+                    Err(e) => eprintln!("[Basitune] Failed to inject volume normalizer: {}", e),
+                }
                 
                 // Inject sidebar script
-                let _ = window_clone.eval(SIDEBAR_SCRIPT);
-                println!("[Basitune] Sidebar injected");
+                match window_clone.eval(SIDEBAR_SCRIPT) {
+                    Ok(_) => println!("[Basitune] Sidebar injected successfully"),
+                    Err(e) => eprintln!("[Basitune] Failed to inject sidebar: {}", e),
+                }
             });
             
             // Tauri automatically uses a persistent data directory for webviews
