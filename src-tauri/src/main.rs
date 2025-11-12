@@ -492,6 +492,25 @@ fn main() {
                     
                     if window_clone.eval(SIDEBAR_SCRIPT).is_ok() {
                         println!("[Basitune] Sidebar injected successfully (attempt {})", attempt);
+                        
+                        // Verify sidebar was actually created
+                        std::thread::sleep(Duration::from_secs(2));
+                        let verify_script = r#"
+                            (function() {
+                                const sidebar = document.getElementById('basitune-sidebar');
+                                if (sidebar) {
+                                    return "Sidebar element found: " + sidebar.offsetWidth + "x" + sidebar.offsetHeight;
+                                } else {
+                                    return "ERROR: Sidebar element not found in DOM";
+                                }
+                            })()
+                        "#;
+                        
+                        match window_clone.eval(verify_script) {
+                            Ok(_) => println!("[Basitune] Sidebar verification check completed"),
+                            Err(e) => eprintln!("[Basitune] Sidebar verification failed: {}", e),
+                        }
+                        
                         break;
                     } else if attempt == 10 {
                         eprintln!("[Basitune] Failed to inject sidebar after {} attempts", attempt);

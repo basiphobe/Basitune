@@ -398,11 +398,25 @@
         }
         
         // Wait for YouTube Music to load
+        let attempts = 0;
         const checkYTMusic = setInterval(() => {
-            if (document.querySelector('ytmusic-app')) {
+            attempts++;
+            const ytmusicApp = document.querySelector('ytmusic-app');
+            if (ytmusicApp) {
                 clearInterval(checkYTMusic);
+                console.log('[Basitune] ytmusic-app found after', attempts, 'attempts');
                 createSidebar();
+                const sidebarElement = document.getElementById('basitune-sidebar');
+                if (sidebarElement) {
+                    console.log('[Basitune] Sidebar element created successfully');
+                    console.log('[Basitune] Sidebar dimensions:', sidebarElement.offsetWidth, 'x', sidebarElement.offsetHeight);
+                } else {
+                    console.error('[Basitune] Sidebar element not found after creation!');
+                }
                 monitorSongChanges();
+            } else if (attempts > 40) { // 20 seconds
+                clearInterval(checkYTMusic);
+                console.error('[Basitune] ytmusic-app not found after 20 seconds, giving up');
             }
         }, 500);
     }
