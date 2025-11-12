@@ -21,6 +21,7 @@ reqwest = { version = "0.12", features = ["json"] }
 tokio = { version = "1", features = ["full"] }
 urlencoding = "2.1"
 tauri-plugin-single-instance = "2.3.6"
+scraper = "0.24.0"
 
 [profile.release]
 panic = "abort"
@@ -30,7 +31,10 @@ opt-level = "s"
 strip = true
 
 # Faster release build (use with: cargo build --profile release-fast)
+# Much faster compile times, slightly larger binary
 [profile.release-fast]
 inherits = "release"
-lto = "thin"        # Much faster than full LTO, still good optimization
-codegen-units = 16  # Parallel compilation
+lto = false          # No LTO - this is what makes it slow
+codegen-units = 16   # Parallel compilation
+opt-level = 2        # Standard optimization (vs "s" for size)
+strip = false        # Don't strip symbols for faster linking

@@ -127,8 +127,9 @@ npm run build
 
 **Features implemented:**
 - **Volume Normalization**: Injects JavaScript to normalize audio levels to -14 LUFS
-- **Window State Persistence**: Saves and restores window size, position, and maximized state
+- **Lyrics Display**: Fetches and displays song lyrics from Genius API with real-time updates
 - **Artist Info Sidebar**: Displays Wikipedia artist bio and image for currently playing song
+- **Window State Persistence**: Saves and restores window size, position, and maximized state
 - **Single Instance Lock**: Prevents multiple app instances, focuses existing window
 - **Automatic Script Injection**: Loads normalization and sidebar scripts 3 seconds after app starts
 
@@ -144,12 +145,14 @@ npm run build
 
 #### `sidebar.js`
 ```javascript
-// Artist info sidebar
+// Artist info and lyrics sidebar
 // - Monitors current song via MutationObserver
 // - Fetches Wikipedia data via Tauri backend
+// - Fetches lyrics from Genius API
+// - Tabbed interface (Artist / Lyrics)
 // - Collapsible UI with toggle button
 // - Auto-adjusts YouTube Music content width
-// - Displays artist bio and thumbnail image
+// - Displays artist bio, thumbnail, and song lyrics
 ```
 
 #### `src-tauri/src/lib.rs`

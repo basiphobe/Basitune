@@ -18,6 +18,7 @@ Basitune is a minimal desktop application that provides a dedicated window for Y
 - **Single-purpose window**: Opens YouTube Music in a dedicated application window
 - **Persistent login**: Your Google/YouTube Music login persists across app restarts
 - **Volume normalization**: Automatically adjusts audio levels for consistent playback across songs
+- **Lyrics display**: Shows real-time lyrics from Genius for the currently playing song
 - **Artist info sidebar**: Displays Wikipedia artist information with bio and image while playing
 - **Window state memory**: Remembers window size, position, and maximized state
 - **Single instance**: Only one app instance can run at a time - launching again focuses existing window
