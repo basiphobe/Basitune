@@ -87,8 +87,8 @@ jobs:
           # Add Flathub repo for dependencies
           sudo flatpak remote-add --if-not-exists flathub https://dl.flathub.org/repo/flathub.flatpakrepo
           
-          # Install required runtime and SDK
-          sudo flatpak install -y flathub org.freedesktop.Platform//24.08 org.freedesktop.Sdk//24.08
+          # Install required runtime and SDK (GNOME includes WebKit)
+          sudo flatpak install -y flathub org.gnome.Platform//47 org.gnome.Sdk//47
           
           # Build Flatpak
           flatpak-builder --repo=repo --force-clean \
