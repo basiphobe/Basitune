@@ -40,19 +40,36 @@
         // Add styles
         const style = document.createElement('style');
         style.textContent = `
+            @keyframes basitune-pulse {
+                0%, 100% { opacity: 0.6; }
+                50% { opacity: 1; }
+            }
+            
+            @keyframes basitune-shimmer {
+                0% { background-position: -1000px 0; }
+                100% { background-position: 1000px 0; }
+            }
+            
+            @keyframes basitune-spin {
+                0% { transform: rotate(0deg); }
+                100% { transform: rotate(360deg); }
+            }
+            
             #basitune-sidebar {
                 position: fixed;
                 top: 0;
                 right: 0;
-                width: 350px;
+                width: 380px;
                 height: 100vh;
-                background: #030303;
-                border-left: 1px solid #333;
+                background: linear-gradient(135deg, #0a0a0a 0%, #121212 100%);
+                border-left: 1px solid rgba(255, 255, 255, 0.1);
+                box-shadow: -8px 0 24px rgba(0, 0, 0, 0.5);
                 z-index: 10000;
                 display: flex;
                 flex-direction: column;
-                transition: transform 0.3s ease;
+                transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
                 font-family: 'Roboto', sans-serif;
+                backdrop-filter: blur(20px);
             }
             
             #basitune-sidebar.hidden {
@@ -60,61 +77,91 @@
             }
             
             #basitune-sidebar-header {
-                padding: 16px;
-                background: #0a0a0a;
-                border-bottom: 1px solid #333;
+                padding: 20px;
+                background: linear-gradient(180deg, rgba(255, 255, 255, 0.05) 0%, transparent 100%);
+                border-bottom: 1px solid rgba(255, 255, 255, 0.1);
                 display: flex;
                 justify-content: space-between;
                 align-items: center;
+                backdrop-filter: blur(10px);
             }
             
             #basitune-tabs {
                 display: flex;
-                gap: 8px;
+                gap: 4px;
+                background: rgba(255, 255, 255, 0.05);
+                padding: 4px;
+                border-radius: 12px;
             }
             
             .basitune-tab {
                 background: none;
                 border: none;
-                color: #aaa;
-                font-size: 14px;
+                color: rgba(255, 255, 255, 0.6);
+                font-size: 13px;
                 font-weight: 500;
                 cursor: pointer;
-                padding: 8px 12px;
-                border-radius: 4px;
-                transition: all 0.2s;
+                padding: 8px 16px;
+                border-radius: 8px;
+                transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+                position: relative;
             }
             
             .basitune-tab:hover {
-                background: #1a1a1a;
-                color: #fff;
+                background: rgba(255, 255, 255, 0.1);
+                color: rgba(255, 255, 255, 0.9);
+                transform: translateY(-1px);
             }
             
             .basitune-tab.active {
-                background: #333;
+                background: linear-gradient(135deg, #ff0000 0%, #cc0000 100%);
                 color: #fff;
+                box-shadow: 0 2px 8px rgba(255, 0, 0, 0.3);
             }
             
             #basitune-toggle {
-                background: none;
+                background: rgba(255, 255, 255, 0.05);
                 border: none;
-                color: #aaa;
-                font-size: 24px;
+                color: rgba(255, 255, 255, 0.6);
+                font-size: 20px;
                 cursor: pointer;
-                padding: 0;
-                width: 24px;
-                height: 24px;
-                line-height: 20px;
+                padding: 8px;
+                width: 32px;
+                height: 32px;
+                line-height: 16px;
+                border-radius: 8px;
+                transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
             }
             
             #basitune-toggle:hover {
+                background: rgba(255, 255, 255, 0.1);
                 color: #fff;
+                transform: scale(1.1);
             }
             
             #basitune-sidebar-content {
                 flex: 1;
                 overflow-y: auto;
-                padding: 16px;
+                padding: 20px;
+                scrollbar-width: thin;
+                scrollbar-color: rgba(255, 255, 255, 0.2) transparent;
+            }
+            
+            #basitune-sidebar-content::-webkit-scrollbar {
+                width: 8px;
+            }
+            
+            #basitune-sidebar-content::-webkit-scrollbar-track {
+                background: transparent;
+            }
+            
+            #basitune-sidebar-content::-webkit-scrollbar-thumb {
+                background: rgba(255, 255, 255, 0.2);
+                border-radius: 4px;
+            }
+            
+            #basitune-sidebar-content::-webkit-scrollbar-thumb:hover {
+                background: rgba(255, 255, 255, 0.3);
             }
             
             .basitune-tab-content {
@@ -123,59 +170,174 @@
             
             .basitune-tab-content.active {
                 display: block;
+                animation: basitune-fadeIn 0.3s ease;
+            }
+            
+            @keyframes basitune-fadeIn {
+                from { opacity: 0; transform: translateY(10px); }
+                to { opacity: 1; transform: translateY(0); }
             }
             
             #basitune-artist-bio {
-                color: #e8e8e8;
+                color: rgba(255, 255, 255, 0.85);
                 font-size: 14px;
-                line-height: 1.6;
+                line-height: 1.7;
                 margin-bottom: 20px;
             }
             
             #basitune-artist-bio h4 {
                 color: #fff;
-                margin: 0 0 8px 0;
-                font-size: 16px;
+                margin: 0 0 12px 0;
+                font-size: 18px;
+                font-weight: 600;
+                background: linear-gradient(135deg, #fff 0%, rgba(255, 255, 255, 0.8) 100%);
+                -webkit-background-clip: text;
+                -webkit-text-fill-color: transparent;
+                background-clip: text;
             }
             
             #basitune-song-context {
-                color: #e8e8e8;
+                color: rgba(255, 255, 255, 0.85);
                 font-size: 14px;
-                line-height: 1.6;
-                padding: 12px;
-                background: #1a1a1a;
-                border-radius: 8px;
-                border-left: 3px solid #333;
+                line-height: 1.7;
+                padding: 16px;
+                background: linear-gradient(135deg, rgba(255, 0, 0, 0.1) 0%, rgba(255, 0, 0, 0.05) 100%);
+                border-radius: 12px;
+                border-left: 3px solid #ff0000;
+                margin-bottom: 20px;
+                box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
             }
             
             #basitune-song-context h5 {
                 color: #fff;
-                margin: 0 0 8px 0;
-                font-size: 14px;
+                margin: 0 0 10px 0;
+                font-size: 15px;
                 font-weight: 600;
             }
             
             #basitune-lyrics-content {
-                color: #e8e8e8;
+                color: rgba(255, 255, 255, 0.85);
                 font-size: 14px;
-                line-height: 1.8;
+                line-height: 1.9;
                 white-space: pre-wrap;
                 font-family: 'Roboto', sans-serif;
+                padding: 16px;
+                background: rgba(255, 255, 255, 0.03);
+                border-radius: 12px;
+                box-shadow: inset 0 2px 8px rgba(0, 0, 0, 0.2);
             }
             
             .basitune-placeholder {
-                color: #666;
+                color: rgba(255, 255, 255, 0.4);
                 font-style: italic;
+                text-align: center;
+                padding: 40px 20px;
             }
             
             .basitune-loading {
-                color: #666;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                justify-content: center;
+                padding: 40px 20px;
+                gap: 16px;
+            }
+            
+            .basitune-spinner {
+                width: 40px;
+                height: 40px;
+                border: 3px solid rgba(255, 255, 255, 0.1);
+                border-top-color: #ff0000;
+                border-radius: 50%;
+                animation: basitune-spin 0.8s linear infinite;
+            }
+            
+            .basitune-loading-text {
+                color: rgba(255, 255, 255, 0.6);
+                font-size: 13px;
+                animation: basitune-pulse 1.5s ease-in-out infinite;
+            }
+            
+            .basitune-skeleton {
+                background: linear-gradient(
+                    90deg,
+                    rgba(255, 255, 255, 0.05) 0%,
+                    rgba(255, 255, 255, 0.1) 50%,
+                    rgba(255, 255, 255, 0.05) 100%
+                );
+                background-size: 1000px 100%;
+                animation: basitune-shimmer 2s infinite linear;
+                border-radius: 8px;
+                margin-bottom: 12px;
+            }
+            
+            .basitune-skeleton-title {
+                height: 24px;
+                width: 70%;
+                margin-bottom: 16px;
+            }
+            
+            .basitune-skeleton-line {
+                height: 14px;
+                width: 100%;
+            }
+            
+            .basitune-skeleton-line:nth-child(2) {
+                width: 95%;
+            }
+            
+            .basitune-skeleton-line:nth-child(3) {
+                width: 90%;
+            }
+            
+            .basitune-skeleton-line:last-child {
+                width: 85%;
+            }
+            
+            .basitune-read-more {
+                color: #ff0000;
+                cursor: pointer;
+                font-size: 13px;
+                font-weight: 500;
+                margin-top: 8px;
+                display: inline-block;
+                transition: all 0.2s;
+            }
+            
+            .basitune-read-more:hover {
+                color: #ff3333;
+                text-decoration: underline;
+            }
+            
+            .basitune-truncated {
+                max-height: 200px;
+                overflow: hidden;
+                position: relative;
+            }
+            
+            .basitune-truncated::after {
+                content: '';
+                position: absolute;
+                bottom: 0;
+                left: 0;
+                right: 0;
+                height: 60px;
+                background: linear-gradient(to bottom, transparent, #0a0a0a);
+                pointer-events: none;
+            }
+            
+            .basitune-truncated.basitune-expanded {
+                max-height: none;
+            }
+            
+            .basitune-truncated.basitune-expanded::after {
+                display: none;
             }
             
             /* Adjust YouTube Music main content */
             ytmusic-app {
-                margin-right: 350px;
-                transition: margin-right 0.3s ease;
+                margin-right: 380px;
+                transition: margin-right 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             }
             
             ytmusic-app.sidebar-hidden {
@@ -268,12 +430,55 @@
         return null;
     }
     
+    // Helper function to add "read more" functionality
+    function makeExpandable(container, content, maxLength = 300) {
+        if (content.length <= maxLength) {
+            return content;
+        }
+        
+        const contentId = 'content-' + Math.random().toString(36).substr(2, 9);
+        const truncated = content.substring(0, maxLength).trim();
+        
+        // Find a good breaking point (end of sentence or word)
+        let breakPoint = truncated.lastIndexOf('. ');
+        if (breakPoint === -1 || breakPoint < maxLength * 0.7) {
+            breakPoint = truncated.lastIndexOf(' ');
+        }
+        
+        const visibleText = truncated.substring(0, breakPoint) + '...';
+        
+        setTimeout(() => {
+            const contentEl = document.getElementById(contentId);
+            const readMoreLink = contentEl?.nextElementSibling;
+            
+            if (contentEl && readMoreLink) {
+                readMoreLink.addEventListener('click', () => {
+                    contentEl.classList.toggle('basitune-expanded');
+                    if (contentEl.classList.contains('basitune-expanded')) {
+                        contentEl.textContent = content;
+                        readMoreLink.textContent = 'Read less';
+                    } else {
+                        contentEl.textContent = visibleText;
+                        readMoreLink.textContent = 'Read more';
+                    }
+                });
+            }
+        }, 10);
+        
+        return `<span id="${contentId}" class="basitune-truncated">${visibleText}</span><span class="basitune-read-more">Read more</span>`;
+    }
+    
     // Fetch artist info from AI via Tauri
     async function fetchArtistInfo(artist) {
         try {
             const bioDiv = document.getElementById('basitune-artist-bio');
             
-            bioDiv.innerHTML = '<p class="basitune-loading">Loading artist information...</p>';
+            bioDiv.innerHTML = `
+                <div class="basitune-loading">
+                    <div class="basitune-spinner"></div>
+                    <div class="basitune-loading-text">Loading artist information...</div>
+                </div>
+            `;
             
             console.log('[Basitune] Fetching AI info for:', artist);
             
@@ -282,10 +487,11 @@
             
             console.log('[Basitune] Received AI bio');
             
-            // Display artist bio
+            // Display artist bio with read more functionality
+            const expandableBio = makeExpandable(bioDiv, bio, 400);
             bioDiv.innerHTML = `
                 <h4>${artist}</h4>
-                <p>${bio}</p>
+                <p>${expandableBio}</p>
             `;
             
             console.log('[Basitune] Loaded AI info for:', artist);
@@ -301,7 +507,12 @@
         try {
             const contextDiv = document.getElementById('basitune-song-context');
             
-            contextDiv.innerHTML = '<p class="basitune-loading">Loading song context...</p>';
+            contextDiv.innerHTML = `
+                <div class="basitune-loading">
+                    <div class="basitune-spinner"></div>
+                    <div class="basitune-loading-text">Loading song context...</div>
+                </div>
+            `;
             
             console.log('[Basitune] Fetching AI song context for:', title, '-', artist);
             
@@ -310,10 +521,11 @@
             
             console.log('[Basitune] Received AI song context');
             
-            // Display song context
+            // Display song context with read more functionality
+            const expandableContext = makeExpandable(contextDiv, context, 250);
             contextDiv.innerHTML = `
                 <h5>About "${title}"</h5>
-                <p>${context}</p>
+                <p>${expandableContext}</p>
             `;
             
             console.log('[Basitune] Loaded AI song context');
@@ -329,7 +541,12 @@
         try {
             const lyricsDiv = document.getElementById('basitune-lyrics-content');
             
-            lyricsDiv.innerHTML = '<p class="basitune-loading">Loading lyrics...</p>';
+            lyricsDiv.innerHTML = `
+                <div class="basitune-loading">
+                    <div class="basitune-spinner"></div>
+                    <div class="basitune-loading-text">Loading lyrics...</div>
+                </div>
+            `;
             
             console.log('[Basitune] Fetching lyrics for:', title, '-', artist);
             

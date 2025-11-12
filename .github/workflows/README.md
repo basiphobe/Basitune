@@ -25,6 +25,6 @@ You can manually trigger a build from the **Actions** tab by selecting "Build Ba
 ## Artifacts
 
 After a successful build, download artifacts from the workflow run:
-- **Linux**: `.deb`, `.AppImage`, `.rpm`
+- **Linux**: `.deb`, `.rpm`
 - **macOS**: `.dmg`, `.app` bundle
 - **Windows**: `.msi`, `.exe` installer

@@ -6,7 +6,8 @@
   "build": {
     "beforeDevCommand": "",
     "beforeBuildCommand": "",
-    "frontendDist": "../dist"
+    "frontendDist": "../dist",
+    "devUrl": "https://music.youtube.com"
   },
   "bundle": {
     "active": true,

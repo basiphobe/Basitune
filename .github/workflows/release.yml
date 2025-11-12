@@ -237,7 +237,7 @@ jobs:
               platforms: {
                 'linux-x86_64': {
                   signature: '',
-                  url: release.assets.find(a => a.name.endsWith('.AppImage'))?.browser_download_url || ''
+                  url: release.assets.find(a => a.name.endsWith('.deb'))?.browser_download_url || ''
                 },
                 'darwin-x86_64': {
                   signature: '',

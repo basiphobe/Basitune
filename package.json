@@ -4,7 +4,8 @@
   "description": "A lightweight desktop wrapper for YouTube Music",
   "type": "module",
   "scripts": {
-    "dev": "tauri dev",
+    "dev": "tauri dev --no-watch",
+    "dev:watch": "tauri dev",
     "build": "tauri build",
     "build:fast": "cd src-tauri && cargo build --profile release-fast",
     "build:optimized": "npm run build",

@@ -31,6 +31,13 @@ lto = true
 opt-level = "s"
 strip = false
 
+# Development profile with better performance
+# Reduces audio crackling and UI lag while still allowing debugging
+[profile.dev]
+opt-level = 2        # Optimize for speed (fixes audio issues)
+debug = true         # Keep debug symbols
+incremental = true   # Faster recompiles
+
 # Faster release build (use with: cargo build --profile release-fast)
 # Much faster compile times, slightly larger binary
 [profile.release-fast]
