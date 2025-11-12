@@ -508,6 +508,7 @@
             const contextDiv = document.getElementById('basitune-song-context');
             
             contextDiv.innerHTML = `
+                <h5>About "${title}"</h5>
                 <div class="basitune-loading">
                     <div class="basitune-spinner"></div>
                     <div class="basitune-loading-text">Loading song context...</div>
