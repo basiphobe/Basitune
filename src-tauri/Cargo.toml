@@ -28,7 +28,7 @@ panic = "abort"
 codegen-units = 1
 lto = true
 opt-level = "s"
-strip = true
+strip = false
 
 # Faster release build (use with: cargo build --profile release-fast)
 # Much faster compile times, slightly larger binary
