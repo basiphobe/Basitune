@@ -311,28 +311,11 @@
             }
             
             .basitune-truncated {
-                max-height: 200px;
-                overflow: hidden;
-                position: relative;
-            }
-            
-            .basitune-truncated::after {
-                content: '';
-                position: absolute;
-                bottom: 0;
-                left: 0;
-                right: 0;
-                height: 60px;
-                background: linear-gradient(to bottom, transparent, #0a0a0a);
-                pointer-events: none;
+                display: block;
             }
             
             .basitune-truncated.basitune-expanded {
-                max-height: none;
-            }
-            
-            .basitune-truncated.basitune-expanded::after {
-                display: none;
+                display: block;
             }
             
             /* Adjust YouTube Music main content */
