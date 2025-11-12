@@ -14,9 +14,13 @@ if ! command -v flatpak-builder &> /dev/null; then
     exit 1
 fi
 
-# Build the Tauri app first
-echo "📦 Building Tauri application..."
-npm run build
+# Build the Tauri app first if binary doesn't exist
+if [ ! -f "src-tauri/target/release/basitune" ]; then
+    echo "📦 Building Tauri application..."
+    npm run build
+else
+    echo "✓ Using existing Tauri binary"
+fi
 
 # Generate icon
 echo "🎨 Generating icon..."
