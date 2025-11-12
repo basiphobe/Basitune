@@ -23,16 +23,6 @@ finish-args:
   
   # User data
   - --persist=.local/share/com.basiphobe.basitune
-  
-  # WebView essentials  
-  - --filesystem=/tmp
-  - --device=shm
-  
-  # Allow subprocess spawning for WebView subsandboxes
-  - --allow=devel
-  
-  # Force CPU rendering to work around GPU buffer issues
-  - --env=WEBKIT_DISABLE_DMABUF_RENDERER=1
 
 modules:
   - name: basitune

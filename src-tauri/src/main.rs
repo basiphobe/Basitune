@@ -511,42 +511,6 @@ fn main() {
                     
                     if window_clone.eval(SIDEBAR_SCRIPT).is_ok() {
                         println!("[Basitune] Sidebar injected successfully (attempt {})", attempt);
-                        
-                        // Force sidebar visibility
-                        std::thread::sleep(Duration::from_secs(2));
-                        let force_visible = r#"
-                            (function() {
-                                const sidebar = document.getElementById('basitune-sidebar');
-                                if (sidebar) {
-                                    // Make it SUPER obvious for testing
-                                    sidebar.style.cssText = `
-                                        position: fixed !important;
-                                        top: 0 !important;
-                                        right: 0 !important;
-                                        width: 350px !important;
-                                        height: 100vh !important;
-                                        background: red !important;
-                                        z-index: 999999 !important;
-                                        display: block !important;
-                                        visibility: visible !important;
-                                        opacity: 1 !important;
-                                        border: 10px solid yellow !important;
-                                    `;
-                                    console.log('[Basitune] Sidebar forced visible (RED TEST):', sidebar.offsetWidth, 'x', sidebar.offsetHeight);
-                                    console.log('[Basitune] Sidebar rect:', sidebar.getBoundingClientRect());
-                                    return 'Sidebar: ' + sidebar.offsetWidth + 'x' + sidebar.offsetHeight;
-                                } else {
-                                    console.error('[Basitune] Sidebar element not found!');
-                                    return 'ERROR: No sidebar element';
-                                }
-                            })()
-                        "#;
-                        
-                        match window_clone.eval(force_visible) {
-                            Ok(_) => println!("[Basitune] Sidebar visibility forced"),
-                            Err(e) => eprintln!("[Basitune] Failed to force sidebar visibility: {}", e),
-                        }
-                        
                         break;
                     } else if attempt == 10 {
                         eprintln!("[Basitune] Failed to inject sidebar after {} attempts", attempt);
