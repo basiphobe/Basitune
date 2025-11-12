@@ -603,7 +603,10 @@
         const songInfo = getCurrentSongInfo();
         if (songInfo) {
             currentArtist = songInfo.artist;
+            currentTitle = songInfo.title;
             fetchArtistInfo(currentArtist);
+            fetchSongContext(currentTitle, currentArtist);
+            fetchLyrics(currentTitle, currentArtist);
         }
         
         console.log('[Basitune] Song monitor started');
@@ -611,31 +614,44 @@
     
     // Initialize
     function init() {
+        console.log('[Basitune] Initializing sidebar v1.1.0');
+        console.log('[Basitune] URL:', window.location.href);
+        console.log('[Basitune] Ready state:', document.readyState);
+        
         if (document.readyState === 'loading') {
+            console.log('[Basitune] Document still loading, waiting for DOMContentLoaded');
             document.addEventListener('DOMContentLoaded', init);
             return;
         }
         
         // Wait for YouTube Music to load
+        console.log('[Basitune] Starting to check for ytmusic-app element');
         let attempts = 0;
         const checkYTMusic = setInterval(() => {
             attempts++;
+            if (attempts % 5 === 0) {
+                console.log('[Basitune] Still checking for ytmusic-app... (attempt', attempts, ')');
+            }
             const ytmusicApp = document.querySelector('ytmusic-app');
             if (ytmusicApp) {
                 clearInterval(checkYTMusic);
-                console.log('[Basitune] ytmusic-app found after', attempts, 'attempts');
+                console.log('[Basitune] ✓ ytmusic-app found after', attempts, 'attempts');
                 createSidebar();
                 const sidebarElement = document.getElementById('basitune-sidebar');
                 if (sidebarElement) {
-                    console.log('[Basitune] Sidebar element created successfully');
+                    console.log('[Basitune] ✓ Sidebar created successfully');
                     console.log('[Basitune] Sidebar dimensions:', sidebarElement.offsetWidth, 'x', sidebarElement.offsetHeight);
                 } else {
-                    console.error('[Basitune] Sidebar element not found after creation!');
+                    console.error('[Basitune] ✗ Sidebar element not found after creation!');
                 }
                 monitorSongChanges();
             } else if (attempts > 40) { // 20 seconds
                 clearInterval(checkYTMusic);
-                console.error('[Basitune] ytmusic-app not found after 20 seconds, giving up');
+                console.error('[Basitune] ✗ ytmusic-app not found after 20 seconds');
+                console.error('[Basitune] Available body elements:', document.body ? document.body.children.length : 'no body');
+                if (document.body && document.body.children.length > 0) {
+                    console.error('[Basitune] First element:', document.body.children[0].tagName);
+                }
             }
         }, 500);
     }
