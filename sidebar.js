@@ -9,12 +9,15 @@
     let currentTitle = '';
     let sidebarVisible = false;
     let activeTab = 'artist'; // 'artist' or 'lyrics'
+    let sidebarWidth = 380; // Default width in pixels
+    let isResizing = false;
     
     // Create sidebar HTML
     function createSidebar() {
         const sidebar = document.createElement('div');
         sidebar.id = 'basitune-sidebar';
         sidebar.innerHTML = `
+            <div id="basitune-resize-handle"></div>
             <div id="basitune-sidebar-header">
                 <div id="basitune-tabs">
                     <button class="basitune-tab active" data-tab="artist">Artist</button>
@@ -66,7 +69,9 @@
                 position: fixed;
                 top: 0;
                 right: 0;
-                width: 380px;
+                width: var(--sidebar-width, 380px);
+                min-width: 280px;
+                max-width: 800px;
                 height: 100vh;
                 background: linear-gradient(135deg, #0a0a0a 0%, #121212 100%);
                 border-left: 1px solid rgba(255, 255, 255, 0.1);
@@ -81,6 +86,26 @@
             
             #basitune-sidebar.hidden {
                 transform: translateX(100%);
+            }
+            
+            #basitune-resize-handle {
+                position: absolute;
+                left: 0;
+                top: 0;
+                width: 8px;
+                height: 100%;
+                cursor: ew-resize;
+                z-index: 10001;
+                background: transparent;
+                transition: background 0.2s;
+            }
+            
+            #basitune-resize-handle:hover {
+                background: rgba(255, 0, 0, 0.3);
+            }
+            
+            #basitune-resize-handle.resizing {
+                background: rgba(255, 0, 0, 0.5);
             }
             
             #basitune-sidebar-header {
@@ -356,8 +381,8 @@
             
             /* Adjust YouTube Music main content */
             ytmusic-app {
-                margin-right: 380px !important;
-                max-width: calc(100vw - 380px) !important;
+                margin-right: var(--sidebar-width, 380px) !important;
+                max-width: calc(100vw - var(--sidebar-width, 380px)) !important;
                 transition: margin-right 0.3s cubic-bezier(0.4, 0, 0.2, 1), max-width 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
             }
             
@@ -368,7 +393,7 @@
             
             /* Constrain player bar and other fixed elements */
             ytmusic-app ytmusic-player-bar {
-                max-width: calc(100vw - 380px) !important;
+                max-width: calc(100vw - var(--sidebar-width, 380px)) !important;
                 transition: max-width 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
             }
             
@@ -383,6 +408,10 @@
         `;
         
         document.head.appendChild(style);
+        
+        // Set default width via CSS variable before adding to DOM
+        document.documentElement.style.setProperty('--sidebar-width', `${sidebarWidth}px`);
+        
         document.body.appendChild(sidebar);
         document.body.appendChild(reopenBtn);
         
@@ -407,6 +436,9 @@
         // Reopen button functionality
         reopenBtn.addEventListener('click', toggleSidebar);
         
+        // Setup resize functionality
+        setupResizeHandle();
+        
         // Tab switching functionality
         document.querySelectorAll('.basitune-tab').forEach(tab => {
             tab.addEventListener('click', () => {
@@ -417,6 +449,62 @@
         
         console.log('[Basitune] Sidebar created');
     }
+    
+    // Setup resize handle drag functionality
+    function setupResizeHandle() {
+        const resizeHandle = document.getElementById('basitune-resize-handle');
+        const sidebar = document.getElementById('basitune-sidebar');
+        
+        let startX = 0;
+        let startWidth = 0;
+        
+        resizeHandle.addEventListener('mousedown', (e) => {
+            isResizing = true;
+            startX = e.clientX;
+            startWidth = sidebarWidth;
+            resizeHandle.classList.add('resizing');
+            document.body.style.cursor = 'ew-resize';
+            document.body.style.userSelect = 'none';
+            e.preventDefault();
+        });
+        
+        document.addEventListener('mousemove', (e) => {
+            if (!isResizing) return;
+            
+            const deltaX = startX - e.clientX;
+            const newWidth = Math.max(280, Math.min(800, startWidth + deltaX));
+            
+            setSidebarWidth(newWidth);
+        });
+        
+        document.addEventListener('mouseup', () => {
+            if (isResizing) {
+                isResizing = false;
+                resizeHandle.classList.remove('resizing');
+                document.body.style.cursor = '';
+                document.body.style.userSelect = '';
+                saveSidebarWidth();
+            }
+        });
+    }
+    
+    // Set sidebar width
+    function setSidebarWidth(width) {
+        sidebarWidth = width;
+        document.documentElement.style.setProperty('--sidebar-width', `${width}px`);
+    }
+    
+    // Save sidebar width to backend
+    async function saveSidebarWidth() {
+        try {
+            await window.__TAURI__.core.invoke('set_sidebar_width', { width: sidebarWidth });
+            console.log('[Basitune] Saved sidebar width:', sidebarWidth);
+        } catch (error) {
+            console.error('[Basitune] Failed to save sidebar width:', error);
+        }
+    }
+    
+    // Load sidebar width from backend
     
     function switchTab(tabName) {
         activeTab = tabName;
@@ -467,43 +555,6 @@
     }
     
     // Restore sidebar visibility state from saved preference
-    async function restoreSidebarState() {
-        try {
-            const sidebar = document.getElementById('basitune-sidebar');
-            const reopenBtn = document.getElementById('basitune-reopen');
-            const ytmusicApp = document.querySelector('ytmusic-app');
-            
-            // Verify all required elements exist
-            if (!sidebar || !reopenBtn || !ytmusicApp) {
-                console.error('[Basitune] Cannot restore sidebar state - missing elements:', {
-                    sidebar: !!sidebar,
-                    reopenBtn: !!reopenBtn,
-                    ytmusicApp: !!ytmusicApp
-                });
-                return;
-            }
-            
-            const visible = await window.__TAURI__.core.invoke('get_sidebar_visible');
-            console.log('[Basitune] Restored sidebar visibility from state:', visible);
-            console.log('[Basitune] Current sidebar visibility before restore:', sidebarVisible);
-            
-            sidebarVisible = visible;
-            
-            if (sidebarVisible) {
-                console.log('[Basitune] Showing sidebar');
-                sidebar.classList.remove('hidden');
-                reopenBtn.classList.remove('visible');
-                ytmusicApp.classList.remove('sidebar-hidden');
-            } else {
-                console.log('[Basitune] Hiding sidebar');
-                sidebar.classList.add('hidden');
-                reopenBtn.classList.add('visible');
-                ytmusicApp.classList.add('sidebar-hidden');
-            }
-        } catch (error) {
-            console.error('[Basitune] Failed to restore sidebar state:', error);
-        }
-    }
     
     // Get current song info from YouTube Music
     function getCurrentSongInfo() {
@@ -719,7 +770,7 @@
     }
     
     // Initialize
-    function init() {
+    async function init() {
         console.log('[Basitune] Initializing sidebar v1.3.0');
         console.log('[Basitune] URL:', window.location.href);
         console.log('[Basitune] Ready state:', document.readyState);
@@ -728,6 +779,21 @@
             console.log('[Basitune] Document still loading, waiting for DOMContentLoaded');
             document.addEventListener('DOMContentLoaded', init);
             return;
+        }
+        
+        // Load saved state before creating sidebar
+        try {
+            const savedVisible = await window.__TAURI__.core.invoke('get_sidebar_visible');
+            const savedWidth = await window.__TAURI__.core.invoke('get_sidebar_width');
+            
+            if (savedWidth && savedWidth >= 280 && savedWidth <= 800) {
+                sidebarWidth = savedWidth;
+                console.log('[Basitune] Pre-loaded sidebar width:', savedWidth);
+            }
+            sidebarVisible = savedVisible;
+            console.log('[Basitune] Pre-loaded sidebar visibility:', savedVisible);
+        } catch (error) {
+            console.error('[Basitune] Failed to pre-load sidebar state:', error);
         }
         
         // Wait for YouTube Music to load
@@ -744,17 +810,27 @@
                 console.log('[Basitune] ✓ ytmusic-app found after', attempts, 'attempts');
                 createSidebar();
                 
-                // Wait a tick for DOM to settle before checking sidebar
+                // Wait a tick for DOM to settle before applying state
                 setTimeout(() => {
                     const sidebarElement = document.getElementById('basitune-sidebar');
-                    if (sidebarElement) {
+                    const reopenBtn = document.getElementById('basitune-reopen');
+                    const ytmusicApp = document.querySelector('ytmusic-app');
+                    
+                    if (sidebarElement && reopenBtn && ytmusicApp) {
                         console.log('[Basitune] ✓ Sidebar created successfully');
                         console.log('[Basitune] Sidebar dimensions:', sidebarElement.offsetWidth, 'x', sidebarElement.offsetHeight);
+                        console.log('[Basitune] Applying pre-loaded state - visible:', sidebarVisible, 'width:', sidebarWidth);
                         
-                        // Restore saved visibility state after DOM is ready
-                        restoreSidebarState().catch(err => {
-                            console.error('[Basitune] Failed to restore sidebar state:', err);
-                        });
+                        // Apply the pre-loaded visibility state
+                        if (sidebarVisible) {
+                            sidebarElement.classList.remove('hidden');
+                            reopenBtn.classList.remove('visible');
+                            ytmusicApp.classList.remove('sidebar-hidden');
+                        } else {
+                            sidebarElement.classList.add('hidden');
+                            reopenBtn.classList.add('visible');
+                            ytmusicApp.classList.add('sidebar-hidden');
+                        }
                     } else {
                         console.error('[Basitune] ✗ Sidebar element not found after creation!');
                     }

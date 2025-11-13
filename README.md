@@ -20,8 +20,9 @@ Basitune is a minimal desktop application that provides a dedicated window for Y
 - **Discord Rich Presence**: Shows currently playing song in your Discord status
 - **Lyrics display**: Real-time lyrics from Genius for the currently playing song
 - **AI-powered sidebar**: Artist biographies and song context powered by OpenAI GPT-4o-mini
+- **Resizable sidebar**: Drag the left edge to resize between 280px and 800px
 - **Content caching**: Reduces API costs by caching artist info, song context, and lyrics
-- **Window state memory**: Remembers window size, position, maximized state, and sidebar visibility
+- **Window state memory**: Remembers window size, position, maximized state, sidebar visibility, and sidebar width
 - **Single instance**: Only one app instance can run at a time - launching again focuses existing window
 - **Lightweight**: Uses the system's native webview instead of bundling a browser
 - **Cross-platform**: Runs on Linux, Windows, and macOS

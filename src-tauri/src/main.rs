@@ -24,6 +24,77 @@ struct DiscordState {
     client: Mutex<Option<DiscordIpcClient>>,
 }
 
+struct WindowStateManager {
+    state: Mutex<WindowState>,
+    app_handle: tauri::AppHandle,
+}
+
+impl WindowStateManager {
+    fn new(app_handle: tauri::AppHandle) -> Self {
+        let state_path = Self::get_state_path(&app_handle);
+        let loaded_state = match fs::read_to_string(&state_path) {
+            Ok(contents) => {
+                match serde_json::from_str::<WindowState>(&contents) {
+                    Ok(state) => {
+                        println!("[Basitune] Loaded window state: {}x{} at ({}, {}), maximized={}, sidebar_visible={}", 
+                                 state.width, state.height, state.x, state.y, state.maximized, state.sidebar_visible);
+                        state
+                    }
+                    Err(e) => {
+                        eprintln!("[Basitune] Failed to parse window state JSON: {}", e);
+                        println!("[Basitune] Using default window state");
+                        WindowState::default()
+                    }
+                }
+            }
+            Err(e) => {
+                eprintln!("[Basitune] Failed to read window state file: {}", e);
+                println!("[Basitune] Using default window state");
+                WindowState::default()
+            }
+        };
+        
+        Self {
+            state: Mutex::new(loaded_state),
+            app_handle,
+        }
+    }
+    
+    fn get_state_path(app_handle: &tauri::AppHandle) -> PathBuf {
+        let app_data_dir = app_handle.path().app_data_dir()
+            .expect("Failed to get app data directory");
+        app_data_dir.join("window-state.json")
+    }
+    
+    fn get(&self) -> WindowState {
+        self.state.lock().unwrap().clone()
+    }
+    
+    fn update<F>(&self, f: F) 
+    where
+        F: FnOnce(&mut WindowState),
+    {
+        let mut state = self.state.lock().unwrap();
+        f(&mut state);
+        self.save(&state);
+    }
+    
+    fn save(&self, state: &WindowState) {
+        let state_path = Self::get_state_path(&self.app_handle);
+        
+        // Ensure directory exists
+        if let Some(parent) = state_path.parent() {
+            let _ = fs::create_dir_all(parent);
+        }
+        
+        if let Ok(json) = serde_json::to_string_pretty(state) {
+            println!("[Basitune] Saving window state: {}x{} at ({}, {}), maximized={}, sidebar_visible={}", 
+                     state.width, state.height, state.x, state.y, state.maximized, state.sidebar_visible);
+            let _ = fs::write(&state_path, json);
+        }
+    }
+}
+
 #[derive(Debug, Serialize, Deserialize, Clone, Default)]
 struct CachedData {
     artist_info: HashMap<String, String>,
@@ -31,7 +102,7 @@ struct CachedData {
     lyrics: HashMap<String, String>,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 struct WindowState {
     width: u32,
     height: u32,
@@ -39,6 +110,7 @@ struct WindowState {
     y: i32,
     maximized: bool,
     sidebar_visible: bool,
+    sidebar_width: u32,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -74,6 +146,7 @@ impl Default for WindowState {
             y: -1,
             maximized: false,
             sidebar_visible: false,
+            sidebar_width: 380,
         }
     }
 }
@@ -415,14 +488,6 @@ fn _clean_genius_lyrics_old(lyrics: &str) -> String {
     lines.join("\n").trim().to_string()
 }
 
-fn get_state_path(app_handle: &tauri::AppHandle) -> PathBuf {
-    app_handle
-        .path()
-        .app_data_dir()
-        .expect("Failed to get app data dir")
-        .join("window-state.json")
-}
-
 fn get_cache_path(app_handle: &tauri::AppHandle) -> PathBuf {
     app_handle
         .path()
@@ -460,47 +525,29 @@ fn save_cache(app_handle: &tauri::AppHandle, cache: &CachedData) {
     }
 }
 
-fn load_window_state(app_handle: &tauri::AppHandle) -> WindowState {
-    let state_path = get_state_path(app_handle);
-    
-    if let Ok(contents) = fs::read_to_string(&state_path) {
-        if let Ok(state) = serde_json::from_str::<WindowState>(&contents) {
-            println!("[Basitune] Loaded window state: {}x{} at ({}, {}), maximized={}, sidebar_visible={}", 
-                     state.width, state.height, state.x, state.y, state.maximized, state.sidebar_visible);
-            return state;
-        }
-    }
-    
-    println!("[Basitune] Using default window state");
-    WindowState::default()
-}
-
-fn save_window_state(app_handle: &tauri::AppHandle, state: &WindowState) {
-    let state_path = get_state_path(app_handle);
-    
-    // Ensure directory exists
-    if let Some(parent) = state_path.parent() {
-        let _ = fs::create_dir_all(parent);
-    }
-    
-    if let Ok(json) = serde_json::to_string_pretty(state) {
-        println!("[Basitune] Saving window state: {}x{} at ({}, {}), maximized={}, sidebar_visible={}", 
-                 state.width, state.height, state.x, state.y, state.maximized, state.sidebar_visible);
-        let _ = fs::write(&state_path, json);
-    }
+#[tauri::command]
+fn get_sidebar_visible(state_manager: tauri::State<WindowStateManager>) -> bool {
+    state_manager.get().sidebar_visible
 }
 
 #[tauri::command]
-fn get_sidebar_visible(app: tauri::AppHandle) -> bool {
-    load_window_state(&app).sidebar_visible
-}
-
-#[tauri::command]
-fn set_sidebar_visible(app: tauri::AppHandle, visible: bool) {
+fn set_sidebar_visible(state_manager: tauri::State<WindowStateManager>, visible: bool) {
     println!("[Basitune] set_sidebar_visible called with: {}", visible);
-    let mut state = load_window_state(&app);
-    state.sidebar_visible = visible;
-    save_window_state(&app, &state);
+    state_manager.update(|state| {
+        state.sidebar_visible = visible;
+    });
+}
+
+#[tauri::command]
+fn get_sidebar_width(state_manager: tauri::State<WindowStateManager>) -> u32 {
+    state_manager.get().sidebar_width
+}
+
+#[tauri::command]
+fn set_sidebar_width(state_manager: tauri::State<WindowStateManager>, width: u32) {
+    state_manager.update(|state| {
+        state.sidebar_width = width;
+    });
 }
 
 #[tauri::command]
@@ -640,10 +687,16 @@ fn main() {
             get_lyrics,
             get_sidebar_visible,
             set_sidebar_visible,
+            get_sidebar_width,
+            set_sidebar_width,
             update_discord_presence,
             clear_discord_presence
         ])
         .setup(|app| {
+            // Initialize window state manager
+            let state_manager = WindowStateManager::new(app.handle().clone());
+            app.manage(state_manager);
+            
             // Check for updates on startup
             let app_handle = app.handle().clone();
             tauri::async_runtime::spawn(async move {
@@ -682,7 +735,8 @@ fn main() {
             window.set_title("Basitune").unwrap();
             
             // Load and apply saved window state
-            let state = load_window_state(app.handle());
+            let state_manager: tauri::State<WindowStateManager> = app.state();
+            let state = state_manager.get();
             
             if state.x >= 0 && state.y >= 0 {
                 let _ = window.set_position(PhysicalPosition::new(state.x, state.y));
@@ -713,28 +767,24 @@ fn main() {
                                 if let Ok(position) = window_inner.outer_position() {
                                     let is_maximized = window_inner.is_maximized().unwrap_or(false);
                                     
-                                    let mut state = load_window_state(&app_handle_inner);
-                                    
-                                    // Only update geometry, never change sidebar_visible here
-                                    // (it can only be changed via set_sidebar_visible command)
-                                    let saved_sidebar_visible = state.sidebar_visible;
-                                    state.width = size.width;
-                                    state.height = size.height;
-                                    state.x = position.x;
-                                    state.y = position.y;
-                                    state.maximized = is_maximized;
-                                    state.sidebar_visible = saved_sidebar_visible;
-                                    
-                                    save_window_state(&app_handle_inner, &state);
+                                    let state_manager: tauri::State<WindowStateManager> = app_handle_inner.state();
+                                    state_manager.update(|state| {
+                                        // Only update geometry, preserve sidebar settings
+                                        // (sidebar_visible and sidebar_width can only be changed via commands)
+                                        state.width = size.width;
+                                        state.height = size.height;
+                                        state.x = position.x;
+                                        state.y = position.y;
+                                        state.maximized = is_maximized;
+                                        // sidebar_visible and sidebar_width are not modified here
+                                    });
                                 }
                             }
                         });
                     }
                     _ => {}
                 }
-            });
-            
-            // Clone window for async operations
+            });            // Clone window for async operations
             let window_clone = window.clone();
             
             // Inject debug script immediately to test if JS is running
