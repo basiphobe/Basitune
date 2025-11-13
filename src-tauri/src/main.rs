@@ -8,6 +8,8 @@ use std::path::PathBuf;
 use std::time::Duration;
 use scraper::{Html, Selector};
 use std::collections::HashMap;
+use std::sync::Mutex;
+use discord_rich_presence::{activity, DiscordIpc, DiscordIpcClient};
 
 // Volume normalization script
 const VOLUME_NORMALIZER_SCRIPT: &str = include_str!("../../volume-normalizer.js");
@@ -17,6 +19,13 @@ const SIDEBAR_SCRIPT: &str = include_str!("../../sidebar.js");
 
 // Genius API token
 const GENIUS_ACCESS_TOKEN: &str = "REMOVED_TOKEN";
+
+// Discord Application ID - register at https://discord.com/developers/applications
+const DISCORD_APP_ID: &str = "1307132698974007406";
+
+struct DiscordState {
+    client: Mutex<Option<DiscordIpcClient>>,
+}
 
 #[derive(Debug, Serialize, Deserialize, Clone, Default)]
 struct CachedData {
@@ -497,8 +506,81 @@ fn set_sidebar_visible(app: tauri::AppHandle, visible: bool) {
     save_window_state(&app, &state);
 }
 
+#[tauri::command]
+fn update_discord_presence(
+    title: String,
+    artist: String,
+    state: tauri::State<DiscordState>
+) -> Result<(), String> {
+    let mut client_opt = state.client.lock().unwrap();
+    
+    if let Some(client) = client_opt.as_mut() {
+        let payload = activity::Activity::new()
+            .state(&artist)
+            .details(&title);
+            
+        match client.set_activity(payload) {
+            Ok(_) => {
+                println!("[Basitune] Discord presence updated: {} - {}", artist, title);
+                Ok(())
+            }
+            Err(e) => {
+                eprintln!("[Basitune] Failed to update Discord presence: {}", e);
+                Err(format!("Failed to update Discord presence: {}", e))
+            }
+        }
+    } else {
+        Err("Discord client not connected".to_string())
+    }
+}
+
+#[tauri::command]
+fn clear_discord_presence(state: tauri::State<DiscordState>) -> Result<(), String> {
+    let mut client_opt = state.client.lock().unwrap();
+    
+    if let Some(client) = client_opt.as_mut() {
+        match client.clear_activity() {
+            Ok(_) => {
+                println!("[Basitune] Discord presence cleared");
+                Ok(())
+            }
+            Err(e) => {
+                eprintln!("[Basitune] Failed to clear Discord presence: {}", e);
+                Err(format!("Failed to clear Discord presence: {}", e))
+            }
+        }
+    } else {
+        Err("Discord client not connected".to_string())
+    }
+}
+
 fn main() {
+    // Initialize Discord client
+    let discord_client = match DiscordIpcClient::new(DISCORD_APP_ID) {
+        Ok(mut client) => {
+            match client.connect() {
+                Ok(_) => {
+                    println!("[Basitune] Discord Rich Presence connected");
+                    Some(client)
+                }
+                Err(e) => {
+                    eprintln!("[Basitune] Failed to connect to Discord: {}", e);
+                    None
+                }
+            }
+        }
+        Err(e) => {
+            eprintln!("[Basitune] Failed to create Discord client: {}", e);
+            None
+        }
+    };
+    
+    let discord_state = DiscordState {
+        client: Mutex::new(discord_client),
+    };
+    
     tauri::Builder::default()
+        .manage(discord_state)
         .plugin(tauri_plugin_shell::init())
         .plugin(tauri_plugin_updater::Builder::new().build())
         .plugin(tauri_plugin_single_instance::init(|app, _args, _cwd| {
@@ -515,7 +597,9 @@ fn main() {
             get_song_context, 
             get_lyrics,
             get_sidebar_visible,
-            set_sidebar_visible
+            set_sidebar_visible,
+            update_discord_presence,
+            clear_discord_presence
         ])
         .setup(|app| {
             // Check for updates on startup

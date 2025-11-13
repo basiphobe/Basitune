@@ -662,6 +662,9 @@
                     currentTitle = songInfo.title;
                     fetchSongContext(currentTitle, currentArtist);
                     fetchLyrics(currentTitle, currentArtist);
+                    
+                    // Update Discord Rich Presence
+                    updateDiscordPresence(currentTitle, currentArtist);
                 }
             }
         });
@@ -679,14 +682,28 @@
             fetchArtistInfo(currentArtist);
             fetchSongContext(currentTitle, currentArtist);
             fetchLyrics(currentTitle, currentArtist);
+            updateDiscordPresence(currentTitle, currentArtist);
         }
         
         console.log('[Basitune] Song monitor started');
     }
     
+    // Update Discord Rich Presence
+    async function updateDiscordPresence(title, artist) {
+        try {
+            await window.__TAURI__.core.invoke('update_discord_presence', {
+                title: title,
+                artist: artist
+            });
+        } catch (error) {
+            // Silently fail - Discord might not be running
+            console.debug('[Basitune] Discord update skipped:', error);
+        }
+    }
+    
     // Initialize
     function init() {
-        console.log('[Basitune] Initializing sidebar v1.2.1');
+        console.log('[Basitune] Initializing sidebar v1.3.0');
         console.log('[Basitune] URL:', window.location.href);
         console.log('[Basitune] Ready state:', document.readyState);
         
