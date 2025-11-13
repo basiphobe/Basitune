@@ -28,3 +28,7 @@ src-tauri/gen/
 *.tmp
 *.swp
 *~
+
+# Environment variables (contains API keys)
+.env
+.env.local

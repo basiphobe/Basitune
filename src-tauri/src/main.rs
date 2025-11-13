@@ -14,11 +14,15 @@ use discord_rich_presence::{activity, DiscordIpc, DiscordIpcClient};
 // Artist info sidebar script
 const SIDEBAR_SCRIPT: &str = include_str!("../../sidebar.js");
 
-// Genius API token
-const GENIUS_ACCESS_TOKEN: &str = "REMOVED_TOKEN";
+fn get_genius_token() -> Result<String, String> {
+    std::env::var("GENIUS_ACCESS_TOKEN")
+        .map_err(|_| "GENIUS_ACCESS_TOKEN environment variable not set".to_string())
+}
 
-// Discord Application ID
-const DISCORD_APP_ID: &str = "REMOVED_APP_ID";
+fn get_discord_app_id() -> Result<String, String> {
+    std::env::var("DISCORD_APP_ID")
+        .map_err(|_| "DISCORD_APP_ID environment variable not set".to_string())
+}
 
 struct DiscordState {
     client: Mutex<Option<DiscordIpcClient>>,
@@ -342,9 +346,10 @@ async fn get_lyrics(title: String, artist: String, app: tauri::AppHandle) -> Res
         .build()
         .map_err(|e| e.to_string())?;
     
+    let genius_token = get_genius_token()?;
     let response = client
         .get(&search_url)
-        .header("Authorization", format!("Bearer {}", GENIUS_ACCESS_TOKEN))
+        .header("Authorization", format!("Bearer {}", genius_token))
         .send()
         .await
         .map_err(|e| format!("Search request failed: {}", e))?;
@@ -444,9 +449,10 @@ async fn search_lyrics(title: String, artist: String) -> Result<Vec<GeniusResult
         .build()
         .map_err(|e| e.to_string())?;
     
+    let genius_token = get_genius_token()?;
     let response = client
         .get(&search_url)
-        .header("Authorization", format!("Bearer {}", GENIUS_ACCESS_TOKEN))
+        .header("Authorization", format!("Bearer {}", genius_token))
         .send()
         .await
         .map_err(|e| format!("Search request failed: {}", e))?;
@@ -750,7 +756,8 @@ fn update_discord_presence(
                 println!("[Basitune] Attempting to reconnect to Discord...");
                 drop(client_opt.take()); // Drop the old client
                 
-                if let Ok(mut new_client) = DiscordIpcClient::new(DISCORD_APP_ID) {
+                if let Ok(app_id) = get_discord_app_id() {
+                    if let Ok(mut new_client) = DiscordIpcClient::new(&app_id) {
                     match new_client.connect() {
                         Ok(_) => {
                             println!("[Basitune] Reconnected to Discord, retrying...");
@@ -774,13 +781,15 @@ fn update_discord_presence(
                             eprintln!("[Basitune] Failed to reconnect: {}", e2);
                         }
                     }
+                    }
                 }
                 Ok(())
             }
         }
     } else {
         println!("[Basitune] Discord client not connected, attempting first connection...");
-        if let Ok(mut new_client) = DiscordIpcClient::new(DISCORD_APP_ID) {
+        if let Ok(app_id) = get_discord_app_id() {
+            if let Ok(mut new_client) = DiscordIpcClient::new(&app_id) {
             match new_client.connect() {
                 Ok(_) => {
                     println!("[Basitune] Connected to Discord successfully");
@@ -805,6 +814,7 @@ fn update_discord_presence(
                     eprintln!("[Basitune] Failed to connect to Discord: {}", e);
                     eprintln!("[Basitune] Make sure Discord is running.");
                 }
+            }
             }
         }
         Ok(())
