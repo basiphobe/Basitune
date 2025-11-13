@@ -239,6 +239,7 @@ name = "basitune"
 version = "0.1.0"
 dependencies = [
  "discord-rich-presence",
+ "regex",
  "reqwest",
  "scraper",
  "serde",

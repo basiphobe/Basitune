@@ -200,7 +200,7 @@ async fn call_openai(prompt: String, max_tokens: u32) -> Result<String, String> 
 #[tauri::command]
 async fn get_artist_info(artist: String, app: tauri::AppHandle) -> Result<String, String> {
     // Create cache key (normalized artist name)
-    let cache_key = artist.to_lowercase().trim().to_string();
+    let cache_key = normalize_string(&artist);
     
     // Try to load from cache
     let mut cache = load_cache(&app);
@@ -230,8 +230,8 @@ async fn get_artist_info(artist: String, app: tauri::AppHandle) -> Result<String
 async fn get_song_context(title: String, artist: String, app: tauri::AppHandle) -> Result<String, String> {
     // Create cache key (normalized artist + title)
     let cache_key = format!("{}|{}", 
-        artist.to_lowercase().trim(), 
-        title.to_lowercase().trim()
+        normalize_string(&artist), 
+        normalize_string(&title)
     );
     
     // Try to load from cache
@@ -273,14 +273,14 @@ struct GeniusHit {
     result: GeniusResult,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 struct GeniusResult {
     url: String,
     title: String,
     primary_artist: GeniusArtist,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 struct GeniusArtist {
     name: String,
 }
@@ -289,8 +289,8 @@ struct GeniusArtist {
 async fn get_lyrics(title: String, artist: String, app: tauri::AppHandle) -> Result<String, String> {
     // Create cache key (normalized artist + title)
     let cache_key = format!("{}|{}", 
-        artist.to_lowercase().trim(), 
-        title.to_lowercase().trim()
+        normalize_string(&artist), 
+        normalize_string(&title)
     );
     
     // Try to load from cache
@@ -306,16 +306,8 @@ async fn get_lyrics(title: String, artist: String, app: tauri::AppHandle) -> Res
     
     println!("[Basitune] Fetching lyrics for: {} - {}", artist, title);
     
-    // Clean up title - remove extra info like (Acoustic), (Remastered), etc. for better matching
-    let clean_title = title
-        .replace("(Acoustic)", "")
-        .replace("(acoustic)", "")
-        .replace("(Remastered)", "")
-        .replace("(remastered)", "")
-        .replace("(Live)", "")
-        .replace("(live)", "")
-        .trim()
-        .to_string();
+    // Clean up title - remove extra info like (Acoustic), (Remastered), dates, etc. for better matching
+    let clean_title = clean_song_title(&title);
     
     // Search Genius API for the song
     let search_query = format!("{} {}", artist, clean_title);
@@ -391,14 +383,69 @@ async fn get_lyrics(title: String, artist: String, app: tauri::AppHandle) -> Res
     // Extract raw lyrics first (sync operation)
     let raw_lyrics = extract_raw_lyrics_from_html(&html)?;
     
-    // Then clean with AI (async operation)
-    let result = format_lyrics_with_ai(&raw_lyrics).await?;
+    // Try to clean with AI, but fall back to raw lyrics if AI refuses (copyright policy)
+    let result = match format_lyrics_with_ai(&raw_lyrics).await {
+        Ok(cleaned) => {
+            // Check if AI refused to provide lyrics
+            if cleaned.to_lowercase().contains("i can't provide") 
+                || cleaned.to_lowercase().contains("i cannot provide")
+                || cleaned.to_lowercase().contains("i'm sorry") {
+                println!("[Basitune] AI refused to clean lyrics, using raw version");
+                clean_lyrics_with_regex(&raw_lyrics)
+            } else {
+                cleaned
+            }
+        }
+        Err(_) => {
+            println!("[Basitune] AI cleaning failed, using raw version");
+            clean_lyrics_with_regex(&raw_lyrics)
+        }
+    };
     
     // Save to cache
     cache.lyrics.insert(cache_key, result.clone());
     save_cache(&app, &cache);
     
     Ok(result)
+}
+
+#[tauri::command]
+async fn search_lyrics(title: String, artist: String) -> Result<Vec<GeniusResult>, String> {
+    let clean_title = clean_song_title(&title);
+    let search_query = format!("{} {}", artist, clean_title);
+    let search_url = format!(
+        "https://api.genius.com/search?q={}",
+        urlencoding::encode(&search_query)
+    );
+    
+    let client = reqwest::Client::builder()
+        .user_agent("Basitune/0.1.0 (https://github.com/basiphobe/Basitune)")
+        .timeout(Duration::from_secs(10))
+        .build()
+        .map_err(|e| e.to_string())?;
+    
+    let response = client
+        .get(&search_url)
+        .header("Authorization", format!("Bearer {}", GENIUS_ACCESS_TOKEN))
+        .send()
+        .await
+        .map_err(|e| format!("Search request failed: {}", e))?;
+    
+    if !response.status().is_success() {
+        return Err(format!("Genius API returned status: {}", response.status()));
+    }
+    
+    let search_result: GeniusSearchResponse = response
+        .json()
+        .await
+        .map_err(|e| format!("Failed to parse search results: {}", e))?;
+    
+    // Return top 10 results
+    Ok(search_result.response.hits
+        .into_iter()
+        .take(10)
+        .map(|hit| hit.result)
+        .collect())
 }
 
 fn extract_raw_lyrics_from_html(html: &str) -> Result<String, String> {
@@ -436,14 +483,104 @@ fn extract_raw_lyrics_from_html(html: &str) -> Result<String, String> {
 
 async fn format_lyrics_with_ai(raw_lyrics: &str) -> Result<String, String> {
     let prompt = format!(
-        "Clean and format these song lyrics. Remove any non-lyric content like headers, footers, \
-        contributor names, 'Embed' text, navigation elements, or advertisements. Keep only the actual \
-        song lyrics with proper structure (verses, chorus, bridge, etc.). Preserve line breaks and spacing \
-        that are part of the song structure. Return ONLY the cleaned lyrics, nothing else.\n\n{}",
+        "Clean and format this text. Remove any web page elements like headers, footers, \
+        contributor names, 'Embed' text, navigation elements, advertisements, or metadata. \
+        Keep only the main content with proper structure and formatting. Preserve line breaks \
+        and spacing that are part of the content structure. Return ONLY the cleaned text.\n\n{}",
         raw_lyrics
     );
     
     call_openai(prompt, 500).await
+}
+
+fn normalize_string(s: &str) -> String {
+    // Normalize Unicode characters, convert to lowercase, trim whitespace
+    // This handles cases like "Queensrÿche" vs "Queensryche"
+    s.trim()
+        .to_lowercase()
+        .chars()
+        .map(|c| {
+            // Replace common special characters with ASCII equivalents
+            match c {
+                'ä' | 'á' | 'à' | 'â' | 'ã' | 'å' => 'a',
+                'ë' | 'é' | 'è' | 'ê' => 'e',
+                'ï' | 'í' | 'ì' | 'î' => 'i',
+                'ö' | 'ó' | 'ò' | 'ô' | 'õ' => 'o',
+                'ü' | 'ú' | 'ù' | 'û' => 'u',
+                'ÿ' | 'ý' => 'y',
+                'ñ' => 'n',
+                'ç' => 'c',
+                _ => c,
+            }
+        })
+        .collect()
+}
+
+fn clean_song_title(title: &str) -> String {
+    use regex::Regex;
+    
+    // Remove patterns like (Remastered 2003), [2003 Remaster], - 2003 Remaster, etc.
+    let patterns = [
+        r"\([^)]*[Rr]emast[^)]*\)",  // (Remastered 2003), (2003 Remaster)
+        r"\[[^\]]*[Rr]emast[^\]]*\]",  // [Remastered 2003]
+        r"\([^)]*[Aa]coustic[^)]*\)",  // (Acoustic)
+        r"\([^)]*[Ll]ive[^)]*\)",      // (Live at...)
+        r"\([^)]*[Vv]ersion[^)]*\)",   // (Album Version)
+        r"\([^)]*[Ee]dit[^)]*\)",      // (Radio Edit)
+        r"\([^)]*\d{4}[^)]*\)",       // (2003), (2003 Version)
+        r"\[[^\]]*\d{4}[^\]]*\]",     // [2003]
+        r"-\s*\d{4}\s*[Rr]emast[^-]*",  // - 2003 Remastered
+        r"-\s*[Rr]emast[^-]*",          // - Remastered
+    ];
+    
+    let mut result = title.to_string();
+    for pattern in &patterns {
+        if let Ok(re) = Regex::new(pattern) {
+            result = re.replace_all(&result, "").to_string();
+        }
+    }
+    
+    result.trim().to_string()
+}
+
+fn clean_lyrics_with_regex(lyrics: &str) -> String {
+    let mut lines: Vec<&str> = lyrics.lines().collect();
+    
+    // Remove common Genius page elements from the beginning
+    while !lines.is_empty() {
+        let first_line = lines[0].trim();
+        
+        // Check if it's a common header pattern
+        if first_line.is_empty()
+            || first_line.ends_with("Contributors")
+            || first_line.ends_with("Lyrics")
+            || first_line.starts_with("\"")
+            || first_line.contains("is a song about")
+            || first_line.contains("Read More")
+            || (first_line.len() < 50 && first_line.chars().filter(|c| c.is_uppercase()).count() > first_line.len() / 2)
+        {
+            lines.remove(0);
+        } else {
+            break;
+        }
+    }
+    
+    // Remove "Embed" and other footers from the end
+    while !lines.is_empty() {
+        let last_line = lines[lines.len() - 1].trim();
+        
+        if last_line.is_empty()
+            || last_line == "Embed"
+            || last_line.starts_with("See ")
+            || last_line.contains("Lyrics")
+        {
+            lines.pop();
+        } else {
+            break;
+        }
+    }
+    
+    lines.join("\n").trim().to_string()
 }
 
 #[allow(dead_code)]
@@ -685,6 +822,7 @@ fn main() {
             get_artist_info, 
             get_song_context, 
             get_lyrics,
+            search_lyrics,
             get_sidebar_visible,
             set_sidebar_visible,
             get_sidebar_width,
@@ -734,21 +872,40 @@ fn main() {
             // Set the window title
             window.set_title("Basitune").unwrap();
             
-            // Load and apply saved window state
+            // Load and apply saved window state IMMEDIATELY before any event handlers
             let state_manager: tauri::State<WindowStateManager> = app.state();
             let state = state_manager.get();
             
-            if state.x >= 0 && state.y >= 0 {
-                let _ = window.set_position(PhysicalPosition::new(state.x, state.y));
-            }
-            let _ = window.set_size(PhysicalSize::new(state.width, state.height));
+            println!("[Basitune] Applying window state: {}x{} at ({}, {}), maximized={}", 
+                     state.width, state.height, state.x, state.y, state.maximized);
             
+            // Apply state before window can trigger any resize events
             if state.maximized {
+                // For maximized windows: unmaximize, set position, set size, then maximize
+                // This ensures the window manager knows which monitor to use
+                let _ = window.unmaximize();
+                std::thread::sleep(Duration::from_millis(50));
+                
+                let _ = window.set_size(PhysicalSize::new(state.width, state.height));
+                if state.x >= 0 && state.y >= 0 {
+                    let _ = window.set_position(PhysicalPosition::new(state.x, state.y));
+                    println!("[Basitune] Set position to ({}, {}) before maximizing", state.x, state.y);
+                }
+                
+                std::thread::sleep(Duration::from_millis(50));
                 let _ = window.maximize();
+                println!("[Basitune] Maximized window");
+            } else {
+                // For non-maximized windows, set size then position
+                let _ = window.set_size(PhysicalSize::new(state.width, state.height));
+                if state.x >= 0 && state.y >= 0 {
+                    let _ = window.set_position(PhysicalPosition::new(state.x, state.y));
+                }
             }
             
-            // Give a moment for initial window setup events to settle before hooking handlers
-            std::thread::sleep(Duration::from_millis(100));
+            // Give a long moment for window state to fully settle AND for any triggered
+            // resize/move events to complete before we attach our event handler
+            std::thread::sleep(Duration::from_millis(1000));
             
             // Save window state on resize
             let app_handle = app.handle().clone();

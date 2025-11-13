@@ -703,9 +703,215 @@
             console.log('[Basitune] Loaded lyrics for:', title);
         } catch (error) {
             console.error('[Basitune] Error fetching lyrics:', error);
-            const lyricsDiv = document.getElementById('basitune-lyrics-content');
-            lyricsDiv.innerHTML = `<p class="basitune-placeholder">Could not load lyrics<br><small>${error}</small></p>`;
+            
+            // Try to get search results
+            try {
+                const results = await window.__TAURI__.core.invoke('search_lyrics', { title, artist });
+                
+                if (results && results.length > 0) {
+                    showLyricsSearchResults(results, title, artist);
+                } else {
+                    showLyricsError(error, title, artist);
+                }
+            } catch (searchError) {
+                showLyricsError(error, title, artist);
+            }
         }
+    }
+    
+    function showLyricsSearchResults(results, originalTitle, originalArtist) {
+        const lyricsDiv = document.getElementById('basitune-lyrics-content');
+        
+        let html = `
+            <div style="padding: 16px;">
+                <p style="color: rgba(255, 255, 255, 0.7); margin-bottom: 16px;">
+                    Couldn't find exact match for "<strong>${originalTitle}</strong>" by <strong>${originalArtist}</strong>
+                </p>
+                <p style="color: rgba(255, 255, 255, 0.6); font-size: 13px; margin-bottom: 12px;">
+                    Try one of these matches:
+                </p>
+                <div style="display: flex; flex-direction: column; gap: 8px;">
+        `;
+        
+        results.forEach(result => {
+            html += `
+                <a href="${result.url}" 
+                   target="_blank"
+                   style="
+                       display: block;
+                       padding: 12px;
+                       background: rgba(255, 255, 255, 0.05);
+                       border-radius: 8px;
+                       text-decoration: none;
+                       color: rgba(255, 255, 255, 0.85);
+                       transition: background 0.2s;
+                       border: 1px solid rgba(255, 255, 255, 0.1);
+                   "
+                   onmouseover="this.style.background='rgba(255, 255, 255, 0.1)'"
+                   onmouseout="this.style.background='rgba(255, 255, 255, 0.05)'">
+                    <div style="font-weight: 500; margin-bottom: 4px;">${result.title}</div>
+                    <div style="font-size: 12px; color: rgba(255, 255, 255, 0.5);">by ${result.primary_artist.name}</div>
+                </a>
+            `;
+        });
+        
+        html += `
+                </div>
+                <div style="margin-top: 20px; padding-top: 16px; border-top: 1px solid rgba(255, 255, 255, 0.1);">
+                    <p style="color: rgba(255, 255, 255, 0.6); font-size: 13px; margin-bottom: 8px;">
+                        Or search manually:
+                    </p>
+                    <div style="display: flex; gap: 8px;">
+                        <input type="text" 
+                               id="basitune-lyrics-search" 
+                               placeholder="Song title"
+                               value="${originalTitle}"
+                               style="
+                                   flex: 1;
+                                   padding: 8px 12px;
+                                   background: rgba(255, 255, 255, 0.05);
+                                   border: 1px solid rgba(255, 255, 255, 0.2);
+                                   border-radius: 6px;
+                                   color: rgba(255, 255, 255, 0.9);
+                                   font-size: 13px;
+                               ">
+                        <input type="text" 
+                               id="basitune-lyrics-artist" 
+                               placeholder="Artist"
+                               value="${originalArtist}"
+                               style="
+                                   flex: 1;
+                                   padding: 8px 12px;
+                                   background: rgba(255, 255, 255, 0.05);
+                                   border: 1px solid rgba(255, 255, 255, 0.2);
+                                   border-radius: 6px;
+                                   color: rgba(255, 255, 255, 0.9);
+                                   font-size: 13px;
+                               ">
+                        <button id="basitune-lyrics-search-btn"
+                                style="
+                                    padding: 8px 16px;
+                                    background: #ff0000;
+                                    border: none;
+                                    border-radius: 6px;
+                                    color: white;
+                                    font-size: 13px;
+                                    font-weight: 500;
+                                    cursor: pointer;
+                                    transition: background 0.2s;
+                                "
+                                onmouseover="this.style.background='#cc0000'"
+                                onmouseout="this.style.background='#ff0000'">
+                            Search
+                        </button>
+                    </div>
+                </div>
+            </div>
+        `;
+        
+        lyricsDiv.innerHTML = html;
+        
+        // Add event listener for search button
+        document.getElementById('basitune-lyrics-search-btn').addEventListener('click', () => {
+            const searchTitle = document.getElementById('basitune-lyrics-search').value;
+            const searchArtist = document.getElementById('basitune-lyrics-artist').value;
+            if (searchTitle && searchArtist) {
+                fetchLyrics(searchTitle, searchArtist);
+            }
+        });
+        
+        // Add enter key support
+        const searchInputs = [
+            document.getElementById('basitune-lyrics-search'),
+            document.getElementById('basitune-lyrics-artist')
+        ];
+        searchInputs.forEach(input => {
+            input.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') {
+                    document.getElementById('basitune-lyrics-search-btn').click();
+                }
+            });
+        });
+    }
+    
+    function showLyricsError(error, title, artist) {
+        const lyricsDiv = document.getElementById('basitune-lyrics-content');
+        lyricsDiv.innerHTML = `
+            <div style="padding: 16px;">
+                <p class="basitune-placeholder">Could not load lyrics</p>
+                <p style="color: rgba(255, 255, 255, 0.4); font-size: 12px; margin-top: 8px;">${error}</p>
+                <div style="margin-top: 20px;">
+                    <p style="color: rgba(255, 255, 255, 0.6); font-size: 13px; margin-bottom: 8px;">
+                        Search manually:
+                    </p>
+                    <div style="display: flex; gap: 8px;">
+                        <input type="text" 
+                               id="basitune-lyrics-search" 
+                               placeholder="Song title"
+                               value="${title}"
+                               style="
+                                   flex: 1;
+                                   padding: 8px 12px;
+                                   background: rgba(255, 255, 255, 0.05);
+                                   border: 1px solid rgba(255, 255, 255, 0.2);
+                                   border-radius: 6px;
+                                   color: rgba(255, 255, 255, 0.9);
+                                   font-size: 13px;
+                               ">
+                        <input type="text" 
+                               id="basitune-lyrics-artist" 
+                               placeholder="Artist"
+                               value="${artist}"
+                               style="
+                                   flex: 1;
+                                   padding: 8px 12px;
+                                   background: rgba(255, 255, 255, 0.05);
+                                   border: 1px solid rgba(255, 255, 255, 0.2);
+                                   border-radius: 6px;
+                                   color: rgba(255, 255, 255, 0.9);
+                                   font-size: 13px;
+                               ">
+                        <button id="basitune-lyrics-search-btn"
+                                style="
+                                    padding: 8px 16px;
+                                    background: #ff0000;
+                                    border: none;
+                                    border-radius: 6px;
+                                    color: white;
+                                    font-size: 13px;
+                                    font-weight: 500;
+                                    cursor: pointer;
+                                    transition: background 0.2s;
+                                "
+                                onmouseover="this.style.background='#cc0000'"
+                                onmouseout="this.style.background='#ff0000'">
+                            Search
+                        </button>
+                    </div>
+                </div>
+            </div>
+        `;
+        
+        // Add event listeners
+        document.getElementById('basitune-lyrics-search-btn').addEventListener('click', () => {
+            const searchTitle = document.getElementById('basitune-lyrics-search').value;
+            const searchArtist = document.getElementById('basitune-lyrics-artist').value;
+            if (searchTitle && searchArtist) {
+                fetchLyrics(searchTitle, searchArtist);
+            }
+        });
+        
+        const searchInputs = [
+            document.getElementById('basitune-lyrics-search'),
+            document.getElementById('basitune-lyrics-artist')
+        ];
+        searchInputs.forEach(input => {
+            input.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') {
+                    document.getElementById('basitune-lyrics-search-btn').click();
+                }
+            });
+        });
     }
     
     // Monitor song changes
