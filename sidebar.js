@@ -1,6 +1,6 @@
 // Artist Info Sidebar for YouTube Music
 // Monitors current song and displays artist bio from Wikipedia
-// Version: 1.2.0
+// Version: 1.3.0
 
 (function() {
     'use strict';
@@ -10,6 +10,7 @@
     let sidebarVisible = false;
     let activeTab = 'artist'; // 'artist' or 'lyrics'
     let sidebarWidth = 380; // Default width in pixels
+    let sidebarFontSize = 14; // Default font size in pixels
     let isResizing = false;
     
     // Create sidebar HTML
@@ -23,7 +24,11 @@
                     <button class="basitune-tab active" data-tab="artist">Artist</button>
                     <button class="basitune-tab" data-tab="lyrics">Lyrics</button>
                 </div>
-                <button id="basitune-toggle">×</button>
+                <div id="basitune-controls">
+                    <button id="basitune-font-decrease" title="Decrease font size">A-</button>
+                    <button id="basitune-font-increase" title="Increase font size">A+</button>
+                    <button id="basitune-toggle">×</button>
+                </div>
             </div>
             <div id="basitune-sidebar-content">
                 <div id="basitune-artist-tab" class="basitune-tab-content active">
@@ -118,6 +123,31 @@
                 backdrop-filter: blur(10px);
             }
             
+            #basitune-controls {
+                display: flex;
+                gap: 8px;
+                align-items: center;
+            }
+            
+            #basitune-font-decrease,
+            #basitune-font-increase {
+                background: rgba(255, 255, 255, 0.1);
+                border: 1px solid rgba(255, 255, 255, 0.2);
+                color: rgba(255, 255, 255, 0.9);
+                cursor: pointer;
+                font-size: 14px;
+                font-weight: 500;
+                padding: 6px 10px;
+                border-radius: 6px;
+                transition: all 0.2s;
+            }
+            
+            #basitune-font-decrease:hover,
+            #basitune-font-increase:hover {
+                background: rgba(255, 255, 255, 0.15);
+                border-color: rgba(255, 255, 255, 0.3);
+            }
+            
             #basitune-tabs {
                 display: flex;
                 gap: 4px;
@@ -175,6 +205,7 @@
                 flex: 1;
                 overflow-y: auto;
                 padding: 20px;
+                font-size: 14px;
                 scrollbar-width: thin;
                 scrollbar-color: rgba(255, 255, 255, 0.2) transparent;
             }
@@ -212,7 +243,6 @@
             
             #basitune-artist-bio {
                 color: rgba(255, 255, 255, 0.85);
-                font-size: 14px;
                 line-height: 1.7;
                 margin-bottom: 20px;
             }
@@ -230,7 +260,6 @@
             
             #basitune-song-context {
                 color: rgba(255, 255, 255, 0.85);
-                font-size: 14px;
                 line-height: 1.7;
                 padding: 16px;
                 background: linear-gradient(135deg, rgba(255, 0, 0, 0.1) 0%, rgba(255, 0, 0, 0.05) 100%);
@@ -249,7 +278,6 @@
             
             #basitune-lyrics-content {
                 color: rgba(255, 255, 255, 0.85);
-                font-size: 14px;
                 line-height: 1.9;
                 white-space: pre-wrap;
                 font-family: 'Roboto', sans-serif;
@@ -436,6 +464,10 @@
         // Reopen button functionality
         reopenBtn.addEventListener('click', toggleSidebar);
         
+        // Font size controls
+        document.getElementById('basitune-font-decrease').addEventListener('click', decreaseFontSize);
+        document.getElementById('basitune-font-increase').addEventListener('click', increaseFontSize);
+        
         // Setup resize functionality
         setupResizeHandle();
         
@@ -501,6 +533,44 @@
             console.log('[Basitune] Saved sidebar width:', sidebarWidth);
         } catch (error) {
             console.error('[Basitune] Failed to save sidebar width:', error);
+        }
+    }
+    
+    // Font size control functions
+    async function decreaseFontSize() {
+        const minSize = 10;
+        if (sidebarFontSize > minSize) {
+            sidebarFontSize = Math.max(minSize, sidebarFontSize - 2);
+            applyFontSize();
+            await saveFontSize();
+        }
+    }
+    
+    async function increaseFontSize() {
+        const maxSize = 24;
+        if (sidebarFontSize < maxSize) {
+            sidebarFontSize = Math.min(maxSize, sidebarFontSize + 2);
+            applyFontSize();
+            await saveFontSize();
+        }
+    }
+    
+    function applyFontSize() {
+        const sidebarContent = document.getElementById('basitune-sidebar-content');
+        console.log('[Basitune] applyFontSize called, fontSize:', sidebarFontSize, 'element:', sidebarContent);
+        if (sidebarContent) {
+            sidebarContent.style.fontSize = sidebarFontSize + 'px';
+            console.log('[Basitune] Applied font size, computed style:', window.getComputedStyle(sidebarContent).fontSize);
+        } else {
+            console.error('[Basitune] Sidebar content element not found!');
+        }
+    }
+    
+    async function saveFontSize() {
+        try {
+            await window.__TAURI__.core.invoke('set_sidebar_font_size', { fontSize: sidebarFontSize });
+        } catch (error) {
+            console.error('[Basitune] Failed to save font size:', error);
         }
     }
     
@@ -991,10 +1061,15 @@
         try {
             const savedVisible = await window.__TAURI__.core.invoke('get_sidebar_visible');
             const savedWidth = await window.__TAURI__.core.invoke('get_sidebar_width');
+            const savedFontSize = await window.__TAURI__.core.invoke('get_sidebar_font_size');
             
             if (savedWidth && savedWidth >= 280 && savedWidth <= 800) {
                 sidebarWidth = savedWidth;
                 console.log('[Basitune] Pre-loaded sidebar width:', savedWidth);
+            }
+            if (savedFontSize && savedFontSize >= 10 && savedFontSize <= 24) {
+                sidebarFontSize = savedFontSize;
+                console.log('[Basitune] Pre-loaded sidebar font size:', savedFontSize);
             }
             sidebarVisible = savedVisible;
             console.log('[Basitune] Pre-loaded sidebar visibility:', savedVisible);
@@ -1025,7 +1100,7 @@
                     if (sidebarElement && reopenBtn && ytmusicApp) {
                         console.log('[Basitune] ✓ Sidebar created successfully');
                         console.log('[Basitune] Sidebar dimensions:', sidebarElement.offsetWidth, 'x', sidebarElement.offsetHeight);
-                        console.log('[Basitune] Applying pre-loaded state - visible:', sidebarVisible, 'width:', sidebarWidth);
+                        console.log('[Basitune] Applying pre-loaded state - visible:', sidebarVisible, 'width:', sidebarWidth, 'font size:', sidebarFontSize);
                         
                         // Apply the pre-loaded visibility state
                         if (sidebarVisible) {
@@ -1037,6 +1112,9 @@
                             reopenBtn.classList.add('visible');
                             ytmusicApp.classList.add('sidebar-hidden');
                         }
+                        
+                        // Apply the pre-loaded font size
+                        applyFontSize();
                     } else {
                         console.error('[Basitune] ✗ Sidebar element not found after creation!');
                     }

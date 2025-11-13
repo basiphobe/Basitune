@@ -70,16 +70,22 @@ impl WindowStateManager {
         self.state.lock().unwrap().clone()
     }
     
-    fn update<F>(&self, f: F) 
+    fn update_no_save<F>(&self, f: F)
     where
         F: FnOnce(&mut WindowState),
     {
         let mut state = self.state.lock().unwrap();
         f(&mut state);
-        self.save(&state);
+        drop(state);  // Explicitly drop the lock
+        // Don't save to disk
     }
     
-    fn save(&self, state: &WindowState) {
+    fn save_silent(&self) {
+        let state = self.state.lock().unwrap();
+        self.save_to_disk(&state);
+    }
+    
+    fn save_to_disk(&self, state: &WindowState) {
         let state_path = Self::get_state_path(&self.app_handle);
         
         // Ensure directory exists
@@ -88,8 +94,6 @@ impl WindowStateManager {
         }
         
         if let Ok(json) = serde_json::to_string_pretty(state) {
-            println!("[Basitune] Saving window state: {}x{} at ({}, {}), maximized={}, sidebar_visible={}", 
-                     state.width, state.height, state.x, state.y, state.maximized, state.sidebar_visible);
             let _ = fs::write(&state_path, json);
         }
     }
@@ -111,6 +115,7 @@ struct WindowState {
     maximized: bool,
     sidebar_visible: bool,
     sidebar_width: u32,
+    sidebar_font_size: u32,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -147,6 +152,7 @@ impl Default for WindowState {
             maximized: false,
             sidebar_visible: false,
             sidebar_width: 380,
+            sidebar_font_size: 14,
         }
     }
 }
@@ -205,12 +211,20 @@ async fn get_artist_info(artist: String, app: tauri::AppHandle) -> Result<String
     // Try to load from cache
     let mut cache = load_cache(&app);
     
+    println!("[Basitune] Artist info cache lookup - original: '{}', cache_key: '{}'", artist, cache_key);
+    println!("[Basitune] Artist info cache has {} entries", cache.artist_info.len());
+    
+    // Debug: show all cache keys to find the issue
+    if !cache.artist_info.is_empty() && cache.artist_info.len() < 30 {
+        println!("[Basitune] Cache keys: {:?}", cache.artist_info.keys().collect::<Vec<_>>());
+    }
+    
     if let Some(cached_info) = cache.artist_info.get(&cache_key) {
-        println!("[Basitune] Using cached artist info for: {}", artist);
+        println!("[Basitune] ✓ CACHE HIT - Using cached artist info for: {}", artist);
         return Ok(cached_info.clone());
     }
     
-    println!("[Basitune] Fetching AI artist info for: {}", artist);
+    println!("[Basitune] ✗ CACHE MISS - Fetching AI artist info for: {}", artist);
     
     let prompt = format!(
         "Provide a brief, 2-3 paragraph summary about the music artist/band '{}'. Include their genre, notable achievements, and impact on music. Keep it concise and informative.",
@@ -237,12 +251,15 @@ async fn get_song_context(title: String, artist: String, app: tauri::AppHandle) 
     // Try to load from cache
     let mut cache = load_cache(&app);
     
+    println!("[Basitune] Song context cache lookup - title: '{}', artist: '{}', cache_key: '{}'", title, artist, cache_key);
+    println!("[Basitune] Song context cache has {} entries", cache.song_context.len());
+    
     if let Some(cached_context) = cache.song_context.get(&cache_key) {
-        println!("[Basitune] Using cached song context for: {} - {}", title, artist);
+        println!("[Basitune] ✓ CACHE HIT - Using cached song context for: {} - {}", title, artist);
         return Ok(cached_context.clone());
     }
     
-    println!("[Basitune] Fetching AI song context for: {} - {}", title, artist);
+    println!("[Basitune] ✗ CACHE MISS - Fetching AI song context for: {} - {}", title, artist);
     
     let prompt = format!(
         "Provide a brief analysis of the song '{}' by {}. Focus on its themes, meaning, and musical significance. Keep it to 2-3 paragraphs.",
@@ -296,15 +313,18 @@ async fn get_lyrics(title: String, artist: String, app: tauri::AppHandle) -> Res
     // Try to load from cache
     let cache = load_cache(&app);
     
+    println!("[Basitune] Lyrics cache lookup - title: '{}', artist: '{}', cache_key: '{}'", title, artist, cache_key);
+    println!("[Basitune] Lyrics cache has {} entries", cache.lyrics.len());
+    
     if let Some(cached_lyrics) = cache.lyrics.get(&cache_key) {
-        println!("[Basitune] Using cached lyrics for: {} - {}", artist, title);
+        println!("[Basitune] ✓ CACHE HIT - Using cached lyrics for: {} - {}", artist, title);
         return Ok(cached_lyrics.clone());
     }
     
     // Need mutable cache for writing
     let mut cache = cache;
     
-    println!("[Basitune] Fetching lyrics for: {} - {}", artist, title);
+    println!("[Basitune] ✗ CACHE MISS - Fetching lyrics for: {} - {}", artist, title);
     
     // Clean up title - remove extra info like (Acoustic), (Remastered), dates, etc. for better matching
     let clean_title = clean_song_title(&title);
@@ -669,8 +689,8 @@ fn get_sidebar_visible(state_manager: tauri::State<WindowStateManager>) -> bool 
 
 #[tauri::command]
 fn set_sidebar_visible(state_manager: tauri::State<WindowStateManager>, visible: bool) {
-    println!("[Basitune] set_sidebar_visible called with: {}", visible);
-    state_manager.update(|state| {
+    println!("[Basitune] Setting sidebar visible: {} (will save on app exit)", visible);
+    state_manager.update_no_save(|state| {
         state.sidebar_visible = visible;
     });
 }
@@ -682,8 +702,22 @@ fn get_sidebar_width(state_manager: tauri::State<WindowStateManager>) -> u32 {
 
 #[tauri::command]
 fn set_sidebar_width(state_manager: tauri::State<WindowStateManager>, width: u32) {
-    state_manager.update(|state| {
+    println!("[Basitune] Setting sidebar width: {} (will save on app exit)", width);
+    state_manager.update_no_save(|state| {
         state.sidebar_width = width;
+    });
+}
+
+#[tauri::command]
+fn get_sidebar_font_size(state_manager: tauri::State<WindowStateManager>) -> u32 {
+    state_manager.get().sidebar_font_size
+}
+
+#[tauri::command]
+fn set_sidebar_font_size(state_manager: tauri::State<WindowStateManager>, font_size: u32) {
+    println!("[Basitune] Setting sidebar font size: {} (will save on app exit)", font_size);
+    state_manager.update_no_save(|state| {
+        state.sidebar_font_size = font_size;
     });
 }
 
@@ -827,6 +861,8 @@ fn main() {
             set_sidebar_visible,
             get_sidebar_width,
             set_sidebar_width,
+            get_sidebar_font_size,
+            set_sidebar_font_size,
             update_discord_presence,
             clear_discord_presence
         ])
@@ -903,45 +939,40 @@ fn main() {
                 }
             }
             
-            // Give a long moment for window state to fully settle AND for any triggered
-            // resize/move events to complete before we attach our event handler
+            // Give a long moment for window state to fully settle
             std::thread::sleep(Duration::from_millis(1000));
             
-            // Save window state on resize
+            // Save window state ONLY on window close
             let app_handle = app.handle().clone();
             let window_clone = window.clone();
             window.on_window_event(move |event| {
                 match event {
-                    tauri::WindowEvent::Resized(_) | tauri::WindowEvent::Moved(_) => {
-                        // Debounce saves by spawning a thread
-                        let app_handle_inner = app_handle.clone();
-                        let window_inner = window_clone.clone();
-                        
-                        std::thread::spawn(move || {
-                            std::thread::sleep(Duration::from_millis(500));
-                            
-                            if let Ok(size) = window_inner.inner_size() {
-                                if let Ok(position) = window_inner.outer_position() {
-                                    let is_maximized = window_inner.is_maximized().unwrap_or(false);
-                                    
-                                    let state_manager: tauri::State<WindowStateManager> = app_handle_inner.state();
-                                    state_manager.update(|state| {
-                                        // Only update geometry, preserve sidebar settings
-                                        // (sidebar_visible and sidebar_width can only be changed via commands)
-                                        state.width = size.width;
-                                        state.height = size.height;
-                                        state.x = position.x;
-                                        state.y = position.y;
-                                        state.maximized = is_maximized;
-                                        // sidebar_visible and sidebar_width are not modified here
-                                    });
-                                }
+                    tauri::WindowEvent::CloseRequested { .. } => {
+                        // Save window state when closing
+                        if let Ok(size) = window_clone.inner_size() {
+                            if let Ok(position) = window_clone.outer_position() {
+                                let is_maximized = window_clone.is_maximized().unwrap_or(false);
+                                
+                                println!("[Basitune] Window closing - saving final state: {}x{} at ({}, {}), maximized={}", 
+                                         size.width, size.height, position.x, position.y, is_maximized);
+                                
+                                let state_manager: tauri::State<WindowStateManager> = app_handle.state();
+                                state_manager.update_no_save(|state| {
+                                    state.width = size.width;
+                                    state.height = size.height;
+                                    state.x = position.x;
+                                    state.y = position.y;
+                                    state.maximized = is_maximized;
+                                });
+                                state_manager.save_silent();
                             }
-                        });
+                        }
                     }
                     _ => {}
                 }
-            });            // Clone window for async operations
+            });
+            
+            // Clone window for async operations
             let window_clone = window.clone();
             
             // Inject debug script immediately to test if JS is running
