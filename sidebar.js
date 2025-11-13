@@ -452,13 +452,23 @@
     // Restore sidebar visibility state from saved preference
     async function restoreSidebarState() {
         try {
-            const visible = await window.__TAURI__.core.invoke('get_sidebar_visible');
-            console.log('[Basitune] Restored sidebar visibility from state:', visible);
-            console.log('[Basitune] Current sidebar visibility before restore:', sidebarVisible);
-            
             const sidebar = document.getElementById('basitune-sidebar');
             const reopenBtn = document.getElementById('basitune-reopen');
             const ytmusicApp = document.querySelector('ytmusic-app');
+            
+            // Verify all required elements exist
+            if (!sidebar || !reopenBtn || !ytmusicApp) {
+                console.error('[Basitune] Cannot restore sidebar state - missing elements:', {
+                    sidebar: !!sidebar,
+                    reopenBtn: !!reopenBtn,
+                    ytmusicApp: !!ytmusicApp
+                });
+                return;
+            }
+            
+            const visible = await window.__TAURI__.core.invoke('get_sidebar_visible');
+            console.log('[Basitune] Restored sidebar visibility from state:', visible);
+            console.log('[Basitune] Current sidebar visibility before restore:', sidebarVisible);
             
             sidebarVisible = visible;
             
@@ -676,7 +686,7 @@
     
     // Initialize
     function init() {
-        console.log('[Basitune] Initializing sidebar v1.2.0');
+        console.log('[Basitune] Initializing sidebar v1.2.1');
         console.log('[Basitune] URL:', window.location.href);
         console.log('[Basitune] Ready state:', document.readyState);
         
@@ -699,16 +709,23 @@
                 clearInterval(checkYTMusic);
                 console.log('[Basitune] ✓ ytmusic-app found after', attempts, 'attempts');
                 createSidebar();
-                const sidebarElement = document.getElementById('basitune-sidebar');
-                if (sidebarElement) {
-                    console.log('[Basitune] ✓ Sidebar created successfully');
-                    console.log('[Basitune] Sidebar dimensions:', sidebarElement.offsetWidth, 'x', sidebarElement.offsetHeight);
-                    
-                    // Restore saved visibility state
-                    restoreSidebarState();
-                } else {
-                    console.error('[Basitune] ✗ Sidebar element not found after creation!');
-                }
+                
+                // Wait a tick for DOM to settle before checking sidebar
+                setTimeout(() => {
+                    const sidebarElement = document.getElementById('basitune-sidebar');
+                    if (sidebarElement) {
+                        console.log('[Basitune] ✓ Sidebar created successfully');
+                        console.log('[Basitune] Sidebar dimensions:', sidebarElement.offsetWidth, 'x', sidebarElement.offsetHeight);
+                        
+                        // Restore saved visibility state after DOM is ready
+                        restoreSidebarState().catch(err => {
+                            console.error('[Basitune] Failed to restore sidebar state:', err);
+                        });
+                    } else {
+                        console.error('[Basitune] ✗ Sidebar element not found after creation!');
+                    }
+                }, 100);
+                
                 monitorSongChanges();
             } else if (attempts > 40) { // 20 seconds
                 clearInterval(checkYTMusic);
