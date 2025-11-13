@@ -356,12 +356,29 @@
             
             /* Adjust YouTube Music main content */
             ytmusic-app {
-                margin-right: 380px;
-                transition: margin-right 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+                margin-right: 380px !important;
+                max-width: calc(100vw - 380px) !important;
+                transition: margin-right 0.3s cubic-bezier(0.4, 0, 0.2, 1), max-width 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
             }
             
             ytmusic-app.sidebar-hidden {
-                margin-right: 0;
+                margin-right: 0 !important;
+                max-width: 100vw !important;
+            }
+            
+            /* Constrain player bar and other fixed elements */
+            ytmusic-app ytmusic-player-bar {
+                max-width: calc(100vw - 380px) !important;
+                transition: max-width 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+            }
+            
+            ytmusic-app.sidebar-hidden ytmusic-player-bar {
+                max-width: 100vw !important;
+            }
+            
+            /* Ensure body doesn't overflow */
+            body {
+                overflow-x: hidden !important;
             }
         `;
         
