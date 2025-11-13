@@ -7,6 +7,7 @@ use std::fs;
 use std::path::PathBuf;
 use std::time::Duration;
 use scraper::{Html, Selector};
+use std::collections::HashMap;
 
 // Volume normalization script
 const VOLUME_NORMALIZER_SCRIPT: &str = include_str!("../../volume-normalizer.js");
@@ -16,6 +17,13 @@ const SIDEBAR_SCRIPT: &str = include_str!("../../sidebar.js");
 
 // Genius API token
 const GENIUS_ACCESS_TOKEN: &str = "REMOVED_TOKEN";
+
+#[derive(Debug, Serialize, Deserialize, Clone, Default)]
+struct CachedData {
+    artist_info: HashMap<String, String>,
+    song_context: HashMap<String, String>,
+    lyrics: HashMap<String, String>,
+}
 
 #[derive(Debug, Serialize, Deserialize)]
 struct WindowState {
@@ -111,7 +119,18 @@ async fn call_openai(prompt: String, max_tokens: u32) -> Result<String, String> 
 }
 
 #[tauri::command]
-async fn get_artist_info(artist: String) -> Result<String, String> {
+async fn get_artist_info(artist: String, app: tauri::AppHandle) -> Result<String, String> {
+    // Create cache key (normalized artist name)
+    let cache_key = artist.to_lowercase().trim().to_string();
+    
+    // Try to load from cache
+    let mut cache = load_cache(&app);
+    
+    if let Some(cached_info) = cache.artist_info.get(&cache_key) {
+        println!("[Basitune] Using cached artist info for: {}", artist);
+        return Ok(cached_info.clone());
+    }
+    
     println!("[Basitune] Fetching AI artist info for: {}", artist);
     
     let prompt = format!(
@@ -119,11 +138,31 @@ async fn get_artist_info(artist: String) -> Result<String, String> {
         artist
     );
     
-    call_openai(prompt, 500).await
+    let result = call_openai(prompt, 500).await?;
+    
+    // Save to cache
+    cache.artist_info.insert(cache_key, result.clone());
+    save_cache(&app, &cache);
+    
+    Ok(result)
 }
 
 #[tauri::command]
-async fn get_song_context(title: String, artist: String) -> Result<String, String> {
+async fn get_song_context(title: String, artist: String, app: tauri::AppHandle) -> Result<String, String> {
+    // Create cache key (normalized artist + title)
+    let cache_key = format!("{}|{}", 
+        artist.to_lowercase().trim(), 
+        title.to_lowercase().trim()
+    );
+    
+    // Try to load from cache
+    let mut cache = load_cache(&app);
+    
+    if let Some(cached_context) = cache.song_context.get(&cache_key) {
+        println!("[Basitune] Using cached song context for: {} - {}", title, artist);
+        return Ok(cached_context.clone());
+    }
+    
     println!("[Basitune] Fetching AI song context for: {} - {}", title, artist);
     
     let prompt = format!(
@@ -131,7 +170,13 @@ async fn get_song_context(title: String, artist: String) -> Result<String, Strin
         title, artist
     );
     
-    call_openai(prompt, 500).await
+    let result = call_openai(prompt, 500).await?;
+    
+    // Save to cache
+    cache.song_context.insert(cache_key, result.clone());
+    save_cache(&app, &cache);
+    
+    Ok(result)
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -162,7 +207,24 @@ struct GeniusArtist {
 }
 
 #[tauri::command]
-async fn get_lyrics(title: String, artist: String) -> Result<String, String> {
+async fn get_lyrics(title: String, artist: String, app: tauri::AppHandle) -> Result<String, String> {
+    // Create cache key (normalized artist + title)
+    let cache_key = format!("{}|{}", 
+        artist.to_lowercase().trim(), 
+        title.to_lowercase().trim()
+    );
+    
+    // Try to load from cache
+    let cache = load_cache(&app);
+    
+    if let Some(cached_lyrics) = cache.lyrics.get(&cache_key) {
+        println!("[Basitune] Using cached lyrics for: {} - {}", artist, title);
+        return Ok(cached_lyrics.clone());
+    }
+    
+    // Need mutable cache for writing
+    let mut cache = cache;
+    
     println!("[Basitune] Fetching lyrics for: {} - {}", artist, title);
     
     // Clean up title - remove extra info like (Acoustic), (Remastered), etc. for better matching
@@ -251,7 +313,13 @@ async fn get_lyrics(title: String, artist: String) -> Result<String, String> {
     let raw_lyrics = extract_raw_lyrics_from_html(&html)?;
     
     // Then clean with AI (async operation)
-    format_lyrics_with_ai(&raw_lyrics).await
+    let result = format_lyrics_with_ai(&raw_lyrics).await?;
+    
+    // Save to cache
+    cache.lyrics.insert(cache_key, result.clone());
+    save_cache(&app, &cache);
+    
+    Ok(result)
 }
 
 fn extract_raw_lyrics_from_html(html: &str) -> Result<String, String> {
@@ -347,6 +415,43 @@ fn get_state_path(app_handle: &tauri::AppHandle) -> PathBuf {
         .app_data_dir()
         .expect("Failed to get app data dir")
         .join("window-state.json")
+}
+
+fn get_cache_path(app_handle: &tauri::AppHandle) -> PathBuf {
+    app_handle
+        .path()
+        .app_data_dir()
+        .expect("Failed to get app data dir")
+        .join("content-cache.json")
+}
+
+fn load_cache(app_handle: &tauri::AppHandle) -> CachedData {
+    let cache_path = get_cache_path(app_handle);
+    
+    if let Ok(contents) = fs::read_to_string(&cache_path) {
+        if let Ok(cache) = serde_json::from_str::<CachedData>(&contents) {
+            println!("[Basitune] Loaded cache with {} artists, {} songs, {} lyrics", 
+                     cache.artist_info.len(), cache.song_context.len(), cache.lyrics.len());
+            return cache;
+        }
+    }
+    
+    CachedData::default()
+}
+
+fn save_cache(app_handle: &tauri::AppHandle, cache: &CachedData) {
+    let cache_path = get_cache_path(app_handle);
+    
+    // Ensure directory exists
+    if let Some(parent) = cache_path.parent() {
+        let _ = fs::create_dir_all(parent);
+    }
+    
+    if let Ok(json) = serde_json::to_string_pretty(cache) {
+        if let Err(e) = fs::write(&cache_path, json) {
+            eprintln!("[Basitune] Failed to save cache: {}", e);
+        }
+    }
 }
 
 fn load_window_state(app_handle: &tauri::AppHandle) -> WindowState {
