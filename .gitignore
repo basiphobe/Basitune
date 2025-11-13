@@ -24,6 +24,10 @@ Thumbs.db
 # Tauri generated files
 src-tauri/gen/
 
+# Mobile icons (desktop-only app)
+src-tauri/icons/android/
+src-tauri/icons/ios/
+
 # Temporary files
 *.tmp
 *.swp
