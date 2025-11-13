@@ -11,9 +11,6 @@ use std::collections::HashMap;
 use std::sync::Mutex;
 use discord_rich_presence::{activity, DiscordIpc, DiscordIpcClient};
 
-// Volume normalization script
-const VOLUME_NORMALIZER_SCRIPT: &str = include_str!("../../volume-normalizer.js");
-
 // Artist info sidebar script
 const SIDEBAR_SCRIPT: &str = include_str!("../../sidebar.js");
 
@@ -468,8 +465,8 @@ fn load_window_state(app_handle: &tauri::AppHandle) -> WindowState {
     
     if let Ok(contents) = fs::read_to_string(&state_path) {
         if let Ok(state) = serde_json::from_str::<WindowState>(&contents) {
-            // println!("[Basitune] Loaded window state: {}x{} at ({}, {}), maximized={}, sidebar_visible={}", 
-            //          state.width, state.height, state.x, state.y, state.maximized, state.sidebar_visible);
+            println!("[Basitune] Loaded window state: {}x{} at ({}, {}), maximized={}, sidebar_visible={}", 
+                     state.width, state.height, state.x, state.y, state.maximized, state.sidebar_visible);
             return state;
         }
     }
@@ -487,8 +484,8 @@ fn save_window_state(app_handle: &tauri::AppHandle, state: &WindowState) {
     }
     
     if let Ok(json) = serde_json::to_string_pretty(state) {
-        // println!("[Basitune] Saving window state: {}x{} at ({}, {}), maximized={}, sidebar_visible={}", 
-        //          state.width, state.height, state.x, state.y, state.maximized, state.sidebar_visible);
+        println!("[Basitune] Saving window state: {}x{} at ({}, {}), maximized={}, sidebar_visible={}", 
+                 state.width, state.height, state.x, state.y, state.maximized, state.sidebar_visible);
         let _ = fs::write(&state_path, json);
     }
 }
@@ -696,6 +693,9 @@ fn main() {
                 let _ = window.maximize();
             }
             
+            // Give a moment for initial window setup events to settle before hooking handlers
+            std::thread::sleep(Duration::from_millis(100));
+            
             // Save window state on resize
             let app_handle = app.handle().clone();
             let window_clone = window.clone();
@@ -714,13 +714,16 @@ fn main() {
                                     let is_maximized = window_inner.is_maximized().unwrap_or(false);
                                     
                                     let mut state = load_window_state(&app_handle_inner);
-                                    // Preserve sidebar_visible - only update geometry
+                                    
+                                    // Only update geometry, never change sidebar_visible here
+                                    // (it can only be changed via set_sidebar_visible command)
+                                    let saved_sidebar_visible = state.sidebar_visible;
                                     state.width = size.width;
                                     state.height = size.height;
                                     state.x = position.x;
                                     state.y = position.y;
                                     state.maximized = is_maximized;
-                                    // sidebar_visible is preserved from load_window_state
+                                    state.sidebar_visible = saved_sidebar_visible;
                                     
                                     save_window_state(&app_handle_inner, &state);
                                 }
@@ -754,19 +757,6 @@ fn main() {
                 }
                 
                 // Retry injection up to 10 times with 2-second intervals
-                for attempt in 1..=10 {
-                    std::thread::sleep(Duration::from_secs(2));
-                    
-                    // Try to inject volume normalizer
-                    if window_clone.eval(VOLUME_NORMALIZER_SCRIPT).is_ok() {
-                        println!("[Basitune] Volume normalization injected successfully (attempt {})", attempt);
-                        break;
-                    } else if attempt == 10 {
-                        eprintln!("[Basitune] Failed to inject volume normalizer after {} attempts", attempt);
-                    }
-                }
-                
-                // Retry sidebar injection separately
                 for attempt in 1..=10 {
                     std::thread::sleep(Duration::from_secs(2));
                     

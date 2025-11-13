@@ -17,10 +17,11 @@ Basitune is a minimal desktop application that provides a dedicated window for Y
 
 - **Single-purpose window**: Opens YouTube Music in a dedicated application window
 - **Persistent login**: Your Google/YouTube Music login persists across app restarts
-- **Volume normalization**: Automatically adjusts audio levels for consistent playback across songs
-- **Lyrics display**: Shows real-time lyrics from Genius for the currently playing song
-- **Artist info sidebar**: AI-generated artist information and song context with OpenAI integration
-- **Window state memory**: Remembers window size, position, and maximized state
+- **Discord Rich Presence**: Shows currently playing song in your Discord status
+- **Lyrics display**: Real-time lyrics from Genius for the currently playing song
+- **AI-powered sidebar**: Artist biographies and song context powered by OpenAI GPT-4o-mini
+- **Content caching**: Reduces API costs by caching artist info, song context, and lyrics
+- **Window state memory**: Remembers window size, position, maximized state, and sidebar visibility
 - **Single instance**: Only one app instance can run at a time - launching again focuses existing window
 - **Lightweight**: Uses the system's native webview instead of bundling a browser
 - **Cross-platform**: Runs on Linux, Windows, and macOS
@@ -168,6 +169,15 @@ Basitune uses Tauri's built-in persistent data storage. When you log into YouTub
 
 This means you stay logged in between app restarts without any special configuration.
 
+### Content Caching
+
+To reduce API costs, Basitune caches:
+- Artist biographies (OpenAI GPT-4o-mini)
+- Song context and analysis (OpenAI GPT-4o-mini)
+- Lyrics (Genius API)
+
+Cached data is stored in `content-cache.json` and persists across app restarts.
+
 ### URL Handling
 
 The application loads `https://music.youtube.com` directly in a webview. It allows navigation to necessary Google/YouTube domains for authentication and normal operation, but keeps the experience focused on music.
@@ -180,19 +190,18 @@ Key settings are in `src-tauri/tauri.conf.json`:
 - **App identifier**: `com.basiphobe.basitune` (used for data storage paths)
 - **Title**: "Basitune"
 
-### Volume Normalization
+### Discord Rich Presence
 
-Volume normalization is enabled by default and normalizes audio to -14 LUFS (standard for streaming services). To control it via the browser console:
+Discord integration is enabled by default. When playing music, your Discord status will show:
+- Song title
+- Artist name
+- "Basitune" as the application
 
-```javascript
-basitune.disableNormalization()  // Turn off
-basitune.enableNormalization()   // Turn on
-basitune.getStatus()             // Check current settings
-```
+The Discord client connects automatically when you start playing music. If Discord isn't running, the feature gracefully fails without affecting playback.
 
 ### Window State
 
-Window size, position, and maximized state are automatically saved to `~/.local/share/com.basiphobe.basitune/window-state.json` (Linux) and restored on startup.
+Window size, position, maximized state, and sidebar visibility are automatically saved to `window-state.json` and restored on startup.
 
 ### Artist Info & Lyrics Sidebar
 
@@ -202,23 +211,26 @@ A collapsible sidebar on the right with two tabs:
 - AI-generated artist biography (powered by OpenAI GPT-4o-mini)
 - Song context: themes, meaning, and musical analysis
 - Automatically updates when songs change
+- Cached to reduce API costs
 
 **Lyrics Tab:**
 - Real-time lyrics from Genius API
 - Clean formatting with smart matching
 - Synced to currently playing track
+- Cached for offline access
 
-Toggle sidebar visibility by clicking the × button.
+Toggle sidebar visibility by clicking the × button. Your preference is saved across sessions.
 
 ## Future Enhancements
 
 Possible future features:
 
+- System media controls integration (MPRIS on Linux, SMTC on Windows, Now Playing on macOS)
 - System tray integration (minimize to tray)
-- Global media key support (Play/Pause, Next, Previous)
-- Offline lyrics caching
-- Custom keyboard shortcuts
-- User preference configuration file
+- Custom Discord assets/icons
+- User preference configuration UI
+- Keyboard shortcuts customization
+- Statistics tracking (most played songs/artists)
 
 ## Troubleshooting
 
@@ -235,17 +247,29 @@ These plugins provide the H.264, VP8/VP9, AAC, and Opus codecs that YouTube Musi
 
 After installing, restart the app with `npm run dev`.
 
+### Volume controls not working
+
+This is a known limitation with WebKit's Web Audio API implementation. YouTube Music's volume slider should work correctly with system audio.
+
 ### Sidebar not showing content
 
 - Ensure `OPENAI_API_KEY` environment variable is set
 - Check console for API errors: right-click → Inspect Element
 - Genius API credentials are embedded (should work automatically)
+- Check if cached data is corrupted: delete `content-cache.json` and restart
 
 ### Login doesn't persist
 
 - Check that the app has write permissions to its data directory
 - On Linux: `~/.local/share/com.basiphobe.basitune`
 - Try clearing the data directory and logging in again
+
+### Discord status not updating
+
+- Ensure Discord is running before starting Basitune
+- The Discord client connects when you first play a song
+- Check console for connection errors
+- Restart both Discord and Basitune if needed
 
 ### App won't start
 - Ensure all system dependencies are installed

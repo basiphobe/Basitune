@@ -15,6 +15,7 @@
     let analyserNode = null;
     let currentVideo = null;
     let normalizationEnabled = true;
+    let userVolumeMultiplier = 1.0; // Track user's volume preference
     
     // Initialize audio context and processing chain
     function initAudioProcessing() {
@@ -58,6 +59,37 @@
             sourceNode.connect(gainNode);
             gainNode.connect(analyserNode);
             analyserNode.connect(audioContext.destination);
+            
+            // Capture initial volume from video element
+            userVolumeMultiplier = video.volume;
+            
+            // Monitor video volume changes and sync with gain node
+            const volumeObserver = new MutationObserver(() => {
+                if (video.volume !== userVolumeMultiplier) {
+                    userVolumeMultiplier = video.volume;
+                    console.log('[Basitune] User volume changed to:', (userVolumeMultiplier * 100).toFixed(0) + '%');
+                }
+            });
+            
+            // Watch for volume attribute changes
+            volumeObserver.observe(video, { 
+                attributes: true, 
+                attributeFilter: ['volume'] 
+            });
+            
+            // Also listen to the volume property directly
+            let lastVolume = video.volume;
+            const checkVolume = () => {
+                if (video.volume !== lastVolume) {
+                    lastVolume = video.volume;
+                    userVolumeMultiplier = video.volume;
+                    console.log('[Basitune] User volume changed to:', (userVolumeMultiplier * 100).toFixed(0) + '%');
+                }
+                if (currentVideo === video) {
+                    requestAnimationFrame(checkVolume);
+                }
+            };
+            requestAnimationFrame(checkVolume);
             
             // Start monitoring
             monitorAndAdjust();
@@ -105,7 +137,10 @@
             // Smooth the gain changes to avoid abrupt volume jumps
             const currentGain = gainNode.gain.value;
             const targetGain = Math.max(0.1, Math.min(3.0, gainAdjustment)); // Clamp between 0.1x and 3x
-            const newGain = currentGain + (targetGain - currentGain) * SMOOTHING_FACTOR;
+            
+            // Apply both normalization AND user volume preference
+            const finalGain = targetGain * userVolumeMultiplier;
+            const newGain = currentGain + (finalGain - currentGain) * SMOOTHING_FACTOR;
             
             gainNode.gain.setValueAtTime(newGain, audioContext.currentTime);
         }
