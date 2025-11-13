@@ -20,8 +20,8 @@ const SIDEBAR_SCRIPT: &str = include_str!("../../sidebar.js");
 // Genius API token
 const GENIUS_ACCESS_TOKEN: &str = "REMOVED_TOKEN";
 
-// Discord Application ID - register at https://discord.com/developers/applications
-const DISCORD_APP_ID: &str = "1307132698974007406";
+// Discord Application ID
+const DISCORD_APP_ID: &str = "REMOVED_APP_ID";
 
 struct DiscordState {
     client: Mutex<Option<DiscordIpcClient>>,
@@ -468,8 +468,8 @@ fn load_window_state(app_handle: &tauri::AppHandle) -> WindowState {
     
     if let Ok(contents) = fs::read_to_string(&state_path) {
         if let Ok(state) = serde_json::from_str::<WindowState>(&contents) {
-            println!("[Basitune] Loaded window state: {}x{} at ({}, {}), maximized={}, sidebar_visible={}", 
-                     state.width, state.height, state.x, state.y, state.maximized, state.sidebar_visible);
+            // println!("[Basitune] Loaded window state: {}x{} at ({}, {}), maximized={}, sidebar_visible={}", 
+            //          state.width, state.height, state.x, state.y, state.maximized, state.sidebar_visible);
             return state;
         }
     }
@@ -487,8 +487,8 @@ fn save_window_state(app_handle: &tauri::AppHandle, state: &WindowState) {
     }
     
     if let Ok(json) = serde_json::to_string_pretty(state) {
-        println!("[Basitune] Saving window state: {}x{} at ({}, {}), maximized={}, sidebar_visible={}", 
-                 state.width, state.height, state.x, state.y, state.maximized, state.sidebar_visible);
+        // println!("[Basitune] Saving window state: {}x{} at ({}, {}), maximized={}, sidebar_visible={}", 
+        //          state.width, state.height, state.x, state.y, state.maximized, state.sidebar_visible);
         let _ = fs::write(&state_path, json);
     }
 }
@@ -514,23 +514,85 @@ fn update_discord_presence(
 ) -> Result<(), String> {
     let mut client_opt = state.client.lock().unwrap();
     
+    let details_text = format!("{}", title);
+    let state_text = format!("by {}", artist);
+    
     if let Some(client) = client_opt.as_mut() {
         let payload = activity::Activity::new()
-            .state(&artist)
-            .details(&title);
+            .details(&details_text)
+            .state(&state_text)
+            .assets(activity::Assets::new().large_text("Basitune"));
             
         match client.set_activity(payload) {
             Ok(_) => {
-                println!("[Basitune] Discord presence updated: {} - {}", artist, title);
+                println!("[Basitune] Discord presence updated: {} - {}", title, artist);
                 Ok(())
             }
             Err(e) => {
                 eprintln!("[Basitune] Failed to update Discord presence: {}", e);
-                Err(format!("Failed to update Discord presence: {}", e))
+                
+                // Try to reconnect on connection errors
+                println!("[Basitune] Attempting to reconnect to Discord...");
+                drop(client_opt.take()); // Drop the old client
+                
+                if let Ok(mut new_client) = DiscordIpcClient::new(DISCORD_APP_ID) {
+                    match new_client.connect() {
+                        Ok(_) => {
+                            println!("[Basitune] Reconnected to Discord, retrying...");
+                            let retry_payload = activity::Activity::new()
+                                .details(&details_text)
+                                .state(&state_text)
+                                .assets(activity::Assets::new().large_text("Basitune"));
+                            
+                            match new_client.set_activity(retry_payload) {
+                                Ok(_) => {
+                                    println!("[Basitune] Discord presence set after reconnect");
+                                    *client_opt = Some(new_client);
+                                    return Ok(());
+                                }
+                                Err(e2) => {
+                                    eprintln!("[Basitune] Failed to set presence after reconnect: {}", e2);
+                                }
+                            }
+                        }
+                        Err(e2) => {
+                            eprintln!("[Basitune] Failed to reconnect: {}", e2);
+                        }
+                    }
+                }
+                Ok(())
             }
         }
     } else {
-        Err("Discord client not connected".to_string())
+        println!("[Basitune] Discord client not connected, attempting first connection...");
+        if let Ok(mut new_client) = DiscordIpcClient::new(DISCORD_APP_ID) {
+            match new_client.connect() {
+                Ok(_) => {
+                    println!("[Basitune] Connected to Discord successfully");
+                    let payload = activity::Activity::new()
+                        .details(&details_text)
+                        .state(&state_text)
+                        .assets(activity::Assets::new().large_text("Basitune"));
+                    
+                    match new_client.set_activity(payload) {
+                        Ok(_) => {
+                            println!("[Basitune] Discord presence set: {} - {}", title, artist);
+                            *client_opt = Some(new_client);
+                        }
+                        Err(e) => {
+                            eprintln!("[Basitune] Failed to set Discord presence: {}", e);
+                            eprintln!("[Basitune] This usually means the Discord App ID is not registered.");
+                            eprintln!("[Basitune] Register your app at: https://discord.com/developers/applications");
+                        }
+                    }
+                }
+                Err(e) => {
+                    eprintln!("[Basitune] Failed to connect to Discord: {}", e);
+                    eprintln!("[Basitune] Make sure Discord is running.");
+                }
+            }
+        }
+        Ok(())
     }
 }
 
@@ -541,42 +603,25 @@ fn clear_discord_presence(state: tauri::State<DiscordState>) -> Result<(), Strin
     if let Some(client) = client_opt.as_mut() {
         match client.clear_activity() {
             Ok(_) => {
-                println!("[Basitune] Discord presence cleared");
+                // println!("[Basitune] Discord presence cleared");
                 Ok(())
             }
-            Err(e) => {
-                eprintln!("[Basitune] Failed to clear Discord presence: {}", e);
-                Err(format!("Failed to clear Discord presence: {}", e))
+            Err(_e) => {
+                // Silently ignore errors
+                // eprintln!("[Basitune] Failed to clear Discord presence: {}", e);
+                Ok(())
             }
         }
     } else {
-        Err("Discord client not connected".to_string())
+        Ok(()) // Silently ignore if not connected
     }
 }
 
 fn main() {
-    // Initialize Discord client
-    let discord_client = match DiscordIpcClient::new(DISCORD_APP_ID) {
-        Ok(mut client) => {
-            match client.connect() {
-                Ok(_) => {
-                    println!("[Basitune] Discord Rich Presence connected");
-                    Some(client)
-                }
-                Err(e) => {
-                    eprintln!("[Basitune] Failed to connect to Discord: {}", e);
-                    None
-                }
-            }
-        }
-        Err(e) => {
-            eprintln!("[Basitune] Failed to create Discord client: {}", e);
-            None
-        }
-    };
-    
+    // Don't connect to Discord on startup - connect lazily when first activity is set
+    // This avoids breaking the pipe immediately if the app isn't registered yet
     let discord_state = DiscordState {
-        client: Mutex::new(discord_client),
+        client: Mutex::new(None),
     };
     
     tauri::Builder::default()
