@@ -88,13 +88,31 @@ npm install
 
 ### Environment Setup
 
-**Required:** Set your OpenAI API key for AI-powered artist/song context:
+Basitune requires API keys for its features. Copy `.env.example` to `.env` and fill in your keys:
 
 ```bash
-export OPENAI_API_KEY="your-key-here"
+cp .env.example .env
 ```
 
-Add to `~/.bashrc` or `~/.config/fish/config.fish` to make it permanent.
+Then edit `.env` with your API keys:
+
+**Required for AI features:**
+- `OPENAI_API_KEY` - Get from https://platform.openai.com/api-keys
+  - Used for artist biographies and song context
+  - Requires a paid OpenAI account with API credits
+
+**Required for lyrics:**
+- `GENIUS_ACCESS_TOKEN` - Get from https://genius.com/api-clients
+  - Free API key for lyrics fetching
+  - Create a new API client and copy the access token
+
+**Example `.env` file:**
+```bash
+OPENAI_API_KEY=sk-proj-your-key-here
+GENIUS_ACCESS_TOKEN=your-genius-token-here
+```
+
+Alternatively, you can set these as system environment variables in your shell config (`~/.bashrc`, `~/.config/fish/config.fish`, etc.).
 
 ### Install Dependencies
 
@@ -113,10 +131,12 @@ This generates all required icon files from the included `icon.svg`. You can rep
 ### Run in Development Mode
 
 ```bash
-OPENAI_API_KEY=$OPENAI_API_KEY npm run dev
+npm run dev
 ```
 
 This will start the application in development mode with hot-reload enabled.
+
+**Note:** Make sure your `.env` file is configured or environment variables are set before running.
 
 ### Build for Production
 
@@ -254,10 +274,16 @@ This is a known limitation with WebKit's Web Audio API implementation. YouTube M
 
 ### Sidebar not showing content
 
-- Ensure `OPENAI_API_KEY` environment variable is set
+**Check API keys:**
+- Ensure `OPENAI_API_KEY` environment variable is set (for artist info)
+- Ensure `GENIUS_ACCESS_TOKEN` environment variable is set (for lyrics)
+- Verify keys are valid and have not expired
+- OpenAI API requires a paid account with available credits
+
+**Other issues:**
 - Check console for API errors: right-click → Inspect Element
-- Genius API credentials are embedded (should work automatically)
 - Check if cached data is corrupted: delete `content-cache.json` and restart
+- Restart the app to reload environment variables
 
 ### Login doesn't persist
 

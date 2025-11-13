@@ -14,14 +14,12 @@ use discord_rich_presence::{activity, DiscordIpc, DiscordIpcClient};
 // Artist info sidebar script
 const SIDEBAR_SCRIPT: &str = include_str!("../../sidebar.js");
 
+// Discord Application ID (public identifier, not a secret)
+const DISCORD_APP_ID: &str = "1438326240997281943";
+
 fn get_genius_token() -> Result<String, String> {
     std::env::var("GENIUS_ACCESS_TOKEN")
         .map_err(|_| "GENIUS_ACCESS_TOKEN environment variable not set".to_string())
-}
-
-fn get_discord_app_id() -> Result<String, String> {
-    std::env::var("DISCORD_APP_ID")
-        .map_err(|_| "DISCORD_APP_ID environment variable not set".to_string())
 }
 
 struct DiscordState {
@@ -40,20 +38,14 @@ impl WindowStateManager {
             Ok(contents) => {
                 match serde_json::from_str::<WindowState>(&contents) {
                     Ok(state) => {
-                        println!("[Basitune] Loaded window state: {}x{} at ({}, {}), maximized={}, sidebar_visible={}", 
-                                 state.width, state.height, state.x, state.y, state.maximized, state.sidebar_visible);
                         state
                     }
-                    Err(e) => {
-                        eprintln!("[Basitune] Failed to parse window state JSON: {}", e);
-                        println!("[Basitune] Using default window state");
+                    Err(_) => {
                         WindowState::default()
                     }
                 }
             }
-            Err(e) => {
-                eprintln!("[Basitune] Failed to read window state file: {}", e);
-                println!("[Basitune] Using default window state");
+            Err(_) => {
                 WindowState::default()
             }
         };
@@ -215,20 +207,9 @@ async fn get_artist_info(artist: String, app: tauri::AppHandle) -> Result<String
     // Try to load from cache
     let mut cache = load_cache(&app);
     
-    println!("[Basitune] Artist info cache lookup - original: '{}', cache_key: '{}'", artist, cache_key);
-    println!("[Basitune] Artist info cache has {} entries", cache.artist_info.len());
-    
-    // Debug: show all cache keys to find the issue
-    if !cache.artist_info.is_empty() && cache.artist_info.len() < 30 {
-        println!("[Basitune] Cache keys: {:?}", cache.artist_info.keys().collect::<Vec<_>>());
-    }
-    
     if let Some(cached_info) = cache.artist_info.get(&cache_key) {
-        println!("[Basitune] ✓ CACHE HIT - Using cached artist info for: {}", artist);
         return Ok(cached_info.clone());
     }
-    
-    println!("[Basitune] ✗ CACHE MISS - Fetching AI artist info for: {}", artist);
     
     let prompt = format!(
         "Provide a brief, 2-3 paragraph summary about the music artist/band '{}'. Include their genre, notable achievements, and impact on music. Keep it concise and informative.",
@@ -255,15 +236,9 @@ async fn get_song_context(title: String, artist: String, app: tauri::AppHandle) 
     // Try to load from cache
     let mut cache = load_cache(&app);
     
-    println!("[Basitune] Song context cache lookup - title: '{}', artist: '{}', cache_key: '{}'", title, artist, cache_key);
-    println!("[Basitune] Song context cache has {} entries", cache.song_context.len());
-    
     if let Some(cached_context) = cache.song_context.get(&cache_key) {
-        println!("[Basitune] ✓ CACHE HIT - Using cached song context for: {} - {}", title, artist);
         return Ok(cached_context.clone());
     }
-    
-    println!("[Basitune] ✗ CACHE MISS - Fetching AI song context for: {} - {}", title, artist);
     
     let prompt = format!(
         "Provide a brief analysis of the song '{}' by {}. Focus on its themes, meaning, and musical significance. Keep it to 2-3 paragraphs.",
@@ -317,18 +292,12 @@ async fn get_lyrics(title: String, artist: String, app: tauri::AppHandle) -> Res
     // Try to load from cache
     let cache = load_cache(&app);
     
-    println!("[Basitune] Lyrics cache lookup - title: '{}', artist: '{}', cache_key: '{}'", title, artist, cache_key);
-    println!("[Basitune] Lyrics cache has {} entries", cache.lyrics.len());
-    
     if let Some(cached_lyrics) = cache.lyrics.get(&cache_key) {
-        println!("[Basitune] ✓ CACHE HIT - Using cached lyrics for: {} - {}", artist, title);
         return Ok(cached_lyrics.clone());
     }
     
     // Need mutable cache for writing
     let mut cache = cache;
-    
-    println!("[Basitune] ✗ CACHE MISS - Fetching lyrics for: {} - {}", artist, title);
     
     // Clean up title - remove extra info like (Acoustic), (Remastered), dates, etc. for better matching
     let clean_title = clean_song_title(&title);
@@ -390,9 +359,6 @@ async fn get_lyrics(title: String, artist: String, app: tauri::AppHandle) -> Res
     
     let song_url = &best_match.result.url;
     
-    println!("[Basitune] Found song URL: {} (Artist: {}, Title: {})", 
-             song_url, best_match.result.primary_artist.name, best_match.result.title);
-    
     // Scrape lyrics from the song page
     let lyrics_response = client
         .get(song_url.as_str())
@@ -415,14 +381,14 @@ async fn get_lyrics(title: String, artist: String, app: tauri::AppHandle) -> Res
             if cleaned.to_lowercase().contains("i can't provide") 
                 || cleaned.to_lowercase().contains("i cannot provide")
                 || cleaned.to_lowercase().contains("i'm sorry") {
-                println!("[Basitune] AI refused to clean lyrics, using raw version");
+
                 clean_lyrics_with_regex(&raw_lyrics)
             } else {
                 cleaned
             }
         }
         Err(_) => {
-            println!("[Basitune] AI cleaning failed, using raw version");
+
             clean_lyrics_with_regex(&raw_lyrics)
         }
     };
@@ -695,7 +661,7 @@ fn get_sidebar_visible(state_manager: tauri::State<WindowStateManager>) -> bool 
 
 #[tauri::command]
 fn set_sidebar_visible(state_manager: tauri::State<WindowStateManager>, visible: bool) {
-    println!("[Basitune] Setting sidebar visible: {} (will save on app exit)", visible);
+
     state_manager.update_no_save(|state| {
         state.sidebar_visible = visible;
     });
@@ -708,7 +674,7 @@ fn get_sidebar_width(state_manager: tauri::State<WindowStateManager>) -> u32 {
 
 #[tauri::command]
 fn set_sidebar_width(state_manager: tauri::State<WindowStateManager>, width: u32) {
-    println!("[Basitune] Setting sidebar width: {} (will save on app exit)", width);
+
     state_manager.update_no_save(|state| {
         state.sidebar_width = width;
     });
@@ -721,7 +687,7 @@ fn get_sidebar_font_size(state_manager: tauri::State<WindowStateManager>) -> u32
 
 #[tauri::command]
 fn set_sidebar_font_size(state_manager: tauri::State<WindowStateManager>, font_size: u32) {
-    println!("[Basitune] Setting sidebar font size: {} (will save on app exit)", font_size);
+
     state_manager.update_no_save(|state| {
         state.sidebar_font_size = font_size;
     });
@@ -746,21 +712,20 @@ fn update_discord_presence(
             
         match client.set_activity(payload) {
             Ok(_) => {
-                println!("[Basitune] Discord presence updated: {} - {}", title, artist);
+
                 Ok(())
             }
             Err(e) => {
                 eprintln!("[Basitune] Failed to update Discord presence: {}", e);
                 
                 // Try to reconnect on connection errors
-                println!("[Basitune] Attempting to reconnect to Discord...");
+
                 drop(client_opt.take()); // Drop the old client
                 
-                if let Ok(app_id) = get_discord_app_id() {
-                    if let Ok(mut new_client) = DiscordIpcClient::new(&app_id) {
+                if let Ok(mut new_client) = DiscordIpcClient::new(DISCORD_APP_ID) {
                     match new_client.connect() {
                         Ok(_) => {
-                            println!("[Basitune] Reconnected to Discord, retrying...");
+
                             let retry_payload = activity::Activity::new()
                                 .details(&details_text)
                                 .state(&state_text)
@@ -768,7 +733,7 @@ fn update_discord_presence(
                             
                             match new_client.set_activity(retry_payload) {
                                 Ok(_) => {
-                                    println!("[Basitune] Discord presence set after reconnect");
+
                                     *client_opt = Some(new_client);
                                     return Ok(());
                                 }
@@ -781,18 +746,16 @@ fn update_discord_presence(
                             eprintln!("[Basitune] Failed to reconnect: {}", e2);
                         }
                     }
-                    }
                 }
                 Ok(())
             }
         }
     } else {
-        println!("[Basitune] Discord client not connected, attempting first connection...");
-        if let Ok(app_id) = get_discord_app_id() {
-            if let Ok(mut new_client) = DiscordIpcClient::new(&app_id) {
+
+        if let Ok(mut new_client) = DiscordIpcClient::new(DISCORD_APP_ID) {
             match new_client.connect() {
                 Ok(_) => {
-                    println!("[Basitune] Connected to Discord successfully");
+
                     let payload = activity::Activity::new()
                         .details(&details_text)
                         .state(&state_text)
@@ -800,7 +763,7 @@ fn update_discord_presence(
                     
                     match new_client.set_activity(payload) {
                         Ok(_) => {
-                            println!("[Basitune] Discord presence set: {} - {}", title, artist);
+
                             *client_opt = Some(new_client);
                         }
                         Err(e) => {
@@ -814,7 +777,6 @@ fn update_discord_presence(
                     eprintln!("[Basitune] Failed to connect to Discord: {}", e);
                     eprintln!("[Basitune] Make sure Discord is running.");
                 }
-            }
             }
         }
         Ok(())
@@ -859,7 +821,7 @@ fn main() {
             if let Some(window) = windows.values().next() {
                 let _ = window.set_focus();
                 let _ = window.unminimize();
-                println!("[Basitune] Focused existing instance");
+
             }
         }))
         .invoke_handler(tauri::generate_handler![
@@ -890,7 +852,7 @@ fn main() {
                     Ok(updater) => {
                         match updater.check().await {
                             Ok(Some(update)) => {
-                                println!("[Basitune] Update available: {}", update.version);
+
                                 
                                 // Download and install with progress callbacks
                                 let download_result = update.download_and_install(
@@ -902,7 +864,7 @@ fn main() {
                                     eprintln!("[Basitune] Failed to install update: {}", e);
                                 }
                             }
-                            Ok(None) => println!("[Basitune] No updates available"),
+                            Ok(None) => {},
                             Err(e) => eprintln!("[Basitune] Failed to check for updates: {}", e),
                         }
                     }
@@ -913,7 +875,7 @@ fn main() {
             // Get the main window
             let window = app.get_webview_window("main").expect("Failed to get main window");
             
-            println!("[Basitune] Window created");
+
             
             // Set the window title
             window.set_title("Basitune").unwrap();
