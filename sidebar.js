@@ -379,7 +379,32 @@
             }
             
             .basitune-lyrics-error {
-                padding: 16px;
+                padding: 24px;
+                text-align: center;
+                max-width: 500px;
+                margin: 40px auto;
+            }
+            
+            .basitune-error-icon {
+                font-size: 48px;
+                margin-bottom: 16px;
+                filter: drop-shadow(0 2px 8px rgba(255, 0, 0, 0.3));
+            }
+            
+            .basitune-error-title {
+                color: #ff4444;
+                font-size: 20px;
+                font-weight: 600;
+                margin-bottom: 12px;
+                text-shadow: 0 0 20px rgba(255, 0, 0, 0.3);
+            }
+            
+            .basitune-error-explanation {
+                color: rgba(255, 255, 255, 0.7);
+                font-size: 14px;
+                line-height: 1.6;
+                margin-bottom: 24px;
+                text-align: left;
             }
             
             .basitune-error-message {
@@ -389,28 +414,32 @@
             }
             
             .basitune-manual-search {
-                margin-top: 20px;
+                margin-top: 24px;
+                padding-top: 24px;
+                border-top: 1px solid rgba(255, 255, 255, 0.1);
             }
             
             .basitune-manual-search-label {
-                color: rgba(255, 255, 255, 0.6);
-                font-size: 13px;
-                margin-bottom: 8px;
+                color: rgba(255, 255, 255, 0.8);
+                font-size: 14px;
+                margin-bottom: 12px;
+                font-weight: 500;
             }
             
             .basitune-search-form {
                 display: flex;
+                flex-direction: column;
                 gap: 8px;
             }
             
             .basitune-search-input {
-                flex: 1;
-                padding: 8px 12px;
+                width: 100%;
+                padding: 10px 14px;
                 background: rgba(255, 255, 255, 0.05);
                 border: 1px solid rgba(255, 255, 255, 0.2);
                 border-radius: 6px;
                 color: rgba(255, 255, 255, 0.9);
-                font-size: 13px;
+                font-size: 14px;
                 transition: all 0.2s;
             }
             
@@ -426,16 +455,18 @@
             }
             
             .basitune-search-btn {
-                padding: 8px 16px;
+                width: 100%;
+                padding: 10px 16px;
                 background: linear-gradient(135deg, #ff0000 0%, #cc0000 100%);
                 border: none;
                 border-radius: 6px;
                 color: white;
-                font-size: 13px;
-                font-weight: 500;
+                font-size: 14px;
+                font-weight: 600;
                 cursor: pointer;
                 transition: all 0.3s;
                 box-shadow: 0 2px 8px rgba(255, 0, 0, 0.3);
+                margin-top: 4px;
             }
             
             .basitune-search-btn:hover {
@@ -1130,12 +1161,50 @@
     
     function showLyricsError(error, title, artist) {
         const lyricsDiv = document.getElementById('basitune-lyrics-content');
+        
+        // Parse the error to provide helpful context
+        let errorTitle = 'Lyrics Not Found';
+        let errorExplanation = '';
+        let errorIcon = '🔍';
+        
+        const errorStr = String(error);
+        
+        if (errorStr.includes('Genius API token not configured')) {
+            errorTitle = 'API Not Configured';
+            errorExplanation = 'The Genius API token is not set. New lyrics cannot be fetched, but cached lyrics will still work.';
+            errorIcon = '🔑';
+        } else if (errorStr.includes('No results found')) {
+            errorTitle = 'No Results Found';
+            errorExplanation = `Genius couldn't find lyrics for "${title}" by ${artist}. This could be because:<br>
+                • The song is too new or obscure<br>
+                • The artist or title name doesn't match Genius's database<br>
+                • The song is instrumental or has no published lyrics`;
+            errorIcon = '❌';
+        } else if (errorStr.includes('Could not extract lyrics')) {
+            errorTitle = 'Extraction Failed';
+            errorExplanation = 'Found the song on Genius, but couldn\'t extract the lyrics from the page. The page format may have changed.';
+            errorIcon = '⚠️';
+        } else if (errorStr.includes('timeout') || errorStr.includes('network')) {
+            errorTitle = 'Connection Error';
+            errorExplanation = 'Could not connect to Genius. Check your internet connection and try again.';
+            errorIcon = '📡';
+        } else if (errorStr.includes('rate limit')) {
+            errorTitle = 'Rate Limited';
+            errorExplanation = 'Too many requests to Genius API. Please wait a moment before trying again.';
+            errorIcon = '⏳';
+        } else {
+            errorTitle = 'Error Loading Lyrics';
+            errorExplanation = `An unexpected error occurred: ${errorStr}`;
+            errorIcon = '⚠️';
+        }
+        
         lyricsDiv.innerHTML = `
             <div class="basitune-lyrics-error">
-                <p class="basitune-placeholder">Could not load lyrics</p>
-                <p class="basitune-error-message">${error}</p>
+                <div class="basitune-error-icon">${errorIcon}</div>
+                <h3 class="basitune-error-title">${errorTitle}</h3>
+                <p class="basitune-error-explanation">${errorExplanation}</p>
                 <div class="basitune-manual-search">
-                    <p class="basitune-manual-search-label">Search manually:</p>
+                    <p class="basitune-manual-search-label">Try a manual search:</p>
                     <div class="basitune-search-form">
                         <input type="text" 
                                id="basitune-lyrics-search" 
@@ -1149,7 +1218,7 @@
                                value="${artist}">
                         <button id="basitune-lyrics-search-btn"
                                 class="basitune-search-btn">
-                            Search
+                            Search Genius
                         </button>
                     </div>
                 </div>
