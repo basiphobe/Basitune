@@ -270,6 +270,8 @@ struct GeniusResult {
     url: String,
     title: String,
     primary_artist: GeniusArtist,
+    #[serde(rename = "type")]
+    result_type: Option<String>,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
@@ -289,7 +291,18 @@ async fn get_lyrics(title: String, artist: String, app: tauri::AppHandle) -> Res
     let cache = load_cache(&app);
     
     if let Some(cached_lyrics) = cache.lyrics.get(&cache_key) {
-        return Ok(cached_lyrics.clone());
+        // Validate cached content isn't prose/literature
+        // Check for common prose patterns that indicate non-lyrics content
+        let is_prose = cached_lyrics.contains("he said") 
+            || cached_lyrics.contains("she said")
+            || cached_lyrics.contains("he sat")
+            || cached_lyrics.contains("she sat")
+            || (cached_lyrics.contains(" the ") && cached_lyrics.len() > 500 && !cached_lyrics.contains("[Chorus]") && !cached_lyrics.contains("[Verse]"));
+        
+        if !is_prose {
+            return Ok(cached_lyrics.clone());
+        }
+        // If it looks like prose, fall through to re-fetch with filtering
     }
     
     // Need mutable cache for writing
@@ -331,11 +344,23 @@ async fn get_lyrics(title: String, artist: String, app: tauri::AppHandle) -> Res
         .await
         .map_err(|e| format!("Failed to parse search results: {}", e))?;
     
-    // Find best matching result
+    // Find best matching result that is actually a song
     let best_match = search_result
         .response
         .hits
         .iter()
+        .filter(|hit| {
+            // Only accept results that are explicitly songs
+            // Reject if type is explicitly not "song" or if URL suggests non-song content
+            match &hit.result.result_type {
+                Some(t) => t == "song",
+                None => {
+                    // If type is missing, check URL for red flags (literature, books, etc.)
+                    let url_lower = hit.result.url.to_lowercase();
+                    !url_lower.contains("/literature/") && !url_lower.contains("/books/")
+                }
+            }
+        })
         .find(|hit| {
             // Check if artist name matches (case-insensitive, approximate)
             let result_artist = hit.result.primary_artist.name.to_lowercase();
@@ -353,7 +378,14 @@ async fn get_lyrics(title: String, artist: String, app: tauri::AppHandle) -> Res
             
             artist_match && title_match
         })
-        .or_else(|| search_result.response.hits.first())
+        .or_else(|| {
+            // Fallback: get first result that is explicitly type="song"
+            search_result.response.hits.iter()
+                .find(|hit| match &hit.result.result_type {
+                    Some(t) => t == "song",
+                    None => false, // Don't accept unknown types in fallback
+                })
+        })
         .ok_or("No results found")?;
     
     let song_url = &best_match.result.url;
@@ -434,7 +466,8 @@ async fn search_lyrics(title: String, artist: String) -> Result<Vec<GeniusResult
         .await
         .map_err(|e| format!("Failed to parse search results: {}", e))?;
     
-    // Return top 10 results
+    // Return top 10 results for suggestions (don't filter here - let user see all matches)
+    // The filtering happens in get_lyrics to prevent auto-fetching non-song content
     Ok(search_result.response.hits
         .into_iter()
         .take(10)

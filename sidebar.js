@@ -12,6 +12,7 @@
     let sidebarWidth = 380; // Default width in pixels
     let sidebarFontSize = 14; // Default font size in pixels
     let isResizing = false;
+    let lastSearchResults = null; // Store last search results for "Go Back"
     
     // Create sidebar HTML
     function createSidebar() {
@@ -325,8 +326,6 @@
             
             #basitune-lyrics-content {
                 color: rgba(255, 255, 255, 0.85);
-                line-height: 1.9;
-                white-space: pre-wrap;
                 font-family: 'Roboto', sans-serif;
                 padding: 16px;
                 background: rgba(255, 255, 255, 0.03);
@@ -379,31 +378,31 @@
             }
             
             .basitune-lyrics-error {
-                padding: 24px;
+                padding: 20px;
                 text-align: center;
-                max-width: 500px;
-                margin: 40px auto;
+                max-width: 450px;
+                margin: 20px auto;
             }
             
             .basitune-error-icon {
                 font-size: 48px;
-                margin-bottom: 16px;
+                margin-bottom: 12px;
                 filter: drop-shadow(0 2px 8px rgba(255, 0, 0, 0.3));
             }
             
             .basitune-error-title {
                 color: #ff4444;
-                font-size: 20px;
+                font-size: 18px;
                 font-weight: 600;
-                margin-bottom: 12px;
+                margin-bottom: 8px;
                 text-shadow: 0 0 20px rgba(255, 0, 0, 0.3);
             }
             
             .basitune-error-explanation {
                 color: rgba(255, 255, 255, 0.7);
-                font-size: 14px;
-                line-height: 1.6;
-                margin-bottom: 24px;
+                font-size: 13px;
+                line-height: 1.5;
+                margin-bottom: 16px;
                 text-align: left;
             }
             
@@ -414,33 +413,47 @@
             }
             
             .basitune-manual-search {
-                margin-top: 24px;
-                padding-top: 24px;
+                margin-top: 16px;
+                padding-top: 16px;
                 border-top: 1px solid rgba(255, 255, 255, 0.1);
             }
             
             .basitune-manual-search-label {
                 color: rgba(255, 255, 255, 0.8);
-                font-size: 14px;
-                margin-bottom: 12px;
+                font-size: 13px;
+                margin-bottom: 10px;
                 font-weight: 500;
+            }
+            
+            .basitune-field-label {
+                display: block;
+                color: rgba(255, 255, 255, 0.7);
+                font-size: 11px;
+                font-weight: 500;
+                margin-bottom: 3px;
+                margin-top: 6px;
+            }
+            
+            .basitune-field-label:first-of-type {
+                margin-top: 0;
             }
             
             .basitune-search-form {
                 display: flex;
                 flex-direction: column;
-                gap: 8px;
+                gap: 0;
             }
             
             .basitune-search-input {
                 width: 100%;
-                padding: 10px 14px;
+                padding: 8px 12px;
                 background: rgba(255, 255, 255, 0.05);
                 border: 1px solid rgba(255, 255, 255, 0.2);
                 border-radius: 6px;
                 color: rgba(255, 255, 255, 0.9);
-                font-size: 14px;
+                font-size: 13px;
                 transition: all 0.2s;
+                margin-bottom: 2px;
             }
             
             .basitune-search-input:focus {
@@ -456,17 +469,17 @@
             
             .basitune-search-btn {
                 width: 100%;
-                padding: 10px 16px;
+                padding: 9px 16px;
                 background: linear-gradient(135deg, #ff0000 0%, #cc0000 100%);
                 border: none;
                 border-radius: 6px;
                 color: white;
-                font-size: 14px;
+                font-size: 13px;
                 font-weight: 600;
                 cursor: pointer;
                 transition: all 0.3s;
                 box-shadow: 0 2px 8px rgba(255, 0, 0, 0.3);
-                margin-top: 4px;
+                margin-top: 8px;
             }
             
             .basitune-search-btn:hover {
@@ -1022,8 +1035,41 @@
             
             console.log('[Basitune] Received lyrics');
             
-            // Display lyrics
-            lyricsDiv.textContent = lyrics;
+            // Display lyrics (only show Go Back button if we have search results to go back to)
+            if (lastSearchResults) {
+                lyricsDiv.innerHTML = `
+                    <div style="margin-bottom: 12px;">
+                        <button id="basitune-go-back" style="
+                            padding: 6px 12px;
+                            background: rgba(255, 255, 255, 0.1);
+                            border: 1px solid rgba(255, 255, 255, 0.2);
+                            border-radius: 6px;
+                            color: rgba(255, 255, 255, 0.9);
+                            cursor: pointer;
+                            font-size: 13px;
+                            transition: background 0.2s;
+                        " onmouseover="this.style.background='rgba(255, 255, 255, 0.15)'"
+                           onmouseout="this.style.background='rgba(255, 255, 255, 0.1)'">
+                            ← Go Back
+                        </button>
+                    </div>
+                    <div id="basitune-lyrics-text" style="white-space: pre-wrap;">${lyrics}</div>
+                `;
+                
+                // Add click handler for go back button
+                document.getElementById('basitune-go-back').addEventListener('click', () => {
+                    showLyricsSearchResults(
+                        lastSearchResults.results,
+                        lastSearchResults.title,
+                        lastSearchResults.artist
+                    );
+                });
+            } else {
+                // No search results to go back to - just show lyrics
+                lyricsDiv.innerHTML = `
+                    <div style="white-space: pre-wrap;">${lyrics}</div>
+                `;
+            }
             
             console.log('[Basitune] Loaded lyrics for:', title);
         } catch (error) {
@@ -1047,6 +1093,13 @@
     function showLyricsSearchResults(results, originalTitle, originalArtist) {
         const lyricsDiv = document.getElementById('basitune-lyrics-content');
         
+        // Save these results for "Go Back" functionality
+        lastSearchResults = {
+            results: results,
+            title: originalTitle,
+            artist: originalArtist
+        };
+        
         let html = `
             <div style="padding: 16px;">
                 <p style="color: rgba(255, 255, 255, 0.7); margin-bottom: 16px;">
@@ -1060,23 +1113,24 @@
         
         results.forEach(result => {
             html += `
-                <a href="${result.url}" 
-                   target="_blank"
-                   style="
+                <div data-title="${result.title.replace(/"/g, '&quot;')}" 
+                     data-artist="${result.primary_artist.name.replace(/"/g, '&quot;')}"
+                     class="basitune-suggestion-item"
+                     style="
                        display: block;
                        padding: 12px;
                        background: rgba(255, 255, 255, 0.05);
                        border-radius: 8px;
-                       text-decoration: none;
                        color: rgba(255, 255, 255, 0.85);
                        transition: background 0.2s;
                        border: 1px solid rgba(255, 255, 255, 0.1);
+                       cursor: pointer;
                    "
                    onmouseover="this.style.background='rgba(255, 255, 255, 0.1)'"
                    onmouseout="this.style.background='rgba(255, 255, 255, 0.05)'">
                     <div style="font-weight: 500; margin-bottom: 4px;">${result.title}</div>
                     <div style="font-size: 12px; color: rgba(255, 255, 255, 0.5);">by ${result.primary_artist.name}</div>
-                </a>
+                </div>
             `;
         });
         
@@ -1086,13 +1140,12 @@
                     <p style="color: rgba(255, 255, 255, 0.6); font-size: 13px; margin-bottom: 8px;">
                         Or search manually:
                     </p>
-                    <div style="display: flex; gap: 8px;">
+                    <div style="display: flex; flex-direction: column; gap: 8px;">
                         <input type="text" 
                                id="basitune-lyrics-search" 
                                placeholder="Song title"
                                value="${originalTitle}"
                                style="
-                                   flex: 1;
                                    padding: 8px 12px;
                                    background: rgba(255, 255, 255, 0.05);
                                    border: 1px solid rgba(255, 255, 255, 0.2);
@@ -1105,7 +1158,6 @@
                                placeholder="Artist"
                                value="${originalArtist}"
                                style="
-                                   flex: 1;
                                    padding: 8px 12px;
                                    background: rgba(255, 255, 255, 0.05);
                                    border: 1px solid rgba(255, 255, 255, 0.2);
@@ -1124,6 +1176,7 @@
                                     font-weight: 500;
                                     cursor: pointer;
                                     transition: background 0.2s;
+                                    width: 100%;
                                 "
                                 onmouseover="this.style.background='#cc0000'"
                                 onmouseout="this.style.background='#ff0000'">
@@ -1135,6 +1188,93 @@
         `;
         
         lyricsDiv.innerHTML = html;
+        
+        // Add click handlers for suggestion items
+        document.querySelectorAll('.basitune-suggestion-item').forEach(item => {
+            item.addEventListener('click', () => {
+                const title = item.getAttribute('data-title');
+                const artist = item.getAttribute('data-artist');
+                fetchLyrics(title, artist);
+            });
+        });
+        
+        // Add event listener for search button
+        document.getElementById('basitune-lyrics-search-btn').addEventListener('click', () => {
+            const searchTitle = document.getElementById('basitune-lyrics-search').value;
+            const searchArtist = document.getElementById('basitune-lyrics-artist').value;
+            if (searchTitle && searchArtist) {
+                fetchLyrics(searchTitle, searchArtist);
+            }
+        });
+        
+        // Add enter key support
+        const searchInputs = [
+            document.getElementById('basitune-lyrics-search'),
+            document.getElementById('basitune-lyrics-artist')
+        ];
+        searchInputs.forEach(input => {
+            input.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') {
+                    document.getElementById('basitune-lyrics-search-btn').click();
+                }
+            });
+        });
+    }
+    
+    function showLyricsSearch() {
+        const lyricsDiv = document.getElementById('basitune-lyrics-content');
+        const songInfo = getCurrentSongInfo();
+        const defaultTitle = songInfo?.title || '';
+        const defaultArtist = songInfo?.artist || '';
+        
+        lyricsDiv.innerHTML = `
+            <div style="padding: 16px;">
+                <h3 style="margin: 0 0 16px 0; color: rgba(255, 255, 255, 0.9);">Search for Lyrics</h3>
+                <div style="display: flex; flex-direction: column; gap: 8px;">
+                    <input type="text" 
+                           id="basitune-lyrics-search" 
+                           placeholder="Song title"
+                           value="${defaultTitle}"
+                           style="
+                               padding: 8px 12px;
+                               background: rgba(255, 255, 255, 0.05);
+                               border: 1px solid rgba(255, 255, 255, 0.2);
+                               border-radius: 6px;
+                               color: rgba(255, 255, 255, 0.9);
+                               font-size: 13px;
+                           ">
+                    <input type="text" 
+                           id="basitune-lyrics-artist" 
+                           placeholder="Artist"
+                           value="${defaultArtist}"
+                           style="
+                               padding: 8px 12px;
+                               background: rgba(255, 255, 255, 0.05);
+                               border: 1px solid rgba(255, 255, 255, 0.2);
+                               border-radius: 6px;
+                               color: rgba(255, 255, 255, 0.9);
+                               font-size: 13px;
+                           ">
+                    <button id="basitune-lyrics-search-btn"
+                            style="
+                                padding: 10px;
+                                background: #ff0000;
+                                border: none;
+                                border-radius: 6px;
+                                color: white;
+                                font-size: 13px;
+                                font-weight: 500;
+                                cursor: pointer;
+                                transition: background 0.2s;
+                                width: 100%;
+                            "
+                            onmouseover="this.style.background='#cc0000'"
+                            onmouseout="this.style.background='#ff0000'">
+                        Search
+                    </button>
+                </div>
+            </div>
+        `;
         
         // Add event listener for search button
         document.getElementById('basitune-lyrics-search-btn').addEventListener('click', () => {
@@ -1206,18 +1346,23 @@
                 <div class="basitune-manual-search">
                     <p class="basitune-manual-search-label">Try a manual search:</p>
                     <div class="basitune-search-form">
+                        <label for="basitune-lyrics-search" class="basitune-field-label">Song Title</label>
                         <input type="text" 
                                id="basitune-lyrics-search" 
                                class="basitune-search-input"
-                               placeholder="Song title"
-                               value="${title}">
+                               placeholder="Enter song title"
+                               value="${title}"
+                               aria-label="Song title">
+                        <label for="basitune-lyrics-artist" class="basitune-field-label">Artist</label>
                         <input type="text" 
                                id="basitune-lyrics-artist" 
                                class="basitune-search-input"
-                               placeholder="Artist"
-                               value="${artist}">
+                               placeholder="Enter artist name"
+                               value="${artist}"
+                               aria-label="Artist name">
                         <button id="basitune-lyrics-search-btn"
-                                class="basitune-search-btn">
+                                class="basitune-search-btn"
+                                aria-label="Search for lyrics on Genius">
                             Search Genius
                         </button>
                     </div>
