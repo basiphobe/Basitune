@@ -1,12 +1,12 @@
 {
   "name": "basitune",
-  "version": "0.1.0",
+  "version": "0.1.71",
   "description": "A lightweight desktop wrapper for YouTube Music",
   "type": "module",
   "scripts": {
     "dev": "tauri dev --no-watch",
     "dev:watch": "tauri dev",
-    "build": "tauri build",
+    "build": "node ./scripts/set-build-version.js && tauri build",
     "build:fast": "cd src-tauri && cargo build --profile release-fast",
     "build:optimized": "npm run build",
     "tauri": "tauri",

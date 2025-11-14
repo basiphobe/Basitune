@@ -4,12 +4,6 @@ target/
 /dist
 /node_modules
 
-# Flatpak build
-.flatpak-builder/
-*.flatpak
-repo/
-icon.png
-
 # IDE
 /.vscode
 /.idea

@@ -146,22 +146,6 @@ npm run build
 
 The compiled application will be in `src-tauri/target/release/bundle/`.
 
-### Build Flatpak (Linux)
-
-```bash
-./build-flatpak.sh
-```
-
-This will:
-1. Build the Tauri application
-2. Generate required icon files
-3. Build and install the Flatpak locally
-
-Run the installed Flatpak:
-```bash
-flatpak run com.basiphobe.basitune
-```
-
 ## Project Structure
 
 ```

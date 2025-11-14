@@ -875,8 +875,6 @@ fn main() {
             // Get the main window
             let window = app.get_webview_window("main").expect("Failed to get main window");
             
-
-            
             // Set the window title
             window.set_title("Basitune").unwrap();
             
