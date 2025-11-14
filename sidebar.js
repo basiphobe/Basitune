@@ -54,6 +54,7 @@
         
         // Add styles
         const style = document.createElement('style');
+        style.id = 'basitune-styles';
         style.textContent = `
             @keyframes basitune-pulse {
                 0%, 100% { opacity: 0.6; }
@@ -71,9 +72,7 @@
             }
             
             #basitune-sidebar {
-                position: fixed;
-                top: 0;
-                right: 0;
+                position: relative;
                 width: var(--sidebar-width, 380px);
                 min-width: 280px;
                 max-width: 800px;
@@ -84,13 +83,17 @@
                 z-index: 10000;
                 display: flex;
                 flex-direction: column;
-                transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+                transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1), min-width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
                 font-family: 'Roboto', sans-serif;
                 backdrop-filter: blur(20px);
+                flex-shrink: 0;
+                order: 2;
             }
             
             #basitune-sidebar.hidden {
-                transform: translateX(100%);
+                width: 0 !important;
+                min-width: 0 !important;
+                overflow: hidden;
             }
             
             #basitune-resize-handle {
@@ -407,31 +410,69 @@
                 box-shadow: -4px 4px 12px rgba(0, 0, 0, 0.5);
             }
             
-            /* Adjust YouTube Music main content */
-            ytmusic-app {
-                margin-right: var(--sidebar-width, 380px) !important;
-                max-width: calc(100vw - var(--sidebar-width, 380px)) !important;
-                transition: margin-right 0.3s cubic-bezier(0.4, 0, 0.2, 1), max-width 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
-            }
-            
-            ytmusic-app.sidebar-hidden {
-                margin-right: 0 !important;
-                max-width: 100vw !important;
-            }
-            
-            /* Constrain player bar and other fixed elements */
-            ytmusic-app ytmusic-player-bar {
-                max-width: calc(100vw - var(--sidebar-width, 380px)) !important;
-                transition: max-width 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
-            }
-            
-            ytmusic-app.sidebar-hidden ytmusic-player-bar {
-                max-width: 100vw !important;
-            }
-            
-            /* Ensure body doesn't overflow */
+            /* Create flex container for side-by-side layout */
             body {
-                overflow-x: hidden !important;
+                display: flex !important;
+                margin: 0 !important;
+                padding: 0 !important;
+            }
+            
+            /* Wrapper container constrains ytmusic-app within flexbox
+             * This is necessary because YouTube Music uses fixed-position elements
+             * that would otherwise overflow and overlay the sidebar */
+            #basitune-ytmusic-wrapper {
+                flex: 1 !important;
+                min-width: 0 !important;
+                order: 1 !important;
+                overflow: hidden !important;
+                position: relative !important;
+            }
+            
+            /* ytmusic-app fills its wrapper */
+            ytmusic-app {
+                width: 100% !important;
+                height: 100% !important;
+                position: relative !important;
+            }
+            
+            /* Constrain YouTube's fixed-position elements to respect the sidebar
+             * These elements use position:fixed and would otherwise span the full viewport */
+            ytmusic-nav-bar,
+            ytmusic-player-bar {
+                max-width: calc(100vw - var(--sidebar-width, 380px)) !important;
+                width: calc(100vw - var(--sidebar-width, 380px)) !important;
+            }
+            
+            /* Constrain main content areas to prevent horizontal overflow */
+            ytmusic-app-layout,
+            #content,
+            ytmusic-browse-response,
+            ytmusic-section-list-renderer,
+            ytmusic-playlist-shelf-renderer,
+            ytmusic-item-section-renderer,
+            ytmusic-music-shelf-renderer,
+            ytmusic-carousel-shelf-renderer,
+            ytmusic-player-page,
+            .ytmusic-player-page,
+            tp-yt-paper-dialog {
+                max-width: calc(100vw - var(--sidebar-width, 380px)) !important;
+            }
+            
+            /* When sidebar is hidden, allow full width for all constrained elements */
+            body:has(#basitune-sidebar[data-hidden="true"]) ytmusic-nav-bar,
+            body:has(#basitune-sidebar[data-hidden="true"]) ytmusic-player-bar,
+            body:has(#basitune-sidebar[data-hidden="true"]) ytmusic-app-layout,
+            body:has(#basitune-sidebar[data-hidden="true"]) #content,
+            body:has(#basitune-sidebar[data-hidden="true"]) ytmusic-browse-response,
+            body:has(#basitune-sidebar[data-hidden="true"]) ytmusic-section-list-renderer,
+            body:has(#basitune-sidebar[data-hidden="true"]) ytmusic-playlist-shelf-renderer,
+            body:has(#basitune-sidebar[data-hidden="true"]) ytmusic-item-section-renderer,
+            body:has(#basitune-sidebar[data-hidden="true"]) ytmusic-music-shelf-renderer,
+            body:has(#basitune-sidebar[data-hidden="true"]) ytmusic-carousel-shelf-renderer,
+            body:has(#basitune-sidebar[data-hidden="true"]) ytmusic-player-page,
+            body:has(#basitune-sidebar[data-hidden="true"]) .ytmusic-player-page,
+            body:has(#basitune-sidebar[data-hidden="true"]) tp-yt-paper-dialog {
+                max-width: 100vw !important;
             }
         `;
         
@@ -439,6 +480,28 @@
         
         // Set default width via CSS variable before adding to DOM
         document.documentElement.style.setProperty('--sidebar-width', `${sidebarWidth}px`);
+        
+        // Force flex layout on body (in case YouTube sets inline styles)
+        document.body.style.setProperty('display', 'flex', 'important');
+        document.body.style.setProperty('margin', '0', 'important');
+        document.body.style.setProperty('padding', '0', 'important');
+        
+        // Always insert sidebar and button as direct children of body
+        // Wrap ytmusic-app in a container to constrain it within flexbox
+        const ytmusicApp = document.querySelector('ytmusic-app');
+        
+        if (ytmusicApp && ytmusicApp.parentNode === document.body) {
+            const wrapper = document.createElement('div');
+            wrapper.id = 'basitune-ytmusic-wrapper';
+            wrapper.style.cssText = 'flex: 1 !important; min-width: 0 !important; order: 1 !important; overflow: hidden !important; position: relative !important;';
+            
+            // Replace ytmusic-app with wrapper, then put ytmusic-app inside wrapper
+            document.body.insertBefore(wrapper, ytmusicApp);
+            wrapper.appendChild(ytmusicApp);
+            
+            // Make ytmusic-app fill the wrapper
+            ytmusicApp.style.cssText = 'width: 100% !important; height: 100% !important; position: relative !important;';
+        }
         
         document.body.appendChild(sidebar);
         document.body.appendChild(reopenBtn);
@@ -457,6 +520,27 @@
             // Always stop propagation to keep scroll in sidebar
             e.stopPropagation();
         }, { passive: false });
+        
+        // Monitor and enforce body styles (in case YouTube resets them)
+        const enforceBodyStyles = () => {
+            const currentDisplay = window.getComputedStyle(document.body).display;
+            if (currentDisplay !== 'flex') {
+                console.log('[Basitune] Re-applying flex layout to body');
+                document.body.style.setProperty('display', 'flex', 'important');
+                document.body.style.setProperty('margin', '0', 'important');
+                document.body.style.setProperty('padding', '0', 'important');
+            }
+        };
+        
+        // Check immediately and periodically
+        enforceBodyStyles();
+        setInterval(enforceBodyStyles, 1000);
+        
+        // Also observe style attribute changes
+        const bodyObserver = new MutationObserver(enforceBodyStyles);
+        bodyObserver.observe(document.body, { attributes: true, attributeFilter: ['style'] });
+        
+        console.log('[Basitune] Sidebar layout: position=relative, flex-based side-by-side (v2)');
         
         // Toggle button functionality
         document.getElementById('basitune-toggle').addEventListener('click', toggleSidebar);
@@ -604,16 +688,15 @@
         sidebarVisible = !sidebarVisible;
         const sidebar = document.getElementById('basitune-sidebar');
         const reopenBtn = document.getElementById('basitune-reopen');
-        const ytmusicApp = document.querySelector('ytmusic-app');
         
         if (sidebarVisible) {
             sidebar.classList.remove('hidden');
             reopenBtn.classList.remove('visible');
-            ytmusicApp.classList.remove('sidebar-hidden');
+            document.body.classList.remove('sidebar-hidden');
         } else {
             sidebar.classList.add('hidden');
             reopenBtn.classList.add('visible');
-            ytmusicApp.classList.add('sidebar-hidden');
+            document.body.classList.add('sidebar-hidden');
         }
         
         // Save preference
@@ -1095,9 +1178,8 @@
                 setTimeout(() => {
                     const sidebarElement = document.getElementById('basitune-sidebar');
                     const reopenBtn = document.getElementById('basitune-reopen');
-                    const ytmusicApp = document.querySelector('ytmusic-app');
                     
-                    if (sidebarElement && reopenBtn && ytmusicApp) {
+                    if (sidebarElement && reopenBtn) {
                         console.log('[Basitune] ✓ Sidebar created successfully');
                         console.log('[Basitune] Sidebar dimensions:', sidebarElement.offsetWidth, 'x', sidebarElement.offsetHeight);
                         console.log('[Basitune] Applying pre-loaded state - visible:', sidebarVisible, 'width:', sidebarWidth, 'font size:', sidebarFontSize);
@@ -1106,11 +1188,11 @@
                         if (sidebarVisible) {
                             sidebarElement.classList.remove('hidden');
                             reopenBtn.classList.remove('visible');
-                            ytmusicApp.classList.remove('sidebar-hidden');
+                            document.body.classList.remove('sidebar-hidden');
                         } else {
                             sidebarElement.classList.add('hidden');
                             reopenBtn.classList.add('visible');
-                            ytmusicApp.classList.add('sidebar-hidden');
+                            document.body.classList.add('sidebar-hidden');
                         }
                         
                         // Apply the pre-loaded font size
