@@ -168,8 +168,21 @@
                 cursor: pointer;
                 padding: 8px 16px;
                 border-radius: 8px;
-                transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+                transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
                 position: relative;
+                overflow: hidden;
+            }
+            
+            .basitune-tab::before {
+                content: '';
+                position: absolute;
+                bottom: 0;
+                left: 0;
+                right: 0;
+                height: 2px;
+                background: linear-gradient(90deg, #ff0000, #ff3333);
+                transform: scaleX(0);
+                transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             }
             
             .basitune-tab:hover {
@@ -178,10 +191,19 @@
                 transform: translateY(-1px);
             }
             
+            .basitune-tab:hover::before {
+                transform: scaleX(1);
+            }
+            
             .basitune-tab.active {
                 background: linear-gradient(135deg, #ff0000 0%, #cc0000 100%);
                 color: #fff;
-                box-shadow: 0 2px 8px rgba(255, 0, 0, 0.3);
+                box-shadow: 0 2px 12px rgba(255, 0, 0, 0.4), 0 0 20px rgba(255, 0, 0, 0.2);
+            }
+            
+            .basitune-tab.active::before {
+                transform: scaleX(1);
+                background: rgba(255, 255, 255, 0.3);
             }
             
             #basitune-toggle {
@@ -248,35 +270,57 @@
                 color: rgba(255, 255, 255, 0.85);
                 line-height: 1.7;
                 margin-bottom: 20px;
+                padding: 16px;
+                background: linear-gradient(135deg, rgba(255, 0, 0, 0.08) 0%, rgba(255, 0, 0, 0.03) 100%);
+                border-radius: 12px;
+                border-left: 3px solid #ff0000;
+                box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+                animation: basitune-fadeIn 0.5s ease-out;
             }
             
             #basitune-artist-bio h4 {
                 color: #fff;
-                margin: 0 0 12px 0;
-                font-size: 18px;
+                margin: 0 0 16px 0;
+                font-size: 20px;
                 font-weight: 600;
-                background: linear-gradient(135deg, #fff 0%, rgba(255, 255, 255, 0.8) 100%);
+                background: linear-gradient(135deg, #fff 0%, rgba(255, 100, 100, 0.9) 100%);
                 -webkit-background-clip: text;
                 -webkit-text-fill-color: transparent;
                 background-clip: text;
+                text-shadow: 0 0 20px rgba(255, 0, 0, 0.3);
+                letter-spacing: 0.5px;
             }
             
             #basitune-song-context {
                 color: rgba(255, 255, 255, 0.85);
                 line-height: 1.7;
                 padding: 16px;
-                background: linear-gradient(135deg, rgba(255, 0, 0, 0.1) 0%, rgba(255, 0, 0, 0.05) 100%);
+                background: linear-gradient(135deg, rgba(255, 0, 0, 0.12) 0%, rgba(255, 0, 0, 0.05) 100%);
                 border-radius: 12px;
-                border-left: 3px solid #ff0000;
+                border-left: 4px solid #ff0000;
                 margin-bottom: 20px;
-                box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+                box-shadow: 0 2px 12px rgba(255, 0, 0, 0.15), 0 4px 20px rgba(0, 0, 0, 0.3);
+                animation: basitune-fadeIn 0.5s ease-out;
+                position: relative;
+                overflow: hidden;
+            }
+            
+            #basitune-song-context::before {
+                content: '';
+                position: absolute;
+                top: 0;
+                left: 0;
+                right: 0;
+                height: 1px;
+                background: linear-gradient(90deg, transparent, rgba(255, 0, 0, 0.5), transparent);
             }
             
             #basitune-song-context h5 {
                 color: #fff;
-                margin: 0 0 10px 0;
+                margin: 0 0 12px 0;
                 font-size: 15px;
                 font-weight: 600;
+                letter-spacing: 0.3px;
             }
             
             #basitune-lyrics-content {
@@ -334,6 +378,76 @@
                 margin-bottom: 12px;
             }
             
+            .basitune-lyrics-error {
+                padding: 16px;
+            }
+            
+            .basitune-error-message {
+                color: rgba(255, 255, 255, 0.4);
+                font-size: 12px;
+                margin-top: 8px;
+            }
+            
+            .basitune-manual-search {
+                margin-top: 20px;
+            }
+            
+            .basitune-manual-search-label {
+                color: rgba(255, 255, 255, 0.6);
+                font-size: 13px;
+                margin-bottom: 8px;
+            }
+            
+            .basitune-search-form {
+                display: flex;
+                gap: 8px;
+            }
+            
+            .basitune-search-input {
+                flex: 1;
+                padding: 8px 12px;
+                background: rgba(255, 255, 255, 0.05);
+                border: 1px solid rgba(255, 255, 255, 0.2);
+                border-radius: 6px;
+                color: rgba(255, 255, 255, 0.9);
+                font-size: 13px;
+                transition: all 0.2s;
+            }
+            
+            .basitune-search-input:focus {
+                outline: none;
+                border-color: #ff0000;
+                background: rgba(255, 255, 255, 0.08);
+                box-shadow: 0 0 0 2px rgba(255, 0, 0, 0.2);
+            }
+            
+            .basitune-search-input::placeholder {
+                color: rgba(255, 255, 255, 0.3);
+            }
+            
+            .basitune-search-btn {
+                padding: 8px 16px;
+                background: linear-gradient(135deg, #ff0000 0%, #cc0000 100%);
+                border: none;
+                border-radius: 6px;
+                color: white;
+                font-size: 13px;
+                font-weight: 500;
+                cursor: pointer;
+                transition: all 0.3s;
+                box-shadow: 0 2px 8px rgba(255, 0, 0, 0.3);
+            }
+            
+            .basitune-search-btn:hover {
+                background: linear-gradient(135deg, #cc0000 0%, #aa0000 100%);
+                transform: translateY(-1px);
+                box-shadow: 0 4px 12px rgba(255, 0, 0, 0.4);
+            }
+            
+            .basitune-search-btn:active {
+                transform: translateY(0);
+            }
+            
             .basitune-skeleton-title {
                 height: 24px;
                 width: 70%;
@@ -361,15 +475,28 @@
                 color: #ff0000;
                 cursor: pointer;
                 font-size: 13px;
-                font-weight: 500;
-                margin-top: 8px;
+                font-weight: 600;
+                margin-top: 12px;
                 display: inline-block;
-                transition: all 0.2s;
+                transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+                position: relative;
+                padding-left: 4px;
+            }
+            
+            .basitune-read-more::before {
+                content: '▸';
+                position: absolute;
+                left: -12px;
+                transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             }
             
             .basitune-read-more:hover {
                 color: #ff3333;
-                text-decoration: underline;
+                transform: translateX(2px);
+            }
+            
+            .basitune-read-more:hover::before {
+                transform: translateX(3px);
             }
             
             .basitune-truncated {
@@ -424,8 +551,11 @@
                 flex: 1 !important;
                 min-width: 0 !important;
                 order: 1 !important;
-                overflow: hidden !important;
+                overflow: visible !important;
                 position: relative !important;
+                display: flex !important;
+                flex-direction: column !important;
+                height: 100vh !important;
             }
             
             /* ytmusic-app fills its wrapper */
@@ -433,6 +563,17 @@
                 width: 100% !important;
                 height: 100% !important;
                 position: relative !important;
+                display: flex !important;
+                flex-direction: column !important;
+                flex: 1 !important;
+                overflow: visible !important;
+            }
+            
+            /* Ensure the app layout can scroll */
+            ytmusic-app-layout {
+                overflow-y: auto !important;
+                overflow-x: hidden !important;
+                height: 100% !important;
             }
             
             /* Constrain YouTube's fixed-position elements to respect the sidebar
@@ -990,54 +1131,24 @@
     function showLyricsError(error, title, artist) {
         const lyricsDiv = document.getElementById('basitune-lyrics-content');
         lyricsDiv.innerHTML = `
-            <div style="padding: 16px;">
+            <div class="basitune-lyrics-error">
                 <p class="basitune-placeholder">Could not load lyrics</p>
-                <p style="color: rgba(255, 255, 255, 0.4); font-size: 12px; margin-top: 8px;">${error}</p>
-                <div style="margin-top: 20px;">
-                    <p style="color: rgba(255, 255, 255, 0.6); font-size: 13px; margin-bottom: 8px;">
-                        Search manually:
-                    </p>
-                    <div style="display: flex; gap: 8px;">
+                <p class="basitune-error-message">${error}</p>
+                <div class="basitune-manual-search">
+                    <p class="basitune-manual-search-label">Search manually:</p>
+                    <div class="basitune-search-form">
                         <input type="text" 
                                id="basitune-lyrics-search" 
+                               class="basitune-search-input"
                                placeholder="Song title"
-                               value="${title}"
-                               style="
-                                   flex: 1;
-                                   padding: 8px 12px;
-                                   background: rgba(255, 255, 255, 0.05);
-                                   border: 1px solid rgba(255, 255, 255, 0.2);
-                                   border-radius: 6px;
-                                   color: rgba(255, 255, 255, 0.9);
-                                   font-size: 13px;
-                               ">
+                               value="${title}">
                         <input type="text" 
                                id="basitune-lyrics-artist" 
+                               class="basitune-search-input"
                                placeholder="Artist"
-                               value="${artist}"
-                               style="
-                                   flex: 1;
-                                   padding: 8px 12px;
-                                   background: rgba(255, 255, 255, 0.05);
-                                   border: 1px solid rgba(255, 255, 255, 0.2);
-                                   border-radius: 6px;
-                                   color: rgba(255, 255, 255, 0.9);
-                                   font-size: 13px;
-                               ">
+                               value="${artist}">
                         <button id="basitune-lyrics-search-btn"
-                                style="
-                                    padding: 8px 16px;
-                                    background: #ff0000;
-                                    border: none;
-                                    border-radius: 6px;
-                                    color: white;
-                                    font-size: 13px;
-                                    font-weight: 500;
-                                    cursor: pointer;
-                                    transition: background 0.2s;
-                                "
-                                onmouseover="this.style.background='#cc0000'"
-                                onmouseout="this.style.background='#ff0000'">
+                                class="basitune-search-btn">
                             Search
                         </button>
                     </div>

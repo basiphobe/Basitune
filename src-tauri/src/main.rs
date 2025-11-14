@@ -11,15 +11,11 @@ use std::collections::HashMap;
 use std::sync::Mutex;
 use discord_rich_presence::{activity, DiscordIpc, DiscordIpcClient};
 
-// Artist info sidebar script
-const SIDEBAR_SCRIPT: &str = include_str!("../../sidebar.js");
-
 // Discord Application ID (public identifier, not a secret)
 const DISCORD_APP_ID: &str = "1438326240997281943";
 
-fn get_genius_token() -> Result<String, String> {
-    std::env::var("GENIUS_ACCESS_TOKEN")
-        .map_err(|_| "GENIUS_ACCESS_TOKEN environment variable not set".to_string())
+fn get_genius_token() -> Option<String> {
+    std::env::var("GENIUS_ACCESS_TOKEN").ok()
 }
 
 struct DiscordState {
@@ -315,7 +311,10 @@ async fn get_lyrics(title: String, artist: String, app: tauri::AppHandle) -> Res
         .build()
         .map_err(|e| e.to_string())?;
     
-    let genius_token = get_genius_token()?;
+    let genius_token = match get_genius_token() {
+        Some(token) => token,
+        None => return Err("Genius API token not configured. Please set GENIUS_ACCESS_TOKEN environment variable.".to_string())
+    };
     let response = client
         .get(&search_url)
         .header("Authorization", format!("Bearer {}", genius_token))
@@ -415,7 +414,10 @@ async fn search_lyrics(title: String, artist: String) -> Result<Vec<GeniusResult
         .build()
         .map_err(|e| e.to_string())?;
     
-    let genius_token = get_genius_token()?;
+    let genius_token = match get_genius_token() {
+        Some(token) => token,
+        None => return Err("Genius API token not configured. Please set GENIUS_ACCESS_TOKEN environment variable.".to_string())
+    };
     let response = client
         .get(&search_url)
         .header("Authorization", format!("Bearer {}", genius_token))
@@ -694,6 +696,98 @@ fn set_sidebar_font_size(state_manager: tauri::State<WindowStateManager>, font_s
 }
 
 #[tauri::command]
+fn save_sidebar_font_size(state_manager: tauri::State<WindowStateManager>, font_size: u32) {
+    state_manager.update_no_save(|state| {
+        state.sidebar_font_size = font_size;
+    });
+}
+
+#[tauri::command]
+async fn toggle_sidebar(app: tauri::AppHandle, visible: bool) -> Result<(), String> {
+    let state_manager: tauri::State<WindowStateManager> = app.state();
+    let sidebar_width = state_manager.get().sidebar_width;
+    
+    // Update state
+    state_manager.update_no_save(|state| {
+        state.sidebar_visible = visible;
+    });
+    
+    // Get windows
+    let youtube_window = app.get_webview_window("youtube")
+        .ok_or("YouTube window not found")?;
+    let sidebar_window = app.get_webview_window("sidebar")
+        .ok_or("Sidebar window not found")?;
+    
+    // Get main window size
+    let main_size = youtube_window.outer_size().map_err(|e| e.to_string())?;
+    let main_pos = youtube_window.outer_position().map_err(|e| e.to_string())?;
+    
+    if visible {
+        // Show sidebar and resize YouTube
+        let youtube_width = main_size.width.saturating_sub(sidebar_width);
+        youtube_window.set_size(PhysicalSize::new(youtube_width, main_size.height))
+            .map_err(|e| e.to_string())?;
+        
+        // Position and show sidebar
+        sidebar_window.set_position(PhysicalPosition::new(
+            main_pos.x + youtube_width as i32,
+            main_pos.y
+        )).map_err(|e| e.to_string())?;
+        
+        sidebar_window.set_size(PhysicalSize::new(sidebar_width, main_size.height))
+            .map_err(|e| e.to_string())?;
+        
+        sidebar_window.show().map_err(|e| e.to_string())?;
+    } else {
+        // Hide sidebar and expand YouTube
+        sidebar_window.hide().map_err(|e| e.to_string())?;
+        youtube_window.set_size(PhysicalSize::new(main_size.width, main_size.height))
+            .map_err(|e| e.to_string())?;
+    }
+    
+    Ok(())
+}
+
+#[tauri::command]
+async fn resize_sidebar(app: tauri::AppHandle, width: u32) -> Result<(), String> {
+    let state_manager: tauri::State<WindowStateManager> = app.state();
+    
+    // Update state
+    state_manager.update_no_save(|state| {
+        state.sidebar_width = width;
+    });
+    
+    // Get windows
+    let youtube_window = app.get_webview_window("youtube")
+        .ok_or("YouTube window not found")?;
+    let sidebar_window = app.get_webview_window("sidebar")
+        .ok_or("Sidebar window not found")?;
+    
+    // Get current sizes
+    let youtube_size = youtube_window.outer_size().map_err(|e| e.to_string())?;
+    let youtube_pos = youtube_window.outer_position().map_err(|e| e.to_string())?;
+    
+    // Calculate total width
+    let total_width = youtube_size.width + width;
+    let youtube_width = total_width.saturating_sub(width);
+    
+    // Resize YouTube window
+    youtube_window.set_size(PhysicalSize::new(youtube_width, youtube_size.height))
+        .map_err(|e| e.to_string())?;
+    
+    // Reposition and resize sidebar
+    sidebar_window.set_position(PhysicalPosition::new(
+        youtube_pos.x + youtube_width as i32,
+        youtube_pos.y
+    )).map_err(|e| e.to_string())?;
+    
+    sidebar_window.set_size(PhysicalSize::new(width, youtube_size.height))
+        .map_err(|e| e.to_string())?;
+    
+    Ok(())
+}
+
+#[tauri::command]
 fn update_discord_presence(
     title: String,
     artist: String,
@@ -835,12 +929,16 @@ fn main() {
             set_sidebar_width,
             get_sidebar_font_size,
             set_sidebar_font_size,
+            save_sidebar_font_size,
+            toggle_sidebar,
+            resize_sidebar,
             update_discord_presence,
             clear_discord_presence
         ])
         .setup(|app| {
             // Initialize window state manager
             let state_manager = WindowStateManager::new(app.handle().clone());
+            let state = state_manager.get();
             app.manage(state_manager);
             
             // Check for updates on startup
@@ -873,58 +971,63 @@ fn main() {
             });
             
             // Get the main window
-            let window = app.get_webview_window("main").expect("Failed to get main window");
+            let main_window = app.get_webview_window("main").expect("Failed to get main window");
             
-            // Set the window title
-            window.set_title("Basitune").unwrap();
-            
-            // Load and apply saved window state IMMEDIATELY before any event handlers
-            let state_manager: tauri::State<WindowStateManager> = app.state();
-            let state = state_manager.get();
-            
+            // Apply saved window state
             println!("[Basitune] Applying window state: {}x{} at ({}, {}), maximized={}", 
                      state.width, state.height, state.x, state.y, state.maximized);
             
-            // Apply state before window can trigger any resize events
             if state.maximized {
-                // For maximized windows: unmaximize, set position, set size, then maximize
-                // This ensures the window manager knows which monitor to use
-                let _ = window.unmaximize();
+                let _ = main_window.unmaximize();
                 std::thread::sleep(Duration::from_millis(50));
                 
-                let _ = window.set_size(PhysicalSize::new(state.width, state.height));
+                let _ = main_window.set_size(PhysicalSize::new(state.width, state.height));
                 if state.x >= 0 && state.y >= 0 {
-                    let _ = window.set_position(PhysicalPosition::new(state.x, state.y));
-                    println!("[Basitune] Set position to ({}, {}) before maximizing", state.x, state.y);
+                    let _ = main_window.set_position(PhysicalPosition::new(state.x, state.y));
                 }
                 
                 std::thread::sleep(Duration::from_millis(50));
-                let _ = window.maximize();
-                println!("[Basitune] Maximized window");
+                let _ = main_window.maximize();
             } else {
-                // For non-maximized windows, set size then position
-                let _ = window.set_size(PhysicalSize::new(state.width, state.height));
+                let _ = main_window.set_size(PhysicalSize::new(state.width, state.height));
                 if state.x >= 0 && state.y >= 0 {
-                    let _ = window.set_position(PhysicalPosition::new(state.x, state.y));
+                    let _ = main_window.set_position(PhysicalPosition::new(state.x, state.y));
                 }
             }
             
-            // Give a long moment for window state to fully settle
-            std::thread::sleep(Duration::from_millis(1000));
+            // Show the window
+            let _ = main_window.show();
             
-            // Save window state ONLY on window close
+            // Inject sidebar script that shifts YouTube content
+            let window_clone = main_window.clone();
+            std::thread::spawn(move || {
+                std::thread::sleep(Duration::from_secs(2));
+                
+                let sidebar_script = include_str!("../../sidebar.js");
+                
+                for attempt in 1..=10 {
+                    std::thread::sleep(Duration::from_secs(1));
+                    
+                    if window_clone.eval(sidebar_script).is_ok() {
+                        println!("[Basitune] Sidebar injected (attempt {})", attempt);
+                        break;
+                    } else if attempt == 10 {
+                        eprintln!("[Basitune] Failed to inject sidebar after {} attempts", attempt);
+                    }
+                }
+            });
+            
+            // Save window state on close
             let app_handle = app.handle().clone();
-            let window_clone = window.clone();
-            window.on_window_event(move |event| {
+            let window_clone = main_window.clone();
+            main_window.on_window_event(move |event| {
                 match event {
                     tauri::WindowEvent::CloseRequested { .. } => {
-                        // Save window state when closing
                         if let Ok(size) = window_clone.inner_size() {
                             if let Ok(position) = window_clone.outer_position() {
                                 let is_maximized = window_clone.is_maximized().unwrap_or(false);
                                 
-                                println!("[Basitune] Window closing - saving final state: {}x{} at ({}, {}), maximized={}", 
-                                         size.width, size.height, position.x, position.y, is_maximized);
+                                println!("[Basitune] Saving window state on close");
                                 
                                 let state_manager: tauri::State<WindowStateManager> = app_handle.state();
                                 state_manager.update_no_save(|state| {
@@ -941,48 +1044,6 @@ fn main() {
                     _ => {}
                 }
             });
-            
-            // Clone window for async operations
-            let window_clone = window.clone();
-            
-            // Inject debug script immediately to test if JS is running
-            std::thread::spawn(move || {
-                std::thread::sleep(Duration::from_secs(1));
-                
-                let debug_script = r#"
-                    console.log('[Basitune] DEBUG: JavaScript is executing');
-                    console.log('[Basitune] DEBUG: Current URL:', window.location.href);
-                    console.log('[Basitune] DEBUG: Document ready state:', document.readyState);
-                    
-                    // Try to force log to stdout via alert
-                    const info = 'URL: ' + window.location.href + ', Ready: ' + document.readyState;
-                    document.title = 'DEBUG: ' + info;
-                "#;
-                
-                match window_clone.eval(debug_script) {
-                    Ok(_) => println!("[Basitune] Debug script executed"),
-                    Err(e) => eprintln!("[Basitune] Debug script failed: {}", e),
-                }
-                
-                // Retry injection up to 10 times with 2-second intervals
-                for attempt in 1..=10 {
-                    std::thread::sleep(Duration::from_secs(2));
-                    
-                    if window_clone.eval(SIDEBAR_SCRIPT).is_ok() {
-                        println!("[Basitune] Sidebar injected successfully (attempt {})", attempt);
-                        break;
-                    } else if attempt == 10 {
-                        eprintln!("[Basitune] Failed to inject sidebar after {} attempts", attempt);
-                    }
-                }
-            });
-            
-            // Tauri automatically uses a persistent data directory for webviews
-            // The data is stored in platform-specific locations:
-            // - Linux: ~/.local/share/com.basitune.app
-            // - macOS: ~/Library/Application Support/com.basitune.app
-            // - Windows: %APPDATA%\com.basitune.app
-            // This ensures cookies and login sessions persist across app restarts
             
             Ok(())
         })
