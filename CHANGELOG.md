@@ -5,6 +5,25 @@ All notable changes to Basitune will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.0.2] - 2024-11-15
+
+### Added
+- Automatic update downloads with visual progress notifications
+- Runtime configuration file support for API keys (works alongside environment variables)
+- Beautiful animated notification UI for update status
+- Progress bar during update downloads
+- Platform-specific config.json documentation for end users
+
+### Changed
+- API keys now read from environment variables first, then config.json fallback
+- Update system now auto-downloads and prompts user to restart instead of showing dialog
+- Configuration now works for both development (env vars) and distribution (config file)
+
+### Fixed
+- Release builds now correctly read API keys from environment variables
+- ImageMagick installation in GitHub Actions CI/CD workflow
+- Fish shell syntax in documentation (replaced heredoc with printf)
+
 ## [1.0.1] - 2024-11-14
 
 ### Added
