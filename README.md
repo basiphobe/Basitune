@@ -122,7 +122,7 @@ Alternatively, you can set these as system environment variables in your shell c
 
 After installing Basitune, create a `config.json` file in your app data directory:
 
-**Linux:**
+**Linux (bash/zsh):**
 ```bash
 mkdir -p ~/.local/share/com.basiphobe.basitune
 cat > ~/.local/share/com.basiphobe.basitune/config.json << 'EOF'
@@ -131,6 +131,12 @@ cat > ~/.local/share/com.basiphobe.basitune/config.json << 'EOF'
   "genius_access_token": "your-genius-token-here"
 }
 EOF
+```
+
+**Linux (fish):**
+```fish
+mkdir -p ~/.local/share/com.basiphobe.basitune
+printf '{\n  "openai_api_key": "sk-proj-your-key-here",\n  "genius_access_token": "your-genius-token-here"\n}\n' > ~/.local/share/com.basiphobe.basitune/config.json
 ```
 
 **macOS:**
