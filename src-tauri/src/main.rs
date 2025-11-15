@@ -1019,24 +1019,65 @@ fn main() {
             tauri::async_runtime::spawn(async move {
                 use tauri_plugin_updater::UpdaterExt;
                 
+                // Wait a few seconds before checking for updates
+                tokio::time::sleep(Duration::from_secs(3)).await;
+                
                 match app_handle.updater() {
                     Ok(updater) => {
                         match updater.check().await {
                             Ok(Some(update)) => {
-
+                                println!("[Basitune] Update available: {} -> {}", 
+                                    update.current_version, update.version);
                                 
-                                // Download and install with progress callbacks
+                                // Notify user that update is downloading
+                                if let Some(window) = app_handle.get_webview_window("main") {
+                                    let _ = window.eval(&format!(
+                                        r#"window.showUpdateNotification('Downloading update {}...', false)"#,
+                                        update.version
+                                    ));
+                                }
+                                
+                                // Download and install with progress
+                                let window = app_handle.get_webview_window("main");
                                 let download_result = update.download_and_install(
-                                    |_chunk_length, _content_length| {},  // Download progress
-                                    || {}  // Before exit
+                                    |chunk_length, content_length| {
+                                        if let (Some(total), Some(w)) = (content_length, &window) {
+                                            let percent = (chunk_length as f64 / total as f64 * 100.0) as u32;
+                                            let _ = w.eval(&format!(
+                                                r#"window.updateDownloadProgress({})"#, percent
+                                            ));
+                                        }
+                                    },
+                                    || {
+                                        println!("[Basitune] Update installed, restart to apply");
+                                    }
                                 ).await;
                                 
-                                if let Err(e) = download_result {
-                                    eprintln!("[Basitune] Failed to install update: {}", e);
+                                match download_result {
+                                    Ok(_) => {
+                                        println!("[Basitune] Update downloaded and ready to install");
+                                        if let Some(w) = app_handle.get_webview_window("main") {
+                                            let _ = w.eval(
+                                                r#"window.showUpdateNotification('Update ready! Restart Basitune to apply.', true)"#
+                                            );
+                                        }
+                                    }
+                                    Err(e) => {
+                                        eprintln!("[Basitune] Failed to install update: {}", e);
+                                        if let Some(w) = app_handle.get_webview_window("main") {
+                                            let _ = w.eval(
+                                                r#"window.showUpdateNotification('Update failed. Please try again later.', true)"#
+                                            );
+                                        }
+                                    }
                                 }
                             }
-                            Ok(None) => {},
-                            Err(e) => eprintln!("[Basitune] Failed to check for updates: {}", e),
+                            Ok(None) => {
+                                println!("[Basitune] No updates available");
+                            }
+                            Err(e) => {
+                                eprintln!("[Basitune] Failed to check for updates: {}", e);
+                            }
                         }
                     }
                     Err(e) => eprintln!("[Basitune] Failed to get updater: {}", e),

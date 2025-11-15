@@ -14,6 +14,64 @@
     let isResizing = false;
     let lastSearchResults = null; // Store last search results for "Go Back"
     
+    // Update notification functions
+    window.showUpdateNotification = function(message, persistent) {
+        console.log('[Basitune] Update:', message);
+        
+        // Find or create notification container
+        let container = document.getElementById('basitune-update-notification');
+        if (!container) {
+            container = document.createElement('div');
+            container.id = 'basitune-update-notification';
+            container.style.cssText = `
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                color: white;
+                padding: 16px 20px;
+                border-radius: 8px;
+                box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+                z-index: 10000;
+                font-family: 'Roboto', sans-serif;
+                font-size: 14px;
+                max-width: 350px;
+                animation: slideIn 0.3s ease-out;
+            `;
+            document.body.appendChild(container);
+        }
+        
+        container.textContent = message;
+        container.style.display = 'block';
+        
+        // Auto-hide after 8 seconds unless persistent
+        if (!persistent) {
+            setTimeout(() => {
+                if (container) {
+                    container.style.animation = 'slideOut 0.3s ease-in';
+                    setTimeout(() => {
+                        if (container && container.parentNode) {
+                            container.parentNode.removeChild(container);
+                        }
+                    }, 300);
+                }
+            }, 8000);
+        }
+    };
+    
+    window.updateDownloadProgress = function(percent) {
+        const container = document.getElementById('basitune-update-notification');
+        if (container) {
+            container.innerHTML = `
+                <div>Downloading update...</div>
+                <div style="margin-top: 8px; background: rgba(255,255,255,0.3); border-radius: 4px; height: 6px; overflow: hidden;">
+                    <div style="background: white; height: 100%; width: ${percent}%; transition: width 0.3s;"></div>
+                </div>
+                <div style="margin-top: 4px; font-size: 12px; opacity: 0.9;">${percent}%</div>
+            `;
+        }
+    };
+    
     // Create sidebar HTML
     function createSidebar() {
         const sidebar = document.createElement('div');
@@ -70,6 +128,16 @@
             @keyframes basitune-spin {
                 0% { transform: rotate(0deg); }
                 100% { transform: rotate(360deg); }
+            }
+            
+            @keyframes slideIn {
+                from { transform: translateX(400px); opacity: 0; }
+                to { transform: translateX(0); opacity: 1; }
+            }
+            
+            @keyframes slideOut {
+                from { transform: translateX(0); opacity: 1; }
+                to { transform: translateX(400px); opacity: 0; }
             }
             
             #basitune-sidebar {
