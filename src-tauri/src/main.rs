@@ -14,8 +14,52 @@ use discord_rich_presence::{activity, DiscordIpc, DiscordIpcClient};
 // Discord Application ID (public identifier, not a secret)
 const DISCORD_APP_ID: &str = "1438326240997281943";
 
-fn get_genius_token() -> Option<String> {
-    std::env::var("GENIUS_ACCESS_TOKEN").ok()
+#[derive(Debug, Serialize, Deserialize, Default)]
+struct ApiConfig {
+    openai_api_key: Option<String>,
+    genius_access_token: Option<String>,
+}
+
+fn get_config_path(app_handle: &tauri::AppHandle) -> PathBuf {
+    app_handle
+        .path()
+        .app_data_dir()
+        .expect("Failed to get app data dir")
+        .join("config.json")
+}
+
+fn load_config(app_handle: &tauri::AppHandle) -> ApiConfig {
+    let config_path = get_config_path(app_handle);
+    
+    if let Ok(contents) = fs::read_to_string(&config_path) {
+        if let Ok(config) = serde_json::from_str(&contents) {
+            return config;
+        }
+    }
+    
+    ApiConfig::default()
+}
+
+fn get_genius_token(app_handle: &tauri::AppHandle) -> Option<String> {
+    // First try environment variable (for development)
+    if let Ok(token) = std::env::var("GENIUS_ACCESS_TOKEN") {
+        return Some(token);
+    }
+    
+    // Then try config file (for release builds)
+    let config = load_config(app_handle);
+    config.genius_access_token
+}
+
+fn get_openai_key(app_handle: &tauri::AppHandle) -> Option<String> {
+    // First try environment variable (for development)
+    if let Ok(key) = std::env::var("OPENAI_API_KEY") {
+        return Some(key);
+    }
+    
+    // Then try config file (for release builds)
+    let config = load_config(app_handle);
+    config.openai_api_key
 }
 
 struct DiscordState {
@@ -149,9 +193,9 @@ impl Default for WindowState {
     }
 }
 
-async fn call_openai(prompt: String, max_tokens: u32) -> Result<String, String> {
-    let api_key = std::env::var("OPENAI_API_KEY")
-        .map_err(|_| "OPENAI_API_KEY environment variable not set".to_string())?;
+async fn call_openai(prompt: String, max_tokens: u32, app_handle: &tauri::AppHandle) -> Result<String, String> {
+    let api_key = get_openai_key(app_handle)
+        .ok_or_else(|| "OpenAI API key not configured. Please add it to config.json in your app data directory.".to_string())?;
     
     let request = OpenAIRequest {
         model: "gpt-4o-mini".to_string(),
@@ -212,7 +256,7 @@ async fn get_artist_info(artist: String, app: tauri::AppHandle) -> Result<String
         artist
     );
     
-    let result = call_openai(prompt, 500).await?;
+    let result = call_openai(prompt, 500, &app).await?;
     
     // Save to cache
     cache.artist_info.insert(cache_key, result.clone());
@@ -241,7 +285,7 @@ async fn get_song_context(title: String, artist: String, app: tauri::AppHandle) 
         title, artist
     );
     
-    let result = call_openai(prompt, 500).await?;
+    let result = call_openai(prompt, 500, &app).await?;
     
     // Save to cache
     cache.song_context.insert(cache_key, result.clone());
@@ -324,10 +368,8 @@ async fn get_lyrics(title: String, artist: String, app: tauri::AppHandle) -> Res
         .build()
         .map_err(|e| e.to_string())?;
     
-    let genius_token = match get_genius_token() {
-        Some(token) => token,
-        None => return Err("Genius API token not configured. Please set GENIUS_ACCESS_TOKEN environment variable.".to_string())
-    };
+    let genius_token = get_genius_token(&app)
+        .ok_or_else(|| "Genius API token not configured. Please add it to config.json in your app data directory.".to_string())?;
     let response = client
         .get(&search_url)
         .header("Authorization", format!("Bearer {}", genius_token))
@@ -406,7 +448,7 @@ async fn get_lyrics(title: String, artist: String, app: tauri::AppHandle) -> Res
     let raw_lyrics = extract_raw_lyrics_from_html(&html)?;
     
     // Try to clean with AI, but fall back to raw lyrics if AI refuses (copyright policy)
-    let result = match format_lyrics_with_ai(&raw_lyrics).await {
+    let result = match format_lyrics_with_ai(&raw_lyrics, &app).await {
         Ok(cleaned) => {
             // Check if AI refused to provide lyrics
             if cleaned.to_lowercase().contains("i can't provide") 
@@ -432,7 +474,7 @@ async fn get_lyrics(title: String, artist: String, app: tauri::AppHandle) -> Res
 }
 
 #[tauri::command]
-async fn search_lyrics(title: String, artist: String) -> Result<Vec<GeniusResult>, String> {
+async fn search_lyrics(title: String, artist: String, app: tauri::AppHandle) -> Result<Vec<GeniusResult>, String> {
     let clean_title = clean_song_title(&title);
     let search_query = format!("{} {}", artist, clean_title);
     let search_url = format!(
@@ -446,10 +488,8 @@ async fn search_lyrics(title: String, artist: String) -> Result<Vec<GeniusResult
         .build()
         .map_err(|e| e.to_string())?;
     
-    let genius_token = match get_genius_token() {
-        Some(token) => token,
-        None => return Err("Genius API token not configured. Please set GENIUS_ACCESS_TOKEN environment variable.".to_string())
-    };
+    let genius_token = get_genius_token(&app)
+        .ok_or_else(|| "Genius API token not configured. Please add it to config.json in your app data directory.".to_string())?;
     let response = client
         .get(&search_url)
         .header("Authorization", format!("Bearer {}", genius_token))
@@ -508,7 +548,7 @@ fn extract_raw_lyrics_from_html(html: &str) -> Result<String, String> {
     }
 }
 
-async fn format_lyrics_with_ai(raw_lyrics: &str) -> Result<String, String> {
+async fn format_lyrics_with_ai(raw_lyrics: &str, app_handle: &tauri::AppHandle) -> Result<String, String> {
     let prompt = format!(
         "Clean and format this text. Remove any web page elements like headers, footers, \
         contributor names, 'Embed' text, navigation elements, advertisements, or metadata. \
@@ -517,7 +557,7 @@ async fn format_lyrics_with_ai(raw_lyrics: &str) -> Result<String, String> {
         raw_lyrics
     );
     
-    call_openai(prompt, 500).await
+    call_openai(prompt, 500, app_handle).await
 }
 
 fn normalize_string(s: &str) -> String {

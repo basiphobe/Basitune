@@ -88,7 +88,11 @@ npm install
 
 ### Environment Setup
 
-Basitune requires API keys for its features. Copy `.env.example` to `.env` and fill in your keys:
+Basitune requires API keys for its features. 
+
+#### For Development
+
+Copy `.env.example` to `.env` and fill in your keys:
 
 ```bash
 cp .env.example .env
@@ -113,6 +117,48 @@ GENIUS_ACCESS_TOKEN=your-genius-token-here
 ```
 
 Alternatively, you can set these as system environment variables in your shell config (`~/.bashrc`, `~/.config/fish/config.fish`, etc.).
+
+#### For Release Builds / End Users
+
+After installing Basitune, create a `config.json` file in your app data directory:
+
+**Linux:**
+```bash
+mkdir -p ~/.local/share/com.basiphobe.basitune
+cat > ~/.local/share/com.basiphobe.basitune/config.json << 'EOF'
+{
+  "openai_api_key": "sk-proj-your-key-here",
+  "genius_access_token": "your-genius-token-here"
+}
+EOF
+```
+
+**macOS:**
+```bash
+mkdir -p ~/Library/Application\ Support/com.basiphobe.basitune
+cat > ~/Library/Application\ Support/com.basiphobe.basitune/config.json << 'EOF'
+{
+  "openai_api_key": "sk-proj-your-key-here",
+  "genius_access_token": "your-genius-token-here"
+}
+EOF
+```
+
+**Windows (PowerShell):**
+```powershell
+New-Item -ItemType Directory -Force -Path "$env:APPDATA\com.basiphobe.basitune"
+@"
+{
+  "openai_api_key": "sk-proj-your-key-here",
+  "genius_access_token": "your-genius-token-here"
+}
+"@ | Out-File -FilePath "$env:APPDATA\com.basiphobe.basitune\config.json" -Encoding utf8
+```
+
+**Notes:**
+- Both keys are optional - the app will work without them, but AI features and lyrics will be unavailable
+- The app checks environment variables first (for development), then falls back to the config file
+- Config file changes take effect immediately on next API call (no restart required)
 
 ### Install Dependencies
 
