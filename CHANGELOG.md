@@ -5,6 +5,19 @@ All notable changes to Basitune will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.0.9] - 2025-12-14
+
+### Added
+- Settings tab in sidebar for in-app API key configuration
+- Get and save config commands in Tauri backend
+- UI for entering OpenAI API key and Genius Access Token without editing config files
+- Visual feedback (loading, success, error states) when saving settings
+- Password input fields with focus styling for API keys
+
+### Changed
+- API configuration is now user-friendly with dedicated Settings tab alongside Artist and Lyrics tabs
+- Settings are automatically loaded when switching to Settings tab
+
 ## [1.0.8] - 2025-12-14
 
 ### Fixed

@@ -129,6 +129,7 @@
                 <div id="basitune-tabs">
                     <button class="basitune-tab active" data-tab="artist">Artist</button>
                     <button class="basitune-tab" data-tab="lyrics">Lyrics</button>
+                    <button class="basitune-tab" data-tab="settings">Settings</button>
                 </div>
                 <div id="basitune-controls">
                     <button id="basitune-font-decrease" title="Decrease font size">A-</button>
@@ -147,6 +148,33 @@
                 <div id="basitune-lyrics-tab" class="basitune-tab-content">
                     <div id="basitune-lyrics-content">
                         <p class="basitune-placeholder">Play a song to see lyrics</p>
+                    </div>
+                </div>
+                <div id="basitune-settings-tab" class="basitune-tab-content">
+                    <div id="basitune-settings-content">
+                        <h3 style="margin-top: 0; color: #fff; font-size: 18px; margin-bottom: 20px;">API Configuration</h3>
+                        <div style="margin-bottom: 24px;">
+                            <label style="display: block; color: rgba(255, 255, 255, 0.9); font-weight: 500; margin-bottom: 8px; font-size: 13px;">
+                                OpenAI API Key
+                            </label>
+                            <input type="password" id="basitune-openai-key" placeholder="sk-proj-..." style="width: 100%; padding: 10px; background: rgba(255, 255, 255, 0.1); border: 1px solid rgba(255, 255, 255, 0.2); border-radius: 6px; color: #fff; font-size: 13px; font-family: monospace; box-sizing: border-box;" />
+                            <small style="color: rgba(255, 255, 255, 0.6); font-size: 11px; display: block; margin-top: 6px;">
+                                Required for artist bio information
+                            </small>
+                        </div>
+                        <div style="margin-bottom: 24px;">
+                            <label style="display: block; color: rgba(255, 255, 255, 0.9); font-weight: 500; margin-bottom: 8px; font-size: 13px;">
+                                Genius Access Token
+                            </label>
+                            <input type="password" id="basitune-genius-token" placeholder="Your Genius token..." style="width: 100%; padding: 10px; background: rgba(255, 255, 255, 0.1); border: 1px solid rgba(255, 255, 255, 0.2); border-radius: 6px; color: #fff; font-size: 13px; font-family: monospace; box-sizing: border-box;" />
+                            <small style="color: rgba(255, 255, 255, 0.6); font-size: 11px; display: block; margin-top: 6px;">
+                                Required for lyrics fetching
+                            </small>
+                        </div>
+                        <button id="basitune-save-settings" style="width: 100%; padding: 12px; background: linear-gradient(135deg, #ff0000 0%, #cc0000 100%); border: none; color: #fff; font-size: 14px; font-weight: 600; border-radius: 8px; cursor: pointer; transition: all 0.2s;">
+                            Save Settings
+                        </button>
+                        <div id="basitune-settings-status" style="margin-top: 16px; padding: 12px; border-radius: 6px; font-size: 13px; display: none;"></div>
                     </div>
                 </div>
             </div>
@@ -774,6 +802,30 @@
             body:has(#basitune-sidebar[data-hidden="true"]) tp-yt-paper-dialog {
                 max-width: 100vw !important;
             }
+            
+            /* Settings tab styles */
+            #basitune-settings-content input[type="password"]:focus {
+                outline: none;
+                border-color: #ff0000;
+                background: rgba(255, 255, 255, 0.15);
+                box-shadow: 0 0 0 2px rgba(255, 0, 0, 0.2);
+            }
+            
+            #basitune-save-settings:hover {
+                background: linear-gradient(135deg, #cc0000 0%, #aa0000 100%);
+                transform: translateY(-1px);
+                box-shadow: 0 4px 12px rgba(255, 0, 0, 0.4);
+            }
+            
+            #basitune-save-settings:active {
+                transform: translateY(0);
+            }
+            
+            #basitune-save-settings:disabled {
+                opacity: 0.6;
+                cursor: not-allowed;
+                transform: none;
+            }
         `;
         
         document.head.appendChild(style);
@@ -862,6 +914,12 @@
                 switchTab(tabName);
             });
         });
+        
+        // Settings save button
+        const saveSettingsBtn = document.getElementById('basitune-save-settings');
+        if (saveSettingsBtn) {
+            saveSettingsBtn.addEventListener('click', saveSettings);
+        }
         
         console.log('[Basitune] Sidebar created');
     }
@@ -958,6 +1016,73 @@
         }
     }
     
+    // Settings functions
+    async function loadSettings() {
+        try {
+            const config = await window.__TAURI__.core.invoke('get_config');
+            
+            const openaiInput = document.getElementById('basitune-openai-key');
+            const geniusInput = document.getElementById('basitune-genius-token');
+            
+            if (openaiInput && config.openai_api_key) {
+                openaiInput.value = config.openai_api_key;
+            }
+            if (geniusInput && config.genius_access_token) {
+                geniusInput.value = config.genius_access_token;
+            }
+        } catch (error) {
+            console.error('[Basitune] Failed to load settings:', error);
+        }
+    }
+    
+    async function saveSettings() {
+        const openaiInput = document.getElementById('basitune-openai-key');
+        const geniusInput = document.getElementById('basitune-genius-token');
+        const statusDiv = document.getElementById('basitune-settings-status');
+        const saveBtn = document.getElementById('basitune-save-settings');
+        
+        if (!openaiInput || !geniusInput || !statusDiv || !saveBtn) {
+            console.error('[Basitune] Settings elements not found');
+            return;
+        }
+        
+        const openaiKey = openaiInput.value.trim();
+        const geniusToken = geniusInput.value.trim();
+        
+        // Show saving status
+        statusDiv.style.display = 'block';
+        statusDiv.style.background = 'rgba(255, 255, 255, 0.1)';
+        statusDiv.style.color = 'rgba(255, 255, 255, 0.9)';
+        statusDiv.textContent = 'Saving...';
+        saveBtn.disabled = true;
+        
+        try {
+            await window.__TAURI__.core.invoke('save_config', {
+                openaiApiKey: openaiKey,
+                geniusAccessToken: geniusToken
+            });
+            
+            // Show success
+            statusDiv.style.background = 'rgba(0, 255, 0, 0.2)';
+            statusDiv.style.color = '#00ff00';
+            statusDiv.textContent = '✓ Settings saved successfully!';
+            
+            // Hide after 3 seconds
+            setTimeout(() => {
+                statusDiv.style.display = 'none';
+            }, 3000);
+        } catch (error) {
+            console.error('[Basitune] Failed to save settings:', error);
+            
+            // Show error
+            statusDiv.style.background = 'rgba(255, 0, 0, 0.2)';
+            statusDiv.style.color = '#ff6666';
+            statusDiv.textContent = '✗ Failed to save settings: ' + error;
+        } finally {
+            saveBtn.disabled = false;
+        }
+    }
+    
     // Load sidebar width from backend
     
     function switchTab(tabName) {
@@ -981,6 +1106,9 @@
             document.getElementById('basitune-artist-tab').classList.add('active');
         } else if (tabName === 'lyrics') {
             document.getElementById('basitune-lyrics-tab').classList.add('active');
+        } else if (tabName === 'settings') {
+            document.getElementById('basitune-settings-tab').classList.add('active');
+            loadSettings(); // Load current settings when switching to settings tab
         }
     }
     

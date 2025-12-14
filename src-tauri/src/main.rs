@@ -62,6 +62,35 @@ fn get_openai_key(app_handle: &tauri::AppHandle) -> Option<String> {
     config.openai_api_key
 }
 
+#[tauri::command]
+fn get_config(app: tauri::AppHandle) -> Result<ApiConfig, String> {
+    Ok(load_config(&app))
+}
+
+#[tauri::command]
+fn save_config(app: tauri::AppHandle, openai_api_key: String, genius_access_token: String) -> Result<(), String> {
+    let config = ApiConfig {
+        openai_api_key: if openai_api_key.is_empty() { None } else { Some(openai_api_key) },
+        genius_access_token: if genius_access_token.is_empty() { None } else { Some(genius_access_token) },
+    };
+    
+    let config_path = get_config_path(&app);
+    
+    // Ensure the directory exists
+    if let Some(parent) = config_path.parent() {
+        fs::create_dir_all(parent).map_err(|e| format!("Failed to create config directory: {}", e))?;
+    }
+    
+    // Serialize and write config
+    let json = serde_json::to_string_pretty(&config)
+        .map_err(|e| format!("Failed to serialize config: {}", e))?;
+    
+    fs::write(&config_path, json)
+        .map_err(|e| format!("Failed to write config file: {}", e))?;
+    
+    Ok(())
+}
+
 struct DiscordState {
     client: Mutex<Option<DiscordIpcClient>>,
 }
@@ -1016,7 +1045,9 @@ fn main() {
             toggle_sidebar,
             resize_sidebar,
             update_discord_presence,
-            clear_discord_presence
+            clear_discord_presence,
+            get_config,
+            save_config
         ])
         .setup(|app| {
             // Initialize window state manager
