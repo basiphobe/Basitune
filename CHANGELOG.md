@@ -5,6 +5,15 @@ All notable changes to Basitune will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.0.12] - 2025-12-14
+
+### Added
+- Configured Tauri update signing with cryptographic keypair for secure auto-updates
+- Public key added to updater configuration for signature verification
+
+### Changed
+- Auto-updates now require valid signatures from release workflow
+
 ## [1.0.11] - 2025-12-14
 
 ### Fixed
