@@ -4,6 +4,13 @@
 
 (function() {
     'use strict';
+
+    // Prevent double-injection if the script runs multiple times
+    if (window.__basituneSidebarInitialized) {
+        console.log('[Basitune] Sidebar script already initialized, skipping re-run');
+        return;
+    }
+    window.__basituneSidebarInitialized = true;
     
     let currentArtist = '';
     let currentTitle = '';
@@ -13,6 +20,38 @@
     let sidebarFontSize = 14; // Default font size in pixels
     let isResizing = false;
     let lastSearchResults = null; // Store last search results for "Go Back"
+    let ttPolicy = null; // Trusted Types policy (if available)
+
+    // Safely set innerHTML while respecting Trusted Types
+    function setHTML(element, html) {
+        if (!element) return;
+
+        if (!ttPolicy && window.trustedTypes) {
+            try {
+                ttPolicy = window.trustedTypes.createPolicy('basitune', {
+                    createHTML: (input) => input
+                });
+            } catch (error) {
+                console.warn('[Basitune] Trusted Types policy creation failed:', error);
+            }
+        }
+
+        try {
+            if (ttPolicy) {
+                element.innerHTML = ttPolicy.createHTML(html);
+            } else {
+                element.innerHTML = html;
+            }
+        } catch (error) {
+            console.error('[Basitune] Failed to set HTML:', error);
+        }
+    }
+
+    // Plain text setter to avoid Trusted Types when HTML is unnecessary
+    function setText(element, text) {
+        if (!element) return;
+        element.textContent = text;
+    }
     
     // Update notification functions
     window.showUpdateNotification = function(message, persistent) {
@@ -62,21 +101,29 @@
     window.updateDownloadProgress = function(percent) {
         const container = document.getElementById('basitune-update-notification');
         if (container) {
-            container.innerHTML = `
+            setHTML(container, `
                 <div>Downloading update...</div>
                 <div style="margin-top: 8px; background: rgba(255,255,255,0.3); border-radius: 4px; height: 6px; overflow: hidden;">
                     <div style="background: white; height: 100%; width: ${percent}%; transition: width 0.3s;"></div>
                 </div>
                 <div style="margin-top: 4px; font-size: 12px; opacity: 0.9;">${percent}%</div>
-            `;
+            `);
         }
     };
     
     // Create sidebar HTML
     function createSidebar() {
+        // Clean up any existing sidebar artifacts from prior injections
+        const existingSidebar = document.getElementById('basitune-sidebar');
+        const existingReopen = document.getElementById('basitune-reopen');
+        const existingStyles = document.getElementById('basitune-styles');
+        if (existingSidebar) existingSidebar.remove();
+        if (existingReopen) existingReopen.remove();
+        if (existingStyles) existingStyles.remove();
+
         const sidebar = document.createElement('div');
         sidebar.id = 'basitune-sidebar';
-        sidebar.innerHTML = `
+        setHTML(sidebar, `
             <div id="basitune-resize-handle"></div>
             <div id="basitune-sidebar-header">
                 <div id="basitune-tabs">
@@ -103,12 +150,12 @@
                     </div>
                 </div>
             </div>
-        `;
+        `);
         
         // Create reopen button
         const reopenBtn = document.createElement('button');
         reopenBtn.id = 'basitune-reopen';
-        reopenBtn.innerHTML = '◀';
+        reopenBtn.textContent = '◀';
         reopenBtn.title = 'Open sidebar';
         
         // Add styles
@@ -946,10 +993,14 @@
             sidebar.classList.remove('hidden');
             reopenBtn.classList.remove('visible');
             document.body.classList.remove('sidebar-hidden');
+            sidebar.removeAttribute('data-hidden');
+            document.documentElement.style.setProperty('--sidebar-width', `${sidebarWidth}px`);
         } else {
             sidebar.classList.add('hidden');
             reopenBtn.classList.add('visible');
             document.body.classList.add('sidebar-hidden');
+            sidebar.setAttribute('data-hidden', 'true');
+            document.documentElement.style.setProperty('--sidebar-width', '0px');
         }
         
         // Save preference
@@ -1018,14 +1069,19 @@
     // Fetch artist info from AI via Tauri
     async function fetchArtistInfo(artist) {
         try {
+            if (!window.__TAURI__?.core?.invoke) {
+                console.error('[Basitune] Tauri IPC not available; cannot fetch artist info');
+                return;
+            }
+
             const bioDiv = document.getElementById('basitune-artist-bio');
             
-            bioDiv.innerHTML = `
+            setHTML(bioDiv, `
                 <div class="basitune-loading">
                     <div class="basitune-spinner"></div>
                     <div class="basitune-loading-text">Loading artist information...</div>
                 </div>
-            `;
+            `);
             
             console.log('[Basitune] Fetching AI info for:', artist);
             
@@ -1036,31 +1092,43 @@
             
             // Display artist bio with read more functionality
             const expandableBio = makeExpandable(bioDiv, bio, 400);
-            bioDiv.innerHTML = `
-                <h4>${artist}</h4>
-                <p>${expandableBio}</p>
-            `;
+            // Use text nodes for content to avoid Trusted Types issues
+            setHTML(bioDiv, `<h4></h4><p></p>`);
+            const h4 = bioDiv.querySelector('h4');
+            const p = bioDiv.querySelector('p');
+            setText(h4, artist);
+            // expandableBio may contain HTML for read-more; use setHTML only for that part
+            setHTML(p, expandableBio);
+            
+            console.log('[Basitune] Artist bio rendered; length:', p?.textContent?.length || 0);
             
             console.log('[Basitune] Loaded AI info for:', artist);
         } catch (error) {
             console.error('[Basitune] Error fetching artist info:', error);
             const bioDiv = document.getElementById('basitune-artist-bio');
-            bioDiv.innerHTML = `<p class="basitune-placeholder">Could not load artist information<br><small>${error}</small></p>`;
+            setHTML(bioDiv, `<p class="basitune-placeholder">Could not load artist information<br><small>${error}</small></p>`);
         }
     }
     
     // Fetch song context from AI via Tauri
     async function fetchSongContext(title, artist) {
         try {
+            if (!window.__TAURI__?.core?.invoke) {
+                console.error('[Basitune] Tauri IPC not available; cannot fetch song context');
+                return;
+            }
+
             const contextDiv = document.getElementById('basitune-song-context');
             
-            contextDiv.innerHTML = `
-                <h5>About "${title}"</h5>
+            setHTML(contextDiv, `
+                <h5></h5>
                 <div class="basitune-loading">
                     <div class="basitune-spinner"></div>
                     <div class="basitune-loading-text">Loading song context...</div>
                 </div>
-            `;
+            `);
+            const h5 = contextDiv.querySelector('h5');
+            setText(h5, `About "${title}"`);
             
             console.log('[Basitune] Fetching AI song context for:', title, '-', artist);
             
@@ -1071,30 +1139,37 @@
             
             // Display song context with read more functionality
             const expandableContext = makeExpandable(contextDiv, context, 250);
-            contextDiv.innerHTML = `
-                <h5>About "${title}"</h5>
-                <p>${expandableContext}</p>
-            `;
+            setHTML(contextDiv, `<h5></h5><p></p>`);
+            const ctxH5 = contextDiv.querySelector('h5');
+            const ctxP = contextDiv.querySelector('p');
+            setText(ctxH5, `About "${title}"`);
+            setHTML(ctxP, expandableContext);
+            console.log('[Basitune] Song context rendered; length:', ctxP?.textContent?.length || 0);
             
             console.log('[Basitune] Loaded AI song context');
         } catch (error) {
             console.error('[Basitune] Error fetching song context:', error);
             const contextDiv = document.getElementById('basitune-song-context');
-            contextDiv.innerHTML = '';
+            setHTML(contextDiv, '');
         }
     }
     
     // Fetch lyrics from Genius via Tauri
     async function fetchLyrics(title, artist) {
         try {
+            if (!window.__TAURI__?.core?.invoke) {
+                console.error('[Basitune] Tauri IPC not available; cannot fetch lyrics');
+                return;
+            }
+
             const lyricsDiv = document.getElementById('basitune-lyrics-content');
             
-            lyricsDiv.innerHTML = `
+            setHTML(lyricsDiv, `
                 <div class="basitune-loading">
                     <div class="basitune-spinner"></div>
                     <div class="basitune-loading-text">Loading lyrics...</div>
                 </div>
-            `;
+            `);
             
             console.log('[Basitune] Fetching lyrics for:', title, '-', artist);
             
@@ -1105,7 +1180,7 @@
             
             // Display lyrics (only show Go Back button if we have search results to go back to)
             if (lastSearchResults) {
-                lyricsDiv.innerHTML = `
+                setHTML(lyricsDiv, `
                     <div style="margin-bottom: 12px;">
                         <button id="basitune-go-back" style="
                             padding: 6px 12px;
@@ -1121,8 +1196,11 @@
                             ← Go Back
                         </button>
                     </div>
-                    <div id="basitune-lyrics-text" style="white-space: pre-wrap;">${lyrics}</div>
-                `;
+                    <div id="basitune-lyrics-text" style="white-space: pre-wrap;"></div>
+                `);
+                const lyricsText = document.getElementById('basitune-lyrics-text');
+                setText(lyricsText, lyrics);
+                console.log('[Basitune] Lyrics rendered (with back button); length:', lyricsText?.textContent?.length || 0);
                 
                 // Add click handler for go back button
                 document.getElementById('basitune-go-back').addEventListener('click', () => {
@@ -1134,9 +1212,10 @@
                 });
             } else {
                 // No search results to go back to - just show lyrics
-                lyricsDiv.innerHTML = `
-                    <div style="white-space: pre-wrap;">${lyrics}</div>
-                `;
+                setHTML(lyricsDiv, `<div id="basitune-lyrics-text" style="white-space: pre-wrap;"></div>`);
+                const lyricsText = document.getElementById('basitune-lyrics-text');
+                setText(lyricsText, lyrics);
+                console.log('[Basitune] Lyrics rendered; length:', lyricsText?.textContent?.length || 0);
             }
             
             console.log('[Basitune] Loaded lyrics for:', title);
@@ -1255,7 +1334,7 @@
             </div>
         `;
         
-        lyricsDiv.innerHTML = html;
+        setHTML(lyricsDiv, html);
         
         // Add click handlers for suggestion items
         document.querySelectorAll('.basitune-suggestion-item').forEach(item => {
@@ -1295,7 +1374,7 @@
         const defaultTitle = songInfo?.title || '';
         const defaultArtist = songInfo?.artist || '';
         
-        lyricsDiv.innerHTML = `
+        setHTML(lyricsDiv, `
             <div style="padding: 16px;">
                 <h3 style="margin: 0 0 16px 0; color: rgba(255, 255, 255, 0.9);">Search for Lyrics</h3>
                 <div style="display: flex; flex-direction: column; gap: 8px;">
@@ -1337,12 +1416,12 @@
                                 width: 100%;
                             "
                             onmouseover="this.style.background='#cc0000'"
-                            onmouseout="this.style.background='#ff0000'">
+                           onmouseout="this.style.background='#ff0000'">
                         Search
                     </button>
                 </div>
             </div>
-        `;
+        `);
         
         // Add event listener for search button
         document.getElementById('basitune-lyrics-search-btn').addEventListener('click', () => {
@@ -1406,7 +1485,7 @@
             errorIcon = '⚠️';
         }
         
-        lyricsDiv.innerHTML = `
+        setHTML(lyricsDiv, `
             <div class="basitune-lyrics-error">
                 <div class="basitune-error-icon">${errorIcon}</div>
                 <h3 class="basitune-error-title">${errorTitle}</h3>
@@ -1436,7 +1515,7 @@
                     </div>
                 </div>
             </div>
-        `;
+        `);
         
         // Add event listeners
         document.getElementById('basitune-lyrics-search-btn').addEventListener('click', () => {
@@ -1464,9 +1543,11 @@
     function monitorSongChanges() {
         const playerBar = document.querySelector('ytmusic-player-bar');
         if (!playerBar) {
+            console.warn('[Basitune] ytmusic-player-bar not found yet, retrying...');
             setTimeout(monitorSongChanges, 500);
             return;
         }
+        console.log('[Basitune] ytmusic-player-bar found, attaching mutation observer');
         
         const observer = new MutationObserver(() => {
             const songInfo = getCurrentSongInfo();
@@ -1486,6 +1567,8 @@
                     // Update Discord Rich Presence
                     updateDiscordPresence(currentTitle, currentArtist);
                 }
+            } else {
+                console.debug('[Basitune] Song info not available yet');
             }
         });
         
@@ -1503,6 +1586,8 @@
             fetchSongContext(currentTitle, currentArtist);
             fetchLyrics(currentTitle, currentArtist);
             updateDiscordPresence(currentTitle, currentArtist);
+        } else {
+            console.debug('[Basitune] No initial song info found on startup');
         }
         
         console.log('[Basitune] Song monitor started');
@@ -1582,10 +1667,14 @@
                             sidebarElement.classList.remove('hidden');
                             reopenBtn.classList.remove('visible');
                             document.body.classList.remove('sidebar-hidden');
+                            sidebarElement.removeAttribute('data-hidden');
+                            document.documentElement.style.setProperty('--sidebar-width', `${sidebarWidth}px`);
                         } else {
                             sidebarElement.classList.add('hidden');
                             reopenBtn.classList.add('visible');
                             document.body.classList.add('sidebar-hidden');
+                            sidebarElement.setAttribute('data-hidden', 'true');
+                            document.documentElement.style.setProperty('--sidebar-width', '0px');
                         }
                         
                         // Apply the pre-loaded font size
@@ -1598,11 +1687,34 @@
                 monitorSongChanges();
             } else if (attempts > 40) { // 20 seconds
                 clearInterval(checkYTMusic);
-                console.error('[Basitune] ✗ ytmusic-app not found after 20 seconds');
+                console.error('[Basitune] ✗ ytmusic-app not found after 20 seconds; creating sidebar anyway');
                 console.error('[Basitune] Available body elements:', document.body ? document.body.children.length : 'no body');
                 if (document.body && document.body.children.length > 0) {
                     console.error('[Basitune] First element:', document.body.children[0].tagName);
                 }
+
+                // Fallback: create sidebar even if ytmusic-app was not detected
+                createSidebar();
+                setTimeout(() => {
+                    const sidebarElement = document.getElementById('basitune-sidebar');
+                    const reopenBtn = document.getElementById('basitune-reopen');
+                    
+                    if (sidebarElement && reopenBtn) {
+                        console.log('[Basitune] ✓ Sidebar created via fallback');
+                        if (sidebarVisible) {
+                            sidebarElement.classList.remove('hidden');
+                            reopenBtn.classList.remove('visible');
+                            document.body.classList.remove('sidebar-hidden');
+                        } else {
+                            sidebarElement.classList.add('hidden');
+                            reopenBtn.classList.add('visible');
+                            document.body.classList.add('sidebar-hidden');
+                        }
+                        applyFontSize();
+                    } else {
+                        console.error('[Basitune] ✗ Sidebar element not found after fallback creation');
+                    }
+                }, 100);
             }
         }, 500);
     }

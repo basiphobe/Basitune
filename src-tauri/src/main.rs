@@ -982,6 +982,23 @@ fn main() {
         .manage(discord_state)
         .plugin(tauri_plugin_shell::init())
         .plugin(tauri_plugin_updater::Builder::new().build())
+        // Inject sidebar + volume helpers on every page load so they survive navigations
+        .on_page_load(|window, _payload| {
+            let sidebar_script = include_str!("../../sidebar.js");
+            let volume_script = include_str!("../../volume-fix.js");
+
+            if let Err(e) = window.eval(sidebar_script) {
+                eprintln!("[Basitune] Failed to inject sidebar: {}", e);
+            } else {
+                println!("[Basitune] Sidebar injected via on_page_load");
+            }
+
+            if let Err(e) = window.eval(volume_script) {
+                eprintln!("[Basitune] Failed to inject volume bridge: {}", e);
+            } else {
+                println!("[Basitune] Volume bridge injected via on_page_load");
+            }
+        })
         .plugin(tauri_plugin_single_instance::init(|app, _args, _cwd| {
             // When a second instance is attempted, focus the existing window
             let windows = app.webview_windows();
@@ -1111,26 +1128,7 @@ fn main() {
             
             // Show the window
             let _ = main_window.show();
-            
-            // Inject sidebar script that shifts YouTube content
-            let window_clone = main_window.clone();
-            std::thread::spawn(move || {
-                std::thread::sleep(Duration::from_secs(2));
-                
-                let sidebar_script = include_str!("../../sidebar.js");
-                
-                for attempt in 1..=10 {
-                    std::thread::sleep(Duration::from_secs(1));
-                    
-                    if window_clone.eval(sidebar_script).is_ok() {
-                        println!("[Basitune] Sidebar injected (attempt {})", attempt);
-                        break;
-                    } else if attempt == 10 {
-                        eprintln!("[Basitune] Failed to inject sidebar after {} attempts", attempt);
-                    }
-                }
-            });
-            
+
             // Save window state on close
             let app_handle = app.handle().clone();
             let window_clone = main_window.clone();
