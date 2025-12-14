@@ -5,6 +5,12 @@ All notable changes to Basitune will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.0.7] - 2025-12-14
+
+### Fixed
+- Updater manifest now detects architectures from asset filenames so macOS and Windows downloads match the user's CPU
+- Release builds are generated with the matrix target passed through Tauri to ensure matching binaries for each platform
+
 ## [1.0.6] - 2025-12-14
 
 ### Changed
