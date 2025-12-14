@@ -76,14 +76,7 @@ impl WindowStateManager {
         let state_path = Self::get_state_path(&app_handle);
         let loaded_state = match fs::read_to_string(&state_path) {
             Ok(contents) => {
-                match serde_json::from_str::<WindowState>(&contents) {
-                    Ok(state) => {
-                        state
-                    }
-                    Err(_) => {
-                        WindowState::default()
-                    }
-                }
+                serde_json::from_str::<WindowState>(&contents).unwrap_or_default()
             }
             Err(_) => {
                 WindowState::default()
@@ -868,7 +861,7 @@ fn update_discord_presence(
 ) -> Result<(), String> {
     let mut client_opt = state.client.lock().unwrap();
     
-    let details_text = format!("{}", title);
+    let details_text = title.to_string();
     let state_text = format!("by {}", artist);
     
     if let Some(client) = client_opt.as_mut() {
@@ -1048,7 +1041,7 @@ fn main() {
                                 
                                 // Notify user that update is downloading
                                 if let Some(window) = app_handle.get_webview_window("main") {
-                                    let _ = window.eval(&format!(
+                                    let _ = window.eval(format!(
                                         r#"window.showUpdateNotification('Downloading update {}...', false)"#,
                                         update.version
                                     ));
@@ -1060,7 +1053,7 @@ fn main() {
                                     |chunk_length, content_length| {
                                         if let (Some(total), Some(w)) = (content_length, &window) {
                                             let percent = (chunk_length as f64 / total as f64 * 100.0) as u32;
-                                            let _ = w.eval(&format!(
+                                            let _ = w.eval(format!(
                                                 r#"window.updateDownloadProgress({})"#, percent
                                             ));
                                         }
@@ -1133,27 +1126,24 @@ fn main() {
             let app_handle = app.handle().clone();
             let window_clone = main_window.clone();
             main_window.on_window_event(move |event| {
-                match event {
-                    tauri::WindowEvent::CloseRequested { .. } => {
-                        if let Ok(size) = window_clone.inner_size() {
-                            if let Ok(position) = window_clone.outer_position() {
-                                let is_maximized = window_clone.is_maximized().unwrap_or(false);
-                                
-                                println!("[Basitune] Saving window state on close");
-                                
-                                let state_manager: tauri::State<WindowStateManager> = app_handle.state();
-                                state_manager.update_no_save(|state| {
-                                    state.width = size.width;
-                                    state.height = size.height;
-                                    state.x = position.x;
-                                    state.y = position.y;
-                                    state.maximized = is_maximized;
-                                });
-                                state_manager.save_silent();
-                            }
+                if let tauri::WindowEvent::CloseRequested { .. } = event {
+                    if let Ok(size) = window_clone.inner_size() {
+                        if let Ok(position) = window_clone.outer_position() {
+                            let is_maximized = window_clone.is_maximized().unwrap_or(false);
+                            
+                            println!("[Basitune] Saving window state on close");
+                            
+                            let state_manager: tauri::State<WindowStateManager> = app_handle.state();
+                            state_manager.update_no_save(|state| {
+                                state.width = size.width;
+                                state.height = size.height;
+                                state.x = position.x;
+                                state.y = position.y;
+                                state.maximized = is_maximized;
+                            });
+                            state_manager.save_silent();
                         }
                     }
-                    _ => {}
                 }
             });
             
