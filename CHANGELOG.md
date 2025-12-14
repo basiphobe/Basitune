@@ -5,6 +5,11 @@ All notable changes to Basitune will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.0.16] - 2025-12-14
+
+### Fixed
+- Regenerated signing keypair with simpler password to avoid special character encoding issues in CI/CD
+
 ## [1.0.15] - 2025-12-14
 
 ### Fixed
