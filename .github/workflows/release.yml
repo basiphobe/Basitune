@@ -126,27 +126,33 @@ jobs:
             const releaseId = ${{ needs.create-release.outputs.release_id }};
             
             // Upload .deb
-            const debFiles = fs.readdirSync(path.join(bundleDir, 'deb'));
-            for (const file of debFiles.filter(f => f.endsWith('.deb'))) {
-              await github.rest.repos.uploadReleaseAsset({
-                owner: context.repo.owner,
-                repo: context.repo.repo,
-                release_id: releaseId,
-                name: file,
-                data: fs.readFileSync(path.join(bundleDir, 'deb', file))
-              });
+            const debDir = path.join(bundleDir, 'deb');
+            if (fs.existsSync(debDir)) {
+              const debFiles = fs.readdirSync(debDir);
+              for (const file of debFiles.filter(f => f.endsWith('.deb'))) {
+                await github.rest.repos.uploadReleaseAsset({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  release_id: releaseId,
+                  name: file,
+                  data: fs.readFileSync(path.join(debDir, file))
+                });
+              }
             }
             
             // Upload .rpm
-            const rpmFiles = fs.readdirSync(path.join(bundleDir, 'rpm'));
-            for (const file of rpmFiles.filter(f => f.endsWith('.rpm'))) {
-              await github.rest.repos.uploadReleaseAsset({
-                owner: context.repo.owner,
-                repo: context.repo.repo,
-                release_id: releaseId,
-                name: file,
-                data: fs.readFileSync(path.join(bundleDir, 'rpm', file))
-              });
+            const rpmDir = path.join(bundleDir, 'rpm');
+            if (fs.existsSync(rpmDir)) {
+              const rpmFiles = fs.readdirSync(rpmDir);
+              for (const file of rpmFiles.filter(f => f.endsWith('.rpm'))) {
+                await github.rest.repos.uploadReleaseAsset({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  release_id: releaseId,
+                  name: file,
+                  data: fs.readFileSync(path.join(rpmDir, file))
+                });
+              }
             }
 
       - name: Upload Release Assets (macOS)
@@ -161,15 +167,20 @@ jobs:
             const releaseId = ${{ needs.create-release.outputs.release_id }};
             
             // Upload .dmg
-            const dmgFiles = fs.readdirSync(path.join(bundleDir, 'dmg'));
-            for (const file of dmgFiles.filter(f => f.endsWith('.dmg'))) {
-              await github.rest.repos.uploadReleaseAsset({
-                owner: context.repo.owner,
-                repo: context.repo.repo,
-                release_id: releaseId,
-                name: file,
-                data: fs.readFileSync(path.join(bundleDir, 'dmg', file))
-              });
+            const dmgDir = path.join(bundleDir, 'dmg');
+            if (fs.existsSync(dmgDir)) {
+              const dmgFiles = fs.readdirSync(dmgDir);
+              for (const file of dmgFiles.filter(f => f.endsWith('.dmg'))) {
+                await github.rest.repos.uploadReleaseAsset({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  release_id: releaseId,
+                  name: file,
+                  data: fs.readFileSync(path.join(dmgDir, file))
+                });
+              }
+            } else {
+              console.log('DMG directory not found, skipping DMG upload');
             }
 
       - name: Upload Release Assets (Windows)
@@ -184,27 +195,33 @@ jobs:
             const releaseId = ${{ needs.create-release.outputs.release_id }};
             
             // Upload .msi
-            const msiFiles = fs.readdirSync(path.join(bundleDir, 'msi'));
-            for (const file of msiFiles.filter(f => f.endsWith('.msi'))) {
-              await github.rest.repos.uploadReleaseAsset({
-                owner: context.repo.owner,
-                repo: context.repo.repo,
-                release_id: releaseId,
-                name: file,
-                data: fs.readFileSync(path.join(bundleDir, 'msi', file))
-              });
+            const msiDir = path.join(bundleDir, 'msi');
+            if (fs.existsSync(msiDir)) {
+              const msiFiles = fs.readdirSync(msiDir);
+              for (const file of msiFiles.filter(f => f.endsWith('.msi'))) {
+                await github.rest.repos.uploadReleaseAsset({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  release_id: releaseId,
+                  name: file,
+                  data: fs.readFileSync(path.join(msiDir, file))
+                });
+              }
             }
             
             // Upload .exe (NSIS installer)
-            const nsisFiles = fs.readdirSync(path.join(bundleDir, 'nsis'));
-            for (const file of nsisFiles.filter(f => f.endsWith('.exe'))) {
-              await github.rest.repos.uploadReleaseAsset({
-                owner: context.repo.owner,
-                repo: context.repo.repo,
-                release_id: releaseId,
-                name: file,
-                data: fs.readFileSync(path.join(bundleDir, 'nsis', file))
-              });
+            const nsisDir = path.join(bundleDir, 'nsis');
+            if (fs.existsSync(nsisDir)) {
+              const nsisFiles = fs.readdirSync(nsisDir);
+              for (const file of nsisFiles.filter(f => f.endsWith('.exe'))) {
+                await github.rest.repos.uploadReleaseAsset({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  release_id: releaseId,
+                  name: file,
+                  data: fs.readFileSync(path.join(nsisDir, file))
+                });
+              }
             }
 
   create-updater-manifest:

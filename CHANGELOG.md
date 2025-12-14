@@ -5,6 +5,11 @@ All notable changes to Basitune will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.0.8] - 2025-12-14
+
+### Fixed
+- GitHub Actions release workflow now checks for directory existence before attempting to upload bundle artifacts, preventing ENOENT errors when specific bundle formats aren't generated
+
 ## [1.0.7] - 2025-12-14
 
 ### Fixed
