@@ -33,8 +33,18 @@ function updateJsonFile(filePath, updater) {
 }
 
 function main() {
-  const buildNum = getBuildNumber();
-  const newVersion = `0.1.${buildNum}`;
+  // Prefer an explicit version if provided (e.g., from a tag or env)
+  const tagRef = process.env.GITHUB_REF || '';
+  let newVersion =
+    process.env.BASITUNE_VERSION ||
+    (tagRef.startsWith('refs/tags/v') ? tagRef.replace('refs/tags/v', '') : null);
+
+  // Fallback to incremental build number if no tag/env version is available
+  if (!newVersion) {
+    const buildNum = getBuildNumber();
+    newVersion = `0.1.${buildNum}`;
+  }
+
   console.log(`Setting build version to ${newVersion}`);
 
   const repoRoot = path.resolve(__dirname, '..');
