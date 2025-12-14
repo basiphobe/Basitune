@@ -5,6 +5,11 @@ All notable changes to Basitune will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.0.17] - 2025-12-14
+
+### Fixed
+- Corrected password environment variable to TAURI_SIGNING_PRIVATE_KEY_PASSWORD (the actual env var Tauri expects)
+
 ## [1.0.16] - 2025-12-14
 
 ### Fixed
