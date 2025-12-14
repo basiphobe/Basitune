@@ -39,7 +39,7 @@ jobs:
               tag_name: context.ref.replace('refs/tags/', ''),
               name: `Basitune v${{ steps.get_version.outputs.VERSION }}`,
               body: 'Download the appropriate package for your platform below.',
-              draft: true,
+              draft: false,
               prerelease: false
             })
             return data.id
