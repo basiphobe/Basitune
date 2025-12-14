@@ -127,11 +127,11 @@ jobs:
             const bundleDir = 'src-tauri/target/release/bundle';
             const releaseId = ${{ needs.create-release.outputs.release_id }};
             
-            // Upload .deb
+            // Upload .deb and .sig
             const debDir = path.join(bundleDir, 'deb');
             if (fs.existsSync(debDir)) {
               const debFiles = fs.readdirSync(debDir);
-              for (const file of debFiles.filter(f => f.endsWith('.deb'))) {
+              for (const file of debFiles.filter(f => f.endsWith('.deb') || f.endsWith('.sig'))) {
                 await github.rest.repos.uploadReleaseAsset({
                   owner: context.repo.owner,
                   repo: context.repo.repo,
@@ -142,11 +142,11 @@ jobs:
               }
             }
             
-            // Upload .rpm
+            // Upload .rpm and .sig
             const rpmDir = path.join(bundleDir, 'rpm');
             if (fs.existsSync(rpmDir)) {
               const rpmFiles = fs.readdirSync(rpmDir);
-              for (const file of rpmFiles.filter(f => f.endsWith('.rpm'))) {
+              for (const file of rpmFiles.filter(f => f.endsWith('.rpm') || f.endsWith('.sig'))) {
                 await github.rest.repos.uploadReleaseAsset({
                   owner: context.repo.owner,
                   repo: context.repo.repo,
@@ -168,11 +168,11 @@ jobs:
             const bundleDir = 'src-tauri/target/release/bundle';
             const releaseId = ${{ needs.create-release.outputs.release_id }};
             
-            // Upload .dmg
+            // Upload .dmg and .sig
             const dmgDir = path.join(bundleDir, 'dmg');
             if (fs.existsSync(dmgDir)) {
               const dmgFiles = fs.readdirSync(dmgDir);
-              for (const file of dmgFiles.filter(f => f.endsWith('.dmg'))) {
+              for (const file of dmgFiles.filter(f => f.endsWith('.dmg') || f.endsWith('.sig'))) {
                 await github.rest.repos.uploadReleaseAsset({
                   owner: context.repo.owner,
                   repo: context.repo.repo,
@@ -196,11 +196,11 @@ jobs:
             const bundleDir = 'src-tauri/target/release/bundle';
             const releaseId = ${{ needs.create-release.outputs.release_id }};
             
-            // Upload .msi
+            // Upload .msi and .sig
             const msiDir = path.join(bundleDir, 'msi');
             if (fs.existsSync(msiDir)) {
               const msiFiles = fs.readdirSync(msiDir);
-              for (const file of msiFiles.filter(f => f.endsWith('.msi'))) {
+              for (const file of msiFiles.filter(f => f.endsWith('.msi') || f.endsWith('.sig'))) {
                 await github.rest.repos.uploadReleaseAsset({
                   owner: context.repo.owner,
                   repo: context.repo.repo,
@@ -211,11 +211,11 @@ jobs:
               }
             }
             
-            // Upload .exe (NSIS installer)
+            // Upload .exe (NSIS installer) and .sig
             const nsisDir = path.join(bundleDir, 'nsis');
             if (fs.existsSync(nsisDir)) {
               const nsisFiles = fs.readdirSync(nsisDir);
-              for (const file of nsisFiles.filter(f => f.endsWith('.exe'))) {
+              for (const file of nsisFiles.filter(f => f.endsWith('.exe') || f.endsWith('.sig'))) {
                 await github.rest.repos.uploadReleaseAsset({
                   owner: context.repo.owner,
                   repo: context.repo.repo,
@@ -266,10 +266,20 @@ jobs:
               return 'x86_64';
             };
             
+            // Build a map of binaries to their signatures
+            const signatures = {};
+            for (const asset of release.assets) {
+              if (asset.name.endsWith('.sig')) {
+                const binaryName = asset.name.replace('.sig', '');
+                const response = await github.request('GET {url}', { url: asset.url, headers: { accept: 'application/octet-stream' } });
+                signatures[binaryName] = Buffer.from(response.data).toString('utf8');
+              }
+            }
+            
             const addPlatform = (platformKey, asset) => {
               if (asset?.browser_download_url) {
                 manifest.platforms[platformKey] = {
-                  signature: '',
+                  signature: signatures[asset.name] || '',
                   url: asset.browser_download_url
                 };
               }

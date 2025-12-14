@@ -5,6 +5,18 @@ All notable changes to Basitune will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.0.11] - 2025-12-14
+
+### Fixed
+- Updater manifest now includes signature files for secure updates
+- Release workflow uploads .sig files alongside binaries for signature verification
+- Auto-updates now work properly with cryptographic signature validation
+
+## [1.0.10] - 2025-12-14
+
+### Fixed
+- GitHub Actions release workflow now builds correctly without passing unsupported --target flag to Tauri CLI v2
+
 ## [1.0.9] - 2025-12-14
 
 ### Added
