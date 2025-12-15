@@ -182,10 +182,11 @@ jobs:
         shell: bash
         run: |
           echo "=== BUILD START ==="
+          echo "Key file path: $RUNNER_TEMP/tauri-signing-key"
+          export TAURI_SIGNING_PRIVATE_KEY="$RUNNER_TEMP/tauri-signing-key"
           npm run build
         env:
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY || 'sk-dummy-key-for-ci-build' }}
-          TAURI_SIGNING_PRIVATE_KEY: ${{ runner.temp }}/tauri-signing-key
           TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
 
       - name: Upload Release Assets (Linux)
