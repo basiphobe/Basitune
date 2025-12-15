@@ -147,7 +147,8 @@ jobs:
           TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
           TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
 
-      - name: Write signing key to file for build
+      - name: Write signing key to file for build (Unix)
+        if: runner.os != 'Windows'
         run: |
           printf '%s' "$TAURI_SIGNING_PRIVATE_KEY" > /tmp/tauri-signing-key
           echo "=== Key file created ==="
@@ -155,13 +156,35 @@ jobs:
         env:
           TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
 
-      - name: Build Basitune
+      - name: Write signing key to file for build (Windows)
+        if: runner.os == 'Windows'
+        shell: bash
+        run: |
+          printf '%s' "$TAURI_SIGNING_PRIVATE_KEY" > "$RUNNER_TEMP/tauri-signing-key"
+          echo "=== Key file created ==="
+          wc -c "$RUNNER_TEMP/tauri-signing-key"
+        env:
+          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+
+      - name: Build Basitune (Unix)
+        if: runner.os != 'Windows'
         run: |
           echo "=== BUILD START ==="
           npm run build
         env:
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY || 'sk-dummy-key-for-ci-build' }}
           TAURI_SIGNING_PRIVATE_KEY: /tmp/tauri-signing-key
+          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
+
+      - name: Build Basitune (Windows)
+        if: runner.os == 'Windows'
+        shell: bash
+        run: |
+          echo "=== BUILD START ==="
+          export TAURI_SIGNING_PRIVATE_KEY="$RUNNER_TEMP/tauri-signing-key"
+          npm run build
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY || 'sk-dummy-key-for-ci-build' }}
           TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
 
       - name: Upload Release Assets (Linux)
