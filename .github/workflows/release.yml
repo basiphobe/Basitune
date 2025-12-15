@@ -149,14 +149,12 @@ jobs:
 
       - name: Write signing key to file for build
         run: |
-          cat > /tmp/tauri-signing-key <<'KEYEOF'
-${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
-KEYEOF
+          printf '%s' "$TAURI_SIGNING_PRIVATE_KEY" > /tmp/tauri-signing-key
           echo "=== Key file created ==="
           wc -c /tmp/tauri-signing-key
-          wc -l /tmp/tauri-signing-key
-          head -1 /tmp/tauri-signing-key
-          xxd -l 100 /tmp/tauri-signing-key
+          xxd /tmp/tauri-signing-key | tail -2
+        env:
+          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
 
       - name: Build Basitune
         run: |
