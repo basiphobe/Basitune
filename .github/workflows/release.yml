@@ -150,19 +150,23 @@ jobs:
       - name: Write signing key to file for build
         shell: bash
         run: |
-          printf '%s' "$TAURI_SIGNING_PRIVATE_KEY" > /tmp/tauri-signing-key
+          KEY_PATH="${RUNNER_TEMP}/tauri-signing-key"
+          printf '%s' "$TAURI_SIGNING_PRIVATE_KEY" > "$KEY_PATH"
           echo "=== Key file created ==="
-          wc -c /tmp/tauri-signing-key
+          echo "Path: $KEY_PATH"
+          wc -c "$KEY_PATH"
+          echo "KEY_PATH=$KEY_PATH" >> $GITHUB_ENV
         env:
           TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
 
       - name: Build Basitune
         run: |
           echo "=== BUILD START ==="
+          echo "Using key file: $KEY_PATH"
           npm run build
         env:
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY || 'sk-dummy-key-for-ci-build' }}
-          TAURI_SIGNING_PRIVATE_KEY: /tmp/tauri-signing-key
+          TAURI_SIGNING_PRIVATE_KEY: ${{ env.KEY_PATH }}
           TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
 
       - name: Upload Release Assets (Linux)
