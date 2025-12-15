@@ -1,7 +1,7 @@
 {
   "$schema": "https://schema.tauri.app/config/2.0",
   "productName": "Basitune",
-  "version": "1.0.18",
+  "version": "0.1.107",
   "identifier": "com.basiphobe.basitune",
   "build": {
     "beforeDevCommand": "",
@@ -65,7 +65,7 @@
         "https://github.com/basiphobe/Basitune/releases/latest/download/latest.json"
       ],
       "dialog": true,
-      "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IDQyNTExNzA0NzMzREIxMzgKUldRNHNUMXpCQmRSUW9MdUxkRmI3cDVWMUdvTE1yWkVpYUlncTAveWY5TWZibkhrS0drbTVleW8K"
+      "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IDE5NTEwREIwNTY1REM3NjYKUldSbXgxMVdzQTFSR1hiS0hhV3F5eEptdkc2dXYwdTlEdUM4YzhnMTJWbnA1T0xxTmFVRW5UdjIK"
     }
   }
 }

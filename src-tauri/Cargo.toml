@@ -1,6 +1,6 @@
 [package]
 name = "basitune"
-version = "1.0.18"
+version = "1.0.19"
 description = "A lightweight desktop wrapper for YouTube Music"
 authors = ["Basitune Contributors"]
 edition = "2021"
