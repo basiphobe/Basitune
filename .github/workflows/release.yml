@@ -159,10 +159,31 @@ jobs:
         env:
           TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
 
+      - name: Verify key file before build
+        shell: bash
+        run: |
+          echo "=== VERIFY KEY FILE ==="
+          echo "KEY_PATH from env: $KEY_PATH"
+          if [ -f "$KEY_PATH" ]; then
+            echo "Key file exists"
+            wc -c "$KEY_PATH"
+            echo "Testing signature..."
+            echo "test" > /tmp/verify-test.txt
+            npx @tauri-apps/cli signer sign /tmp/verify-test.txt -f "$KEY_PATH" --password "$TAURI_SIGNING_PRIVATE_KEY_PASSWORD" && echo "SUCCESS" || echo "FAILED"
+            rm -f /tmp/verify-test.txt /tmp/verify-test.txt.sig
+          else
+            echo "ERROR: Key file does not exist at $KEY_PATH"
+            exit 1
+          fi
+        env:
+          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
+
       - name: Build Basitune
+        shell: bash
         run: |
           echo "=== BUILD START ==="
           echo "Using key file: $KEY_PATH"
+          ls -lh "$KEY_PATH"
           npm run build
         env:
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY || 'sk-dummy-key-for-ci-build' }}
