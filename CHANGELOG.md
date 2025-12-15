@@ -8,8 +8,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [1.0.19] - 2025-12-15
 
 ### Fixed
-- Fixed auto-update signing by using correct environment variable name (TAURI_SIGNING_PRIVATE_KEY, not TAURI_SIGNING_PRIVATE_KEY_PATH)
-- Tauri auto-detects if value is a file path or content directly
+- Fixed auto-update signing by correcting workflow to write key file without base64 decoding (secret already contains correct format)
+- Changed environment variable from TAURI_SIGNING_PRIVATE_KEY_PATH to TAURI_SIGNING_PRIVATE_KEY (Tauri auto-detects file paths)
 - Signature files (.sig) now generate successfully for secure package verification
 
 ## [1.0.18] - 2025-12-14

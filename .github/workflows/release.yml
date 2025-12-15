@@ -108,8 +108,8 @@ jobs:
           mkdir -p dist
           cp index.html dist/
 
-      - name: Decode signing key
-        run: echo "${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}" | base64 -d > /tmp/tauri-key
+      - name: Write signing key
+        run: echo "${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}" > /tmp/tauri-key
 
       - name: Build Basitune
         run: npm run build
