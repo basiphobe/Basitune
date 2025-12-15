@@ -8,13 +8,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [1.0.19] - 2025-12-15
 
 ### Fixed
-- Fixed auto-update signing by regenerating keypair with correct password format
+- Fixed auto-update signing by using correct environment variable name (TAURI_SIGNING_PRIVATE_KEY, not TAURI_SIGNING_PRIVATE_KEY_PATH)
+- Tauri auto-detects if value is a file path or content directly
 - Signature files (.sig) now generate successfully for secure package verification
 
 ## [1.0.18] - 2025-12-14
 
 ### Fixed
-- Corrected password environment variable back to TAURI_KEY_PASSWORD (verified working with local tests)
+- Attempted fix for signing environment variable (incorrect - was not the issue)
 
 ## [1.0.17] - 2025-12-14
 
@@ -39,7 +40,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [1.0.13] - 2025-12-14
 
 ### Fixed
-- Corrected environment variable name for Tauri signing (TAURI_PRIVATE_KEY) to properly generate signature files
+- Corrected environment variable name to TAURI_SIGNING_PRIVATE_KEY and TAURI_SIGNING_PRIVATE_KEY_PASSWORD per Tauri v2 documentation
 
 ## [1.0.12] - 2025-12-14
 
