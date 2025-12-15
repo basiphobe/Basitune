@@ -108,45 +108,6 @@ jobs:
           mkdir -p dist
           cp index.html dist/
 
-      - name: Debug - Check secrets are set
-        shell: bash
-        run: |
-          echo "=== SECRET CHECK ==="
-          if [ -z "$TAURI_SIGNING_PRIVATE_KEY" ]; then
-            echo "ERROR: TAURI_SIGNING_PRIVATE_KEY is empty!"
-          else
-            echo "TAURI_SIGNING_PRIVATE_KEY is set"
-            echo "Length: $(echo -n "$TAURI_SIGNING_PRIVATE_KEY" | wc -c)"
-            echo "Lines: $(echo "$TAURI_SIGNING_PRIVATE_KEY" | wc -l)"
-            echo "First line: $(echo "$TAURI_SIGNING_PRIVATE_KEY" | head -1)"
-          fi
-          
-          if [ -z "$TAURI_SIGNING_PRIVATE_KEY_PASSWORD" ]; then
-            echo "ERROR: TAURI_SIGNING_PRIVATE_KEY_PASSWORD is empty!"
-          else
-            echo "TAURI_SIGNING_PRIVATE_KEY_PASSWORD is set"
-            echo "Length: $(echo -n "$TAURI_SIGNING_PRIVATE_KEY_PASSWORD" | wc -c)"
-          fi
-        env:
-          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
-          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
-
-      - name: Debug - Write key to file and test
-        shell: bash
-        run: |
-          echo "=== FILE TEST ==="
-          printf '%s' "$TAURI_SIGNING_PRIVATE_KEY" > /tmp/test-key
-          echo "File size: $(wc -c < /tmp/test-key)"
-          echo "File lines: $(wc -l < /tmp/test-key)"
-          echo "File first line: $(head -1 /tmp/test-key)"
-          echo "Attempting to sign test file..."
-          echo "test" > /tmp/test.txt
-          npx @tauri-apps/cli signer sign /tmp/test.txt -f /tmp/test-key --password "$TAURI_SIGNING_PRIVATE_KEY_PASSWORD" 2>&1 || echo "Sign test FAILED"
-          rm -f /tmp/test-key /tmp/test.txt /tmp/test.txt.sig
-        env:
-          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
-          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
-
       - name: Write signing key to file for build (Unix)
         if: runner.os != 'Windows'
         run: |
