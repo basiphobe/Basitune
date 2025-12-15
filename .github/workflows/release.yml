@@ -109,6 +109,7 @@ jobs:
           cp index.html dist/
 
       - name: Debug - Check secrets are set
+        shell: bash
         run: |
           echo "=== SECRET CHECK ==="
           if [ -z "$TAURI_SIGNING_PRIVATE_KEY" ]; then
@@ -131,14 +132,13 @@ jobs:
           TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
 
       - name: Debug - Write key to file and test
+        shell: bash
         run: |
           echo "=== FILE TEST ==="
           printf '%s' "$TAURI_SIGNING_PRIVATE_KEY" > /tmp/test-key
           echo "File size: $(wc -c < /tmp/test-key)"
           echo "File lines: $(wc -l < /tmp/test-key)"
           echo "File first line: $(head -1 /tmp/test-key)"
-          echo "File hex dump first 100 bytes:"
-          xxd -l 100 /tmp/test-key
           echo "Attempting to sign test file..."
           echo "test" > /tmp/test.txt
           npx @tauri-apps/cli signer sign /tmp/test.txt -f /tmp/test-key --password "$TAURI_SIGNING_PRIVATE_KEY_PASSWORD" 2>&1 || echo "Sign test FAILED"
@@ -148,11 +148,11 @@ jobs:
           TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
 
       - name: Write signing key to file for build
+        shell: bash
         run: |
           printf '%s' "$TAURI_SIGNING_PRIVATE_KEY" > /tmp/tauri-signing-key
           echo "=== Key file created ==="
           wc -c /tmp/tauri-signing-key
-          xxd /tmp/tauri-signing-key | tail -2
         env:
           TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
 
