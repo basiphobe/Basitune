@@ -169,8 +169,13 @@ jobs:
 
       - name: Build Basitune (Unix)
         if: matrix.platform != 'windows-latest'
+        shell: bash
         run: |
           echo "=== BUILD START ==="
+          echo "Verifying key file exists..."
+          ls -lh /tmp/tauri-signing-key
+          echo "TAURI_SIGNING_PRIVATE_KEY=/tmp/tauri-signing-key"
+          echo "TAURI_SIGNING_PRIVATE_KEY_PASSWORD length: ${#TAURI_SIGNING_PRIVATE_KEY_PASSWORD}"
           npm run build
         env:
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY || 'sk-dummy-key-for-ci-build' }}
