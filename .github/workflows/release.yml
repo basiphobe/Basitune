@@ -147,47 +147,45 @@ jobs:
           TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
           TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
 
-      - name: Write signing key to file for build
+      - name: Write signing key to file for build (Unix)
+        if: matrix.platform != 'windows-latest'
         shell: bash
         run: |
-          KEY_PATH="${RUNNER_TEMP}/tauri-signing-key"
-          printf '%s' "$TAURI_SIGNING_PRIVATE_KEY" > "$KEY_PATH"
-          echo "=== Key file created ==="
-          echo "Path: $KEY_PATH"
-          wc -c "$KEY_PATH"
-          echo "KEY_PATH=$KEY_PATH" >> $GITHUB_ENV
+          printf '%s' "$TAURI_SIGNING_PRIVATE_KEY" > /tmp/tauri-signing-key
+          echo "=== Key file created at /tmp/tauri-signing-key ==="
+          wc -c /tmp/tauri-signing-key
         env:
           TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
 
-      - name: Verify key file before build
+      - name: Write signing key to file for build (Windows)
+        if: matrix.platform == 'windows-latest'
         shell: bash
         run: |
-          echo "=== VERIFY KEY FILE ==="
-          echo "KEY_PATH from env: $KEY_PATH"
-          if [ -f "$KEY_PATH" ]; then
-            echo "Key file exists"
-            wc -c "$KEY_PATH"
-            echo "Testing signature..."
-            echo "test" > /tmp/verify-test.txt
-            npx @tauri-apps/cli signer sign /tmp/verify-test.txt -f "$KEY_PATH" --password "$TAURI_SIGNING_PRIVATE_KEY_PASSWORD" && echo "SUCCESS" || echo "FAILED"
-            rm -f /tmp/verify-test.txt /tmp/verify-test.txt.sig
-          else
-            echo "ERROR: Key file does not exist at $KEY_PATH"
-            exit 1
-          fi
+          printf '%s' "$TAURI_SIGNING_PRIVATE_KEY" > "$RUNNER_TEMP/tauri-signing-key"
+          echo "=== Key file created at $RUNNER_TEMP/tauri-signing-key ==="
+          wc -c "$RUNNER_TEMP/tauri-signing-key"
         env:
-          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
+          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
 
-      - name: Build Basitune
-        shell: bash
+      - name: Build Basitune (Unix)
+        if: matrix.platform != 'windows-latest'
         run: |
           echo "=== BUILD START ==="
-          echo "Using key file: $KEY_PATH"
-          ls -lh "$KEY_PATH"
           npm run build
         env:
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY || 'sk-dummy-key-for-ci-build' }}
-          TAURI_SIGNING_PRIVATE_KEY: ${{ env.KEY_PATH }}
+          TAURI_SIGNING_PRIVATE_KEY: /tmp/tauri-signing-key
+          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
+
+      - name: Build Basitune (Windows)
+        if: matrix.platform == 'windows-latest'
+        shell: bash
+        run: |
+          echo "=== BUILD START ==="
+          npm run build
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY || 'sk-dummy-key-for-ci-build' }}
+          TAURI_SIGNING_PRIVATE_KEY: ${{ runner.temp }}/tauri-signing-key
           TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
 
       - name: Upload Release Assets (Linux)
