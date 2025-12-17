@@ -208,10 +208,17 @@
                                     <span id="basitune-identifier">Loading...</span>
                                 </div>
                             </div>
-                            <div id="basitune-changelog-container">
-                                <h4 style="color: #fff; font-size: 16px; margin-bottom: 12px;">Changelog</h4>
-                                <div id="basitune-changelog" style="max-height: 400px; overflow-y: auto; background: rgba(255, 255, 255, 0.05); border-radius: 8px; padding: 16px;">
-                                    <p style="color: rgba(255, 255, 255, 0.6);">Loading changelog...</p>
+                            <div id="basitune-links-container" style="margin-top: 24px;">
+                                <h4 style="color: #fff; font-size: 16px; margin-bottom: 12px;">Links</h4>
+                                <div style="display: flex; flex-direction: column; gap: 12px;">
+                                    <a href="#" data-url="https://github.com/basiphobe/Basitune" class="basitune-external-link" style="padding: 12px; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 8px; color: rgba(255, 255, 255, 0.9); text-decoration: none; transition: all 0.2s; display: flex; align-items: center; gap: 8px; cursor: pointer;">
+                                        <span style="font-size: 18px;">🐙</span>
+                                        <span>GitHub Repository</span>
+                                    </a>
+                                    <a href="#" data-url="https://basitune.com/" class="basitune-external-link" style="padding: 12px; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 8px; color: rgba(255, 255, 255, 0.9); text-decoration: none; transition: all 0.2s; display: flex; align-items: center; gap: 8px; cursor: pointer;">
+                                        <span style="font-size: 18px;">🌐</span>
+                                        <span>Official Website</span>
+                                    </a>
                                 </div>
                             </div>
                         </div>
@@ -963,6 +970,17 @@
                 font-family: monospace;
                 font-size: 11px;
             }
+            
+            /* About tab links */
+            #basitune-links-container a:hover {
+                background: rgba(255, 255, 255, 0.1);
+                border-color: rgba(255, 255, 255, 0.3);
+                transform: translateY(-2px);
+            }
+            
+            #basitune-links-container a:active {
+                transform: translateY(0);
+            }
         `;
         
         document.head.appendChild(style);
@@ -1057,6 +1075,21 @@
         if (saveSettingsBtn) {
             saveSettingsBtn.addEventListener('click', saveSettings);
         }
+        
+        // External link handlers for About tab
+        document.querySelectorAll('.basitune-external-link').forEach(link => {
+            link.addEventListener('click', async (e) => {
+                e.preventDefault();
+                const url = link.getAttribute('data-url');
+                if (url && window.__TAURI__) {
+                    try {
+                        await window.__TAURI__.shell.open(url);
+                    } catch (error) {
+                        console.error('[Basitune] Failed to open URL:', url, error);
+                    }
+                }
+            });
+        });
         
         console.log('[Basitune] Sidebar created');
     }
@@ -1172,57 +1205,6 @@
         }
     }
     
-    async function loadChangelog() {
-        try {
-            const changelog = await window.__TAURI__.core.invoke('get_changelog');
-            const changelogEl = document.getElementById('basitune-changelog');
-            
-            if (!changelogEl) return;
-            
-            // Parse markdown-style changelog to HTML
-            const lines = changelog.split('\n');
-            let html = '';
-            
-            for (const line of lines) {
-                if (line.startsWith('## ')) {
-                    // Version header (h2)
-                    html += `<h2>${line.substring(3)}</h2>`;
-                } else if (line.startsWith('### ')) {
-                    // Subsection (h3)
-                    html += `<h3>${line.substring(4)}</h3>`;
-                } else if (line.trim().startsWith('- ')) {
-                    // List item
-                    if (!html.endsWith('<ul>') && !html.includes('<li>')) {
-                        html += '<ul>';
-                    }
-                    html += `<li>${line.trim().substring(2)}</li>`;
-                } else if (line.trim() === '') {
-                    // Close list on empty line
-                    if (html.endsWith('</li>')) {
-                        html += '</ul>';
-                    }
-                    html += '<br>';
-                } else {
-                    // Regular paragraph
-                    html += `<p>${line}</p>`;
-                }
-            }
-            
-            // Close any open lists
-            if (html.endsWith('</li>')) {
-                html += '</ul>';
-            }
-            
-            setHTML(changelogEl, html);
-        } catch (error) {
-            console.error('[Basitune] Failed to load changelog:', error);
-            const changelogEl = document.getElementById('basitune-changelog');
-            if (changelogEl) {
-                setHTML(changelogEl, '<p style="color: rgba(255, 255, 255, 0.6);">Failed to load changelog</p>');
-            }
-        }
-    }
-    
     // Settings functions
     async function loadSettings() {
         try {
@@ -1319,7 +1301,6 @@
         } else if (tabName === 'about') {
             document.getElementById('basitune-about-tab').classList.add('active');
             loadAboutInfo(); // Load app metadata
-            loadChangelog(); // Load changelog
         }
     }
     
