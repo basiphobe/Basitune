@@ -5,6 +5,29 @@ All notable changes to Basitune will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.0.22] - 2025-12-17
+
+### Added
+- System tray icon with menu support (Show/Hide, Quit)
+- "Close to system tray" option in Settings tab
+- Window can now minimize to tray instead of closing when setting is enabled
+- Left-click tray icon to toggle window visibility
+- Right-click tray icon for menu options
+- Tray icon tooltip displays "Basitune"
+
+### Changed
+- Window close behavior now respects close-to-tray setting
+- Added `tray-icon` feature to Tauri for system tray support
+- Added `image` crate dependency for icon loading
+- Settings now persist close-to-tray preference
+
+### Technical
+- Enabled built-in Tauri v2 tray functionality with `tray-icon` feature
+- Added `core:tray:default` permission to capability configuration
+- Implemented tray menu with event handlers for show/hide and quit actions
+- Extended ApiConfig struct with `close_to_tray` field
+- Updated frontend settings UI to include tray preference checkbox
+
 ## [1.0.21] - 2025-12-17
 
 ### Fixed

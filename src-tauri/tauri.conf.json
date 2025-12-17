@@ -61,7 +61,8 @@
           "windows": ["main"],
           "permissions": [
             "core:default",
-            "shell:allow-open"
+            "shell:allow-open",
+            "core:tray:default"
           ]
         }
       ]
@@ -79,6 +80,13 @@
     },
     "shell": {
       "open": true
+    },
+    "tray": {
+      "iconPath": "icons/32x32.png",
+      "iconAsTemplate": false,
+      "menuOnLeftClick": false,
+      "title": "Basitune",
+      "tooltip": "Basitune - YouTube Music Desktop"
     }
   }
 }

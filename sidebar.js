@@ -185,6 +185,18 @@
                                     Required for lyrics fetching
                                 </small>
                             </div>
+                            
+                            <h3 style="margin-top: 30px; margin-bottom: 20px; color: #fff; font-size: 18px; border-top: 1px solid rgba(255, 255, 255, 0.1); padding-top: 24px;">System Tray</h3>
+                            <div style="margin-bottom: 24px;">
+                                <label style="display: flex; align-items: center; color: rgba(255, 255, 255, 0.9); font-size: 13px; cursor: pointer; user-select: none;">
+                                    <input type="checkbox" id="basitune-close-to-tray" style="margin-right: 10px; width: 18px; height: 18px; cursor: pointer; accent-color: #ff0000;" />
+                                    <span>Close to system tray instead of exiting</span>
+                                </label>
+                                <small style="color: rgba(255, 255, 255, 0.6); font-size: 11px; display: block; margin-top: 6px; margin-left: 28px;">
+                                    When enabled, clicking the close button will minimize Basitune to the system tray. Click the tray icon or use Quit to exit.
+                                </small>
+                            </div>
+                            
                             <button id="basitune-save-settings" style="width: 100%; padding: 12px; background: linear-gradient(135deg, #ff0000 0%, #cc0000 100%); border: none; color: #fff; font-size: 14px; font-weight: 600; border-radius: 8px; cursor: pointer; transition: all 0.2s;">
                                 Save Settings
                             </button>
@@ -1213,12 +1225,16 @@
             
             const openaiInput = document.getElementById('basitune-openai-key');
             const geniusInput = document.getElementById('basitune-genius-token');
+            const closeToTrayCheckbox = document.getElementById('basitune-close-to-tray');
             
             if (openaiInput && config.openai_api_key) {
                 openaiInput.value = config.openai_api_key;
             }
             if (geniusInput && config.genius_access_token) {
                 geniusInput.value = config.genius_access_token;
+            }
+            if (closeToTrayCheckbox && config.close_to_tray !== undefined) {
+                closeToTrayCheckbox.checked = config.close_to_tray;
             }
         } catch (error) {
             console.error('[Basitune] Failed to load settings:', error);
@@ -1228,16 +1244,18 @@
     async function saveSettings() {
         const openaiInput = document.getElementById('basitune-openai-key');
         const geniusInput = document.getElementById('basitune-genius-token');
+        const closeToTrayCheckbox = document.getElementById('basitune-close-to-tray');
         const statusDiv = document.getElementById('basitune-settings-status');
         const saveBtn = document.getElementById('basitune-save-settings');
         
-        if (!openaiInput || !geniusInput || !statusDiv || !saveBtn) {
+        if (!openaiInput || !geniusInput || !closeToTrayCheckbox || !statusDiv || !saveBtn) {
             console.error('[Basitune] Settings elements not found');
             return;
         }
         
         const openaiKey = openaiInput.value.trim();
         const geniusToken = geniusInput.value.trim();
+        const closeToTray = closeToTrayCheckbox.checked;
         
         // Show saving status
         statusDiv.style.display = 'block';
@@ -1249,7 +1267,8 @@
         try {
             await window.__TAURI__.core.invoke('save_config', {
                 openaiApiKey: openaiKey,
-                geniusAccessToken: geniusToken
+                geniusAccessToken: geniusToken,
+                closeToTray: closeToTray
             });
             
             // Show success

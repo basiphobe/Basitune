@@ -18,6 +18,7 @@ const DISCORD_APP_ID: &str = "1438326240997281943";
 struct ApiConfig {
     openai_api_key: Option<String>,
     genius_access_token: Option<String>,
+    close_to_tray: Option<bool>,
 }
 
 fn get_config_path(app_handle: &tauri::AppHandle) -> PathBuf {
@@ -68,10 +69,11 @@ fn get_config(app: tauri::AppHandle) -> Result<ApiConfig, String> {
 }
 
 #[tauri::command]
-fn save_config(app: tauri::AppHandle, openai_api_key: String, genius_access_token: String) -> Result<(), String> {
+fn save_config(app: tauri::AppHandle, openai_api_key: String, genius_access_token: String, close_to_tray: bool) -> Result<(), String> {
     let config = ApiConfig {
         openai_api_key: if openai_api_key.is_empty() { None } else { Some(openai_api_key) },
         genius_access_token: if genius_access_token.is_empty() { None } else { Some(genius_access_token) },
+        close_to_tray: Some(close_to_tray),
     };
     
     let config_path = get_config_path(&app);
@@ -1077,6 +1079,61 @@ fn main() {
             get_changelog
         ])
         .setup(|app| {
+            use tauri::menu::{Menu, MenuItem};
+            use tauri::tray::{TrayIconBuilder, TrayIconEvent};
+            
+            // Build tray menu
+            let show_hide = MenuItem::with_id(app, "show_hide", "Show/Hide", true, None::<&str>)?;
+            let quit = MenuItem::with_id(app, "quit", "Quit", true, None::<&str>)?;
+            let menu = Menu::with_items(app, &[&show_hide, &quit])?;
+            
+            // Load and decode tray icon
+            let icon_bytes = include_bytes!("../icons/32x32.png");
+            let img = image::load_from_memory(icon_bytes)
+                .map_err(|e| format!("Failed to load tray icon: {}", e))?
+                .into_rgba8();
+            let (width, height) = img.dimensions();
+            let icon = tauri::image::Image::new_owned(img.into_raw(), width, height);
+            
+            // Build tray icon
+            let _tray = TrayIconBuilder::new()
+                .icon(icon)
+                .menu(&menu)
+                .tooltip("Basitune")
+                .on_menu_event(|app, event| {
+                    match event.id().as_ref() {
+                        "show_hide" => {
+                            if let Some(window) = app.get_webview_window("main") {
+                                if window.is_visible().unwrap_or(false) {
+                                    let _ = window.hide();
+                                } else {
+                                    let _ = window.show();
+                                    let _ = window.set_focus();
+                                    let _ = window.unminimize();
+                                }
+                            }
+                        }
+                        "quit" => {
+                            app.exit(0);
+                        }
+                        _ => {}
+                    }
+                })
+                .on_tray_icon_event(|tray, event| {
+                    if let TrayIconEvent::Click { .. } = event {
+                        if let Some(app) = tray.app_handle().get_webview_window("main") {
+                            if app.is_visible().unwrap_or(false) {
+                                let _ = app.hide();
+                            } else {
+                                let _ = app.show();
+                                let _ = app.set_focus();
+                                let _ = app.unminimize();
+                            }
+                        }
+                    }
+                })
+                .build(app)?;
+            
             // Initialize window state manager
             let state_manager = WindowStateManager::new(app.handle().clone());
             let state = state_manager.get();
@@ -1185,26 +1242,38 @@ fn main() {
             // Show the window
             let _ = main_window.show();
 
-            // Save window state on close
+            // Handle window close event - either minimize to tray or save state and exit
             let app_handle = app.handle().clone();
             let window_clone = main_window.clone();
             main_window.on_window_event(move |event| {
-                if let tauri::WindowEvent::CloseRequested { .. } = event {
-                    if let Ok(size) = window_clone.inner_size() {
-                        if let Ok(position) = window_clone.outer_position() {
-                            let is_maximized = window_clone.is_maximized().unwrap_or(false);
-                            
-                            println!("[Basitune] Saving window state on close");
-                            
-                            let state_manager: tauri::State<WindowStateManager> = app_handle.state();
-                            state_manager.update_no_save(|state| {
-                                state.width = size.width;
-                                state.height = size.height;
-                                state.x = position.x;
-                                state.y = position.y;
-                                state.maximized = is_maximized;
-                            });
-                            state_manager.save_silent();
+                if let tauri::WindowEvent::CloseRequested { api, .. } = event {
+                    // Check if close-to-tray is enabled
+                    let config = load_config(&app_handle);
+                    let close_to_tray = config.close_to_tray.unwrap_or(false);
+                    
+                    if close_to_tray {
+                        // Hide window instead of closing
+                        println!("[Basitune] Closing to tray");
+                        let _ = window_clone.hide();
+                        api.prevent_close();
+                    } else {
+                        // Save window state before exiting
+                        if let Ok(size) = window_clone.inner_size() {
+                            if let Ok(position) = window_clone.outer_position() {
+                                let is_maximized = window_clone.is_maximized().unwrap_or(false);
+                                
+                                println!("[Basitune] Saving window state on close");
+                                
+                                let state_manager: tauri::State<WindowStateManager> = app_handle.state();
+                                state_manager.update_no_save(|state| {
+                                    state.width = size.width;
+                                    state.height = size.height;
+                                    state.x = position.x;
+                                    state.y = position.y;
+                                    state.maximized = is_maximized;
+                                });
+                                state_manager.save_silent();
+                            }
                         }
                     }
                 }
