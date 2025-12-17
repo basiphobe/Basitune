@@ -1081,7 +1081,8 @@
             link.addEventListener('click', async (e) => {
                 e.preventDefault();
                 const url = link.getAttribute('data-url');
-                if (url && window.__TAURI__) {
+                
+                if (url && window.__TAURI__?.shell?.open) {
                     try {
                         await window.__TAURI__.shell.open(url);
                     } catch (error) {
