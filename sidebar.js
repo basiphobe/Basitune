@@ -15,8 +15,8 @@
     let currentArtist = '';
     let currentTitle = '';
     let sidebarVisible = false;
-    let activeTab = 'artist'; // 'artist' or 'lyrics'
-    let sidebarWidth = 380; // Default width in pixels
+    let activeTab = 'artist'; // 'artist', 'lyrics', 'settings', or 'about'
+    let sidebarWidth = 760; // Default width in pixels
     let sidebarFontSize = 14; // Default font size in pixels
     let isResizing = false;
     let lastSearchResults = null; // Store last search results for "Go Back"
@@ -126,55 +126,95 @@
         setHTML(sidebar, `
             <div id="basitune-resize-handle"></div>
             <div id="basitune-sidebar-header">
-                <div id="basitune-tabs">
-                    <button class="basitune-tab active" data-tab="artist">Artist</button>
-                    <button class="basitune-tab" data-tab="lyrics">Lyrics</button>
-                    <button class="basitune-tab" data-tab="settings">Settings</button>
-                </div>
                 <div id="basitune-controls">
                     <button id="basitune-font-decrease" title="Decrease font size">A-</button>
                     <button id="basitune-font-increase" title="Increase font size">A+</button>
                     <button id="basitune-toggle">×</button>
                 </div>
             </div>
-            <div id="basitune-sidebar-content">
-                <div id="basitune-artist-tab" class="basitune-tab-content active">
-                    <div id="basitune-song-context">
-                    </div>
-                    <div id="basitune-artist-bio">
-                        <p class="basitune-placeholder">Play a song to see artist information</p>
-                    </div>
+            <div id="basitune-sidebar-body">
+                <div id="basitune-tabs">
+                    <button class="basitune-tab active" data-tab="artist" title="Artist Information">
+                        <span class="basitune-tab-icon">🎤</span>
+                        <span class="basitune-tab-label">Artist</span>
+                    </button>
+                    <button class="basitune-tab" data-tab="lyrics" title="Song Lyrics">
+                        <span class="basitune-tab-icon">📝</span>
+                        <span class="basitune-tab-label">Lyrics</span>
+                    </button>
+                    <button class="basitune-tab" data-tab="settings" title="Settings">
+                        <span class="basitune-tab-icon">⚙️</span>
+                        <span class="basitune-tab-label">Settings</span>
+                    </button>
+                    <button class="basitune-tab" data-tab="about" title="About Basitune">
+                        <span class="basitune-tab-icon">ℹ️</span>
+                        <span class="basitune-tab-label">About</span>
+                    </button>
                 </div>
-                <div id="basitune-lyrics-tab" class="basitune-tab-content">
-                    <div id="basitune-lyrics-content">
-                        <p class="basitune-placeholder">Play a song to see lyrics</p>
+                <div id="basitune-sidebar-content">
+                    <div id="basitune-artist-tab" class="basitune-tab-content active">
+                        <div id="basitune-song-context">
+                        </div>
+                        <div id="basitune-artist-bio">
+                            <p class="basitune-placeholder">Play a song to see artist information</p>
+                        </div>
                     </div>
-                </div>
-                <div id="basitune-settings-tab" class="basitune-tab-content">
-                    <div id="basitune-settings-content">
-                        <h3 style="margin-top: 0; color: #fff; font-size: 18px; margin-bottom: 20px;">API Configuration</h3>
-                        <div style="margin-bottom: 24px;">
-                            <label style="display: block; color: rgba(255, 255, 255, 0.9); font-weight: 500; margin-bottom: 8px; font-size: 13px;">
-                                OpenAI API Key
-                            </label>
-                            <input type="password" id="basitune-openai-key" placeholder="sk-proj-..." style="width: 100%; padding: 10px; background: rgba(255, 255, 255, 0.1); border: 1px solid rgba(255, 255, 255, 0.2); border-radius: 6px; color: #fff; font-size: 13px; font-family: monospace; box-sizing: border-box;" />
-                            <small style="color: rgba(255, 255, 255, 0.6); font-size: 11px; display: block; margin-top: 6px;">
-                                Required for artist bio information
-                            </small>
+                    <div id="basitune-lyrics-tab" class="basitune-tab-content">
+                        <div id="basitune-lyrics-content">
+                            <p class="basitune-placeholder">Play a song to see lyrics</p>
                         </div>
-                        <div style="margin-bottom: 24px;">
-                            <label style="display: block; color: rgba(255, 255, 255, 0.9); font-weight: 500; margin-bottom: 8px; font-size: 13px;">
-                                Genius Access Token
-                            </label>
-                            <input type="password" id="basitune-genius-token" placeholder="Your Genius token..." style="width: 100%; padding: 10px; background: rgba(255, 255, 255, 0.1); border: 1px solid rgba(255, 255, 255, 0.2); border-radius: 6px; color: #fff; font-size: 13px; font-family: monospace; box-sizing: border-box;" />
-                            <small style="color: rgba(255, 255, 255, 0.6); font-size: 11px; display: block; margin-top: 6px;">
-                                Required for lyrics fetching
-                            </small>
+                    </div>
+                    <div id="basitune-settings-tab" class="basitune-tab-content">
+                        <div id="basitune-settings-content">
+                            <h3 style="margin-top: 0; color: #fff; font-size: 18px; margin-bottom: 20px;">API Configuration</h3>
+                            <div style="margin-bottom: 24px;">
+                                <label style="display: block; color: rgba(255, 255, 255, 0.9); font-weight: 500; margin-bottom: 8px; font-size: 13px;">
+                                    OpenAI API Key
+                                </label>
+                                <input type="password" id="basitune-openai-key" placeholder="sk-proj-..." style="width: 100%; padding: 10px; background: rgba(255, 255, 255, 0.1); border: 1px solid rgba(255, 255, 255, 0.2); border-radius: 6px; color: #fff; font-size: 13px; font-family: monospace; box-sizing: border-box;" />
+                                <small style="color: rgba(255, 255, 255, 0.6); font-size: 11px; display: block; margin-top: 6px;">
+                                    Required for artist bio information
+                                </small>
+                            </div>
+                            <div style="margin-bottom: 24px;">
+                                <label style="display: block; color: rgba(255, 255, 255, 0.9); font-weight: 500; margin-bottom: 8px; font-size: 13px;">
+                                    Genius Access Token
+                                </label>
+                                <input type="password" id="basitune-genius-token" placeholder="Your Genius token..." style="width: 100%; padding: 10px; background: rgba(255, 255, 255, 0.1); border: 1px solid rgba(255, 255, 255, 0.2); border-radius: 6px; color: #fff; font-size: 13px; font-family: monospace; box-sizing: border-box;" />
+                                <small style="color: rgba(255, 255, 255, 0.6); font-size: 11px; display: block; margin-top: 6px;">
+                                    Required for lyrics fetching
+                                </small>
+                            </div>
+                            <button id="basitune-save-settings" style="width: 100%; padding: 12px; background: linear-gradient(135deg, #ff0000 0%, #cc0000 100%); border: none; color: #fff; font-size: 14px; font-weight: 600; border-radius: 8px; cursor: pointer; transition: all 0.2s;">
+                                Save Settings
+                            </button>
+                            <div id="basitune-settings-status" style="margin-top: 16px; padding: 12px; border-radius: 6px; font-size: 13px; display: none;"></div>
                         </div>
-                        <button id="basitune-save-settings" style="width: 100%; padding: 12px; background: linear-gradient(135deg, #ff0000 0%, #cc0000 100%); border: none; color: #fff; font-size: 14px; font-weight: 600; border-radius: 8px; cursor: pointer; transition: all 0.2s;">
-                            Save Settings
-                        </button>
-                        <div id="basitune-settings-status" style="margin-top: 16px; padding: 12px; border-radius: 6px; font-size: 13px; display: none;"></div>
+                    </div>
+                    <div id="basitune-about-tab" class="basitune-tab-content">
+                        <div id="basitune-about-content">
+                            <h3 style="margin-top: 0; color: #fff; font-size: 18px; margin-bottom: 20px;">About Basitune</h3>
+                            <div id="basitune-about-info" style="margin-bottom: 24px;">
+                                <div class="basitune-about-item">
+                                    <span class="basitune-about-label">Version:</span>
+                                    <span id="basitune-version">Loading...</span>
+                                </div>
+                                <div class="basitune-about-item">
+                                    <span class="basitune-about-label">App Name:</span>
+                                    <span id="basitune-app-name">Loading...</span>
+                                </div>
+                                <div class="basitune-about-item">
+                                    <span class="basitune-about-label">Identifier:</span>
+                                    <span id="basitune-identifier">Loading...</span>
+                                </div>
+                            </div>
+                            <div id="basitune-changelog-container">
+                                <h4 style="color: #fff; font-size: 16px; margin-bottom: 12px;">Changelog</h4>
+                                <div id="basitune-changelog" style="max-height: 400px; overflow-y: auto; background: rgba(255, 255, 255, 0.05); border-radius: 8px; padding: 16px;">
+                                    <p style="color: rgba(255, 255, 255, 0.6);">Loading changelog...</p>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -261,13 +301,19 @@
             }
             
             #basitune-sidebar-header {
-                padding: 20px;
+                padding: 16px 20px;
                 background: linear-gradient(180deg, rgba(255, 255, 255, 0.05) 0%, transparent 100%);
                 border-bottom: 1px solid rgba(255, 255, 255, 0.1);
                 display: flex;
-                justify-content: space-between;
+                justify-content: flex-end;
                 align-items: center;
                 backdrop-filter: blur(10px);
+            }
+            
+            #basitune-sidebar-body {
+                flex: 1;
+                display: flex;
+                overflow: hidden;
             }
             
             #basitune-controls {
@@ -297,57 +343,87 @@
             
             #basitune-tabs {
                 display: flex;
+                flex-direction: column;
                 gap: 4px;
-                background: rgba(255, 255, 255, 0.05);
-                padding: 4px;
-                border-radius: 12px;
+                background: rgba(255, 255, 255, 0.03);
+                padding: 12px 8px;
+                border-left: 1px solid rgba(255, 255, 255, 0.1);
+                min-width: 100px;
+                width: 100px;
+                order: 2;
             }
             
             .basitune-tab {
                 background: none;
                 border: none;
                 color: rgba(255, 255, 255, 0.6);
-                font-size: 13px;
+                font-size: 12px;
                 font-weight: 500;
                 cursor: pointer;
-                padding: 8px 16px;
+                padding: 12px 8px;
                 border-radius: 8px;
                 transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
                 position: relative;
                 overflow: hidden;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                gap: 6px;
+                text-align: center;
+            }
+            
+            .basitune-tab-icon {
+                font-size: 20px;
+                line-height: 1;
+                transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            }
+            
+            .basitune-tab-label {
+                font-size: 11px;
+                font-weight: 600;
+                text-transform: uppercase;
+                letter-spacing: 0.5px;
             }
             
             .basitune-tab::before {
                 content: '';
                 position: absolute;
-                bottom: 0;
-                left: 0;
                 right: 0;
-                height: 2px;
-                background: linear-gradient(90deg, #ff0000, #ff3333);
-                transform: scaleX(0);
+                top: 0;
+                bottom: 0;
+                width: 3px;
+                background: linear-gradient(180deg, #ff0000, #ff3333);
+                transform: scaleY(0);
                 transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             }
             
             .basitune-tab:hover {
                 background: rgba(255, 255, 255, 0.1);
                 color: rgba(255, 255, 255, 0.9);
-                transform: translateY(-1px);
+                transform: translateX(-2px);
+            }
+            
+            .basitune-tab:hover .basitune-tab-icon {
+                transform: scale(1.1);
             }
             
             .basitune-tab:hover::before {
-                transform: scaleX(1);
+                transform: scaleY(1);
             }
             
             .basitune-tab.active {
-                background: linear-gradient(135deg, #ff0000 0%, #cc0000 100%);
+                background: linear-gradient(135deg, rgba(255, 0, 0, 0.2) 0%, rgba(204, 0, 0, 0.2) 100%);
                 color: #fff;
-                box-shadow: 0 2px 12px rgba(255, 0, 0, 0.4), 0 0 20px rgba(255, 0, 0, 0.2);
+                box-shadow: inset 2px 0 8px rgba(255, 0, 0, 0.3);
             }
             
             .basitune-tab.active::before {
-                transform: scaleX(1);
-                background: rgba(255, 255, 255, 0.3);
+                transform: scaleY(1);
+                background: linear-gradient(180deg, #ff0000, #cc0000);
+            }
+            
+            .basitune-tab.active .basitune-tab-icon {
+                transform: scale(1.15);
             }
             
             #basitune-toggle {
@@ -826,6 +902,67 @@
                 cursor: not-allowed;
                 transform: none;
             }
+            
+            /* About tab styles */
+            .basitune-about-item {
+                display: flex;
+                justify-content: space-between;
+                padding: 10px 0;
+                border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            }
+            
+            .basitune-about-item:last-child {
+                border-bottom: none;
+            }
+            
+            .basitune-about-label {
+                color: rgba(255, 255, 255, 0.7);
+                font-weight: 600;
+                font-size: 13px;
+            }
+            
+            .basitune-about-item span:last-child {
+                color: rgba(255, 255, 255, 0.9);
+                font-family: monospace;
+                font-size: 12px;
+            }
+            
+            #basitune-changelog {
+                font-size: 12px;
+                line-height: 1.6;
+                color: rgba(255, 255, 255, 0.8);
+            }
+            
+            #basitune-changelog h2 {
+                color: #ff0000;
+                font-size: 14px;
+                margin: 16px 0 8px 0;
+                border-bottom: 1px solid rgba(255, 0, 0, 0.3);
+                padding-bottom: 4px;
+            }
+            
+            #basitune-changelog h3 {
+                color: #fff;
+                font-size: 13px;
+                margin: 12px 0 6px 0;
+            }
+            
+            #basitune-changelog ul {
+                margin: 8px 0;
+                padding-left: 20px;
+            }
+            
+            #basitune-changelog li {
+                margin: 4px 0;
+            }
+            
+            #basitune-changelog code {
+                background: rgba(255, 255, 255, 0.1);
+                padding: 2px 6px;
+                border-radius: 3px;
+                font-family: monospace;
+                font-size: 11px;
+            }
         `;
         
         document.head.appendChild(style);
@@ -1016,6 +1153,76 @@
         }
     }
     
+    // About tab functions
+    async function loadAboutInfo() {
+        try {
+            const metadata = await window.__TAURI__.core.invoke('get_app_metadata');
+            
+            const versionEl = document.getElementById('basitune-version');
+            const nameEl = document.getElementById('basitune-app-name');
+            const identifierEl = document.getElementById('basitune-identifier');
+            
+            if (versionEl) versionEl.textContent = metadata.version;
+            if (nameEl) nameEl.textContent = metadata.name;
+            if (identifierEl) identifierEl.textContent = metadata.identifier;
+        } catch (error) {
+            console.error('[Basitune] Failed to load app metadata:', error);
+            const versionEl = document.getElementById('basitune-version');
+            if (versionEl) versionEl.textContent = 'Error loading';
+        }
+    }
+    
+    async function loadChangelog() {
+        try {
+            const changelog = await window.__TAURI__.core.invoke('get_changelog');
+            const changelogEl = document.getElementById('basitune-changelog');
+            
+            if (!changelogEl) return;
+            
+            // Parse markdown-style changelog to HTML
+            const lines = changelog.split('\n');
+            let html = '';
+            
+            for (const line of lines) {
+                if (line.startsWith('## ')) {
+                    // Version header (h2)
+                    html += `<h2>${line.substring(3)}</h2>`;
+                } else if (line.startsWith('### ')) {
+                    // Subsection (h3)
+                    html += `<h3>${line.substring(4)}</h3>`;
+                } else if (line.trim().startsWith('- ')) {
+                    // List item
+                    if (!html.endsWith('<ul>') && !html.includes('<li>')) {
+                        html += '<ul>';
+                    }
+                    html += `<li>${line.trim().substring(2)}</li>`;
+                } else if (line.trim() === '') {
+                    // Close list on empty line
+                    if (html.endsWith('</li>')) {
+                        html += '</ul>';
+                    }
+                    html += '<br>';
+                } else {
+                    // Regular paragraph
+                    html += `<p>${line}</p>`;
+                }
+            }
+            
+            // Close any open lists
+            if (html.endsWith('</li>')) {
+                html += '</ul>';
+            }
+            
+            setHTML(changelogEl, html);
+        } catch (error) {
+            console.error('[Basitune] Failed to load changelog:', error);
+            const changelogEl = document.getElementById('basitune-changelog');
+            if (changelogEl) {
+                setHTML(changelogEl, '<p style="color: rgba(255, 255, 255, 0.6);">Failed to load changelog</p>');
+            }
+        }
+    }
+    
     // Settings functions
     async function loadSettings() {
         try {
@@ -1109,6 +1316,10 @@
         } else if (tabName === 'settings') {
             document.getElementById('basitune-settings-tab').classList.add('active');
             loadSettings(); // Load current settings when switching to settings tab
+        } else if (tabName === 'about') {
+            document.getElementById('basitune-about-tab').classList.add('active');
+            loadAboutInfo(); // Load app metadata
+            loadChangelog(); // Load changelog
         }
     }
     

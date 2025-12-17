@@ -91,6 +91,31 @@ fn save_config(app: tauri::AppHandle, openai_api_key: String, genius_access_toke
     Ok(())
 }
 
+#[derive(Debug, Serialize)]
+struct AppMetadata {
+    name: String,
+    version: String,
+    identifier: String,
+}
+
+#[tauri::command]
+fn get_app_metadata(app: tauri::AppHandle) -> Result<AppMetadata, String> {
+    Ok(AppMetadata {
+        name: app.config().product_name.clone().unwrap_or_else(|| "Basitune".to_string()),
+        version: app.config().version.clone().unwrap_or_else(|| "Unknown".to_string()),
+        identifier: app.config().identifier.clone(),
+    })
+}
+
+#[tauri::command]
+fn get_changelog() -> Result<String, String> {
+    // Read CHANGELOG.md from the project root
+    fs::read_to_string("../CHANGELOG.md")
+        .or_else(|_| fs::read_to_string("CHANGELOG.md"))
+        .or_else(|_| fs::read_to_string("../../CHANGELOG.md"))
+        .map_err(|e| format!("Failed to read CHANGELOG.md: {}", e))
+}
+
 struct DiscordState {
     client: Mutex<Option<DiscordIpcClient>>,
 }
@@ -1047,7 +1072,9 @@ fn main() {
             update_discord_presence,
             clear_discord_presence,
             get_config,
-            save_config
+            save_config,
+            get_app_metadata,
+            get_changelog
         ])
         .setup(|app| {
             // Initialize window state manager

@@ -5,6 +5,25 @@ All notable changes to Basitune will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.0.20] - 2025-12-17
+
+### Added
+- New About tab with app metadata, version info, and changelog viewer
+- Vertical navigation tabs with icons for better scalability (🎤 Artist, 📝 Lyrics, ⚙️ Settings, ℹ️ About)
+- Tauri commands `get_app_metadata()` and `get_changelog()` for About tab content
+- Professional sidebar layout with tabs positioned on the right side
+
+### Changed
+- Refactored horizontal tabs to vertical tabs on the right side of sidebar
+- Doubled default sidebar width from 380px to 760px for better content visibility
+- Moved font size controls to header row (no longer competing with tabs for space)
+- Updated tab styling with accent bars, hover effects, and smooth animations
+- Version number now syncs correctly with git tags (fixed from 0.1.x to 1.0.x)
+
+### Fixed
+- Removed tag trigger from build.yml workflow to prevent duplicate workflow runs
+- Version mismatch between git tags and app version resolved
+
 ## [1.0.19] - 2025-12-15
 
 ### Fixed
