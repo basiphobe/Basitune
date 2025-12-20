@@ -41,6 +41,6 @@
         }
     }
 
-    setInterval(syncVolume, 200);
+    setInterval(syncVolume, 500);  // Reduced from 200ms - less CPU usage
     console.log('[Basitune] Volume bridge initialized');
 })();

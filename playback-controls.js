@@ -1,0 +1,264 @@
+// YouTube Music Playback Controls
+// Provides functions to control playback from the system tray
+
+(function() {
+    'use strict';
+    
+    if (window.__basitunePlaybackControlsInitialized) return;
+    window.__basitunePlaybackControlsInitialized = true;
+    
+    console.log('[Basitune] Playback controls initialized');
+    
+    // Monitor playback state and notify Rust for tray menu updates
+    let lastPlaybackState = "none";
+    
+    function notifyPlaybackState(state) {
+        if (window.__TAURI_INTERNALS__ && window.__TAURI_INTERNALS__.invoke) {
+            window.__TAURI_INTERNALS__.invoke('update_playback_state', { 
+                state: state
+            }).catch(err => {
+                console.error('[Basitune] Failed to update playback state:', err);
+            });
+        } else if (window.__TAURI__ && window.__TAURI__.invoke) {
+            window.__TAURI__.invoke('update_playback_state', { 
+                state: state
+            }).catch(err => {
+                console.error('[Basitune] Failed to update playback state:', err);
+            });
+        } else {
+            console.error('[Basitune] Tauri invoke not available! Cannot update playback state.');
+        }
+    }
+    
+    function updatePlaybackState() {
+        const currentState = getPlaybackState();
+        
+        if (currentState !== lastPlaybackState) {
+            lastPlaybackState = currentState;
+            notifyPlaybackState(currentState);
+        }
+    }
+    
+    // Check playback state every 2 seconds
+    setInterval(updatePlaybackState, 2000);
+    
+    // Also check on video events
+    function attachVideoListeners() {
+        const video = getVideoElement();
+        if (video) {
+            video.addEventListener('play', updatePlaybackState);
+            video.addEventListener('pause', updatePlaybackState);
+            video.addEventListener('ended', updatePlaybackState);
+        } else {
+            setTimeout(attachVideoListeners, 1000);
+        }
+    }
+    attachVideoListeners();
+    
+    // Find player controls
+    function findPlayPauseButton() {
+        // YouTube Music uses different selectors
+        return document.querySelector('ytmusic-player-bar tp-yt-paper-icon-button.play-pause-button')
+            || document.querySelector('.play-pause-button')
+            || document.querySelector('[aria-label="Play"]')
+            || document.querySelector('[aria-label="Pause"]');
+    }
+    
+    function findNextButton() {
+        return document.querySelector('ytmusic-player-bar .next-button')
+            || document.querySelector('[aria-label="Next"]')
+            || document.querySelector('[aria-label="Next track"]');
+    }
+    
+    function findPreviousButton() {
+        return document.querySelector('ytmusic-player-bar .previous-button')
+            || document.querySelector('[aria-label="Previous"]')
+            || document.querySelector('[aria-label="Previous track"]');
+    }
+    
+    function getVideoElement() {
+        return document.querySelector('video');
+    }
+    
+    // Check if currently playing
+    function isPlaying() {
+        const video = getVideoElement();
+        if (!video) return false;
+        
+        return !video.paused && !video.ended && video.currentTime > 0;
+    }
+    
+    // Check if there's a song loaded (even if paused)
+    function hasSongLoaded() {
+        const video = getVideoElement();
+        if (!video) return false;
+        
+        // Song is loaded if video has a source and duration
+        return video.src && video.src.length > 0 && video.duration > 0;
+    }
+    
+    // Get playback state: "none", "paused", or "playing"
+    function getPlaybackState() {
+        const video = getVideoElement();
+        
+        if (!video) return "none";
+        if (!video.src || video.src === '' || video.src === 'about:blank') return "none";
+        
+        const hasValidDuration = video.duration && !isNaN(video.duration) && video.duration > 0;
+        if (!hasValidDuration) return "none";
+        
+        // Song loaded but not played yet
+        if (video.currentTime === 0 && video.paused) return "none";
+        
+        // Song has been played
+        if (video.paused || video.ended) return "paused";
+        return "playing";
+    }
+    
+    // Playback control functions
+    window.basitunePlayback = {
+        play: function() {
+            const button = findPlayPauseButton();
+            const video = getVideoElement();
+            
+            if (video && video.paused) {
+                if (button) {
+                    button.click();
+                    console.log('[Basitune] Play triggered via button click');
+                } else {
+                    video.play();
+                    console.log('[Basitune] Play triggered via video.play()');
+                }
+                setTimeout(() => {
+                    lastPlaybackState = "playing";
+                    notifyPlaybackState("playing");
+                }, 50);
+                return true;
+            }
+            console.log('[Basitune] play() - conditions not met, no action taken');
+            return false;
+        },
+        
+        pause: function() {
+            const button = findPlayPauseButton();
+            const video = getVideoElement();
+            
+            if (video && !video.paused) {
+                if (button) {
+                    button.click();
+                    console.log('[Basitune] Pause triggered via button click');
+                } else {
+                    video.pause();
+                    console.log('[Basitune] Pause triggered via video.pause()');
+                }
+                // Immediately update state after action
+                setTimeout(() => {
+                    lastPlaybackState = "paused";
+                    notifyPlaybackState("paused");
+                }, 50);
+                return true;
+            }
+            return false;
+        },
+        
+        togglePlayPause: function() {
+            const button = findPlayPauseButton();
+            if (button) {
+                button.click();
+                console.log('[Basitune] Toggle play/pause via button click');
+                // Check state after a short delay
+                setTimeout(updatePlaybackState, 50);
+                return true;
+            }
+            
+            const video = getVideoElement();
+            if (video) {
+                if (video.paused) {
+                    video.play();
+                    console.log('[Basitune] Play via video.play()');
+                    setTimeout(() => {
+                        lastPlaybackState = "playing";
+                        notifyPlaybackState("playing");
+                    }, 100);
+                } else {
+                    video.pause();
+                    console.log('[Basitune] Pause via video.pause()');
+                    setTimeout(() => {
+                        lastPlaybackState = "paused";
+                        notifyPlaybackState("paused");
+                    }, 100);
+                }
+                return true;
+            }
+            
+            return false;
+        },
+        
+        stop: function() {
+            const video = getVideoElement();
+            if (video) {
+                video.pause();
+                video.currentTime = 0;
+                setTimeout(() => {
+                    lastPlaybackState = "none";
+                    notifyPlaybackState("none");
+                }, 50);
+                return true;
+            }
+            return false;
+        },
+        
+        next: function() {
+            const button = findNextButton();
+            if (button) {
+                button.click();
+                console.log('[Basitune] Next track');
+                // Check state after track change
+                setTimeout(updatePlaybackState, 500);
+                return true;
+            }
+            console.warn('[Basitune] Next button not found');
+            return false;
+        },
+        
+        previous: function() {
+            const button = findPreviousButton();
+            if (button) {
+                button.click();
+                console.log('[Basitune] Previous track');
+                // Check state after track change
+                setTimeout(updatePlaybackState, 500);
+                return true;
+            }
+            console.warn('[Basitune] Previous button not found');
+            return false;
+        },
+        
+        isPlaying: isPlaying,
+        
+        getStatus: function() {
+            const video = getVideoElement();
+            return {
+                playing: isPlaying(),
+                currentTime: video ? video.currentTime : 0,
+                duration: video ? video.duration : 0,
+                paused: video ? video.paused : true,
+                ended: video ? video.ended : false
+            };
+        },
+        
+        // Debug function to show available controls
+        debug: function() {
+            console.log('[Basitune] Playback Controls Debug:');
+            console.log('  Play/Pause button:', findPlayPauseButton());
+            console.log('  Next button:', findNextButton());
+            console.log('  Previous button:', findPreviousButton());
+            console.log('  Video element:', getVideoElement());
+            console.log('  Is playing:', isPlaying());
+            console.log('  Status:', this.getStatus());
+        }
+    };
+    
+    console.log('[Basitune] Playback controls ready. Use window.basitunePlayback to control playback.');
+    console.log('[Basitune] Available methods: play(), pause(), togglePlayPause(), stop(), next(), previous(), isPlaying(), getStatus(), debug()');
+})();

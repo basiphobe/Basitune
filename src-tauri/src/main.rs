@@ -14,6 +14,27 @@ use discord_rich_presence::{activity, DiscordIpc, DiscordIpcClient};
 // Discord Application ID (public identifier, not a secret)
 const DISCORD_APP_ID: &str = "1438326240997281943";
 
+// Playback state
+struct PlaybackState {
+    state: Mutex<String>, // "none", "paused", or "playing"
+}
+
+impl PlaybackState {
+    fn new() -> Self {
+        Self {
+            state: Mutex::new("none".to_string()),
+        }
+    }
+    
+    fn set_state(&self, new_state: String) {
+        *self.state.lock().unwrap() = new_state;
+    }
+    
+    fn get_state(&self) -> String {
+        self.state.lock().unwrap().clone()
+    }
+}
+
 #[derive(Debug, Serialize, Deserialize, Default)]
 struct ApiConfig {
     openai_api_key: Option<String>,
@@ -1020,6 +1041,166 @@ fn clear_discord_presence(state: tauri::State<DiscordState>) -> Result<(), Strin
     }
 }
 
+#[tauri::command]
+async fn playback_play(app: tauri::AppHandle) -> Result<bool, String> {
+    let window = app.get_webview_window("main")
+        .ok_or("Main window not found")?;
+    
+    let _ = window.eval("window.basitunePlayback ? window.basitunePlayback.play() : false")
+        .map_err(|e| e.to_string())?;
+    
+    Ok(true)
+}
+
+#[tauri::command]
+async fn playback_pause(app: tauri::AppHandle) -> Result<bool, String> {
+    let window = app.get_webview_window("main")
+        .ok_or("Main window not found")?;
+    
+    let _ = window.eval("window.basitunePlayback ? window.basitunePlayback.pause() : false")
+        .map_err(|e| e.to_string())?;
+    
+    Ok(true)
+}
+
+#[tauri::command]
+async fn playback_toggle(app: tauri::AppHandle) -> Result<bool, String> {
+    let window = app.get_webview_window("main")
+        .ok_or("Main window not found")?;
+    
+    let _ = window.eval("window.basitunePlayback ? window.basitunePlayback.togglePlayPause() : false")
+        .map_err(|e| e.to_string())?;
+    
+    Ok(true)
+}
+
+#[tauri::command]
+async fn playback_stop(app: tauri::AppHandle) -> Result<bool, String> {
+    let window = app.get_webview_window("main")
+        .ok_or("Main window not found")?;
+    
+    let _ = window.eval("window.basitunePlayback ? window.basitunePlayback.stop() : false")
+        .map_err(|e| e.to_string())?;
+    
+    Ok(true)
+}
+
+#[tauri::command]
+async fn playback_next(app: tauri::AppHandle) -> Result<bool, String> {
+    let window = app.get_webview_window("main")
+        .ok_or("Main window not found")?;
+    
+    let _ = window.eval("window.basitunePlayback ? window.basitunePlayback.next() : false")
+        .map_err(|e| e.to_string())?;
+    
+    Ok(true)
+}
+
+#[tauri::command]
+async fn playback_previous(app: tauri::AppHandle) -> Result<bool, String> {
+    let window = app.get_webview_window("main")
+        .ok_or("Main window not found")?;
+    
+    let _ = window.eval("window.basitunePlayback ? window.basitunePlayback.previous() : false")
+        .map_err(|e| e.to_string())?;
+    
+    Ok(true)
+}
+
+#[tauri::command]
+async fn playback_is_playing(app: tauri::AppHandle) -> Result<bool, String> {
+    let playback_state: tauri::State<PlaybackState> = app.state();
+    Ok(playback_state.get_state() == "playing")
+}
+
+#[tauri::command]
+fn update_playback_state(state: String, app: tauri::AppHandle) -> Result<(), String> {
+    let playback_state: tauri::State<PlaybackState> = app.state();
+    playback_state.set_state(state.clone());
+    rebuild_tray_menu(&app, &state)?;
+    Ok(())
+}
+
+fn rebuild_tray_menu(app: &tauri::AppHandle, state: &str) -> Result<(), String> {
+    use tauri::menu::{Menu, MenuItem, PredefinedMenuItem};
+    
+    let show_hide = MenuItem::with_id(app, "show_hide", "Show/Hide", true, None::<&str>)
+        .map_err(|e| e.to_string())?;
+    
+    let separator1 = PredefinedMenuItem::separator(app)
+        .map_err(|e| e.to_string())?;
+    let separator2 = PredefinedMenuItem::separator(app)
+        .map_err(|e| e.to_string())?;
+    let quit = MenuItem::with_id(app, "quit", "Quit", true, None::<&str>)
+        .map_err(|e| e.to_string())?;
+    
+    let previous_track = MenuItem::with_id(app, "previous_track", "Previous Track", true, None::<&str>)
+        .map_err(|e| e.to_string())?;
+    let next_track = MenuItem::with_id(app, "next_track", "Next Track", true, None::<&str>)
+        .map_err(|e| e.to_string())?;
+    
+    let menu = match state {
+        "playing" => {
+            let pause = MenuItem::with_id(app, "pause", "Pause", true, None::<&str>)
+                .map_err(|e| e.to_string())?;
+            let stop = MenuItem::with_id(app, "stop", "Stop", true, None::<&str>)
+                .map_err(|e| e.to_string())?;
+            
+            Menu::with_items(app, &[
+                &show_hide,
+                &separator1,
+                &previous_track,
+                &pause,
+                &stop,
+                &next_track,
+                &separator2,
+                &quit
+            ]).map_err(|e| e.to_string())?
+        },
+        "paused" => {
+            let play = MenuItem::with_id(app, "play", "Play", true, None::<&str>)
+                .map_err(|e| e.to_string())?;
+            let stop = MenuItem::with_id(app, "stop", "Stop", true, None::<&str>)
+                .map_err(|e| e.to_string())?;
+            
+            Menu::with_items(app, &[
+                &show_hide,
+                &separator1,
+                &previous_track,
+                &play,
+                &stop,
+                &next_track,
+                &separator2,
+                &quit
+            ]).map_err(|e| e.to_string())?
+        },
+        _ => {
+            let play = MenuItem::with_id(app, "play", "Play", true, None::<&str>)
+                .map_err(|e| e.to_string())?;
+            
+            Menu::with_items(app, &[
+                &show_hide,
+                &separator1,
+                &previous_track,
+                &play,
+                &next_track,
+                &separator2,
+                &quit
+            ]).map_err(|e| e.to_string())?
+        }
+    };
+    
+    // Get the tray and update its menu
+    if let Some(tray) = app.tray_by_id("main-tray") {
+        tray.set_menu(Some(menu))
+            .map_err(|e| e.to_string())?;
+    } else {
+        return Err("Tray not found".to_string());
+    }
+    
+    Ok(())
+}
+
 fn main() {
     // Don't connect to Discord on startup - connect lazily when first activity is set
     // This avoids breaking the pipe immediately if the app isn't registered yet
@@ -1027,14 +1208,19 @@ fn main() {
         client: Mutex::new(None),
     };
     
+    let playback_state = PlaybackState::new();
+    
     tauri::Builder::default()
         .manage(discord_state)
+        .manage(playback_state)
         .plugin(tauri_plugin_shell::init())
         .plugin(tauri_plugin_updater::Builder::new().build())
         // Inject sidebar + volume helpers on every page load so they survive navigations
         .on_page_load(|window, _payload| {
             let sidebar_script = include_str!("../../sidebar.js");
             let volume_script = include_str!("../../volume-fix.js");
+            let diagnostics_script = include_str!("../../audio-diagnostics.js");
+            let playback_script = include_str!("../../playback-controls.js");
 
             if let Err(e) = window.eval(sidebar_script) {
                 eprintln!("[Basitune] Failed to inject sidebar: {}", e);
@@ -1046,6 +1232,18 @@ fn main() {
                 eprintln!("[Basitune] Failed to inject volume bridge: {}", e);
             } else {
                 println!("[Basitune] Volume bridge injected via on_page_load");
+            }
+
+            if let Err(e) = window.eval(diagnostics_script) {
+                eprintln!("[Basitune] Failed to inject audio diagnostics: {}", e);
+            } else {
+                println!("[Basitune] Audio diagnostics injected via on_page_load");
+            }
+
+            if let Err(e) = window.eval(playback_script) {
+                eprintln!("[Basitune] Failed to inject playback controls: {}", e);
+            } else {
+                println!("[Basitune] Playback controls injected via on_page_load");
             }
         })
         .plugin(tauri_plugin_single_instance::init(|app, _args, _cwd| {
@@ -1076,16 +1274,39 @@ fn main() {
             get_config,
             save_config,
             get_app_metadata,
-            get_changelog
+            get_changelog,
+            playback_play,
+            playback_pause,
+            playback_toggle,
+            playback_stop,
+            playback_next,
+            playback_previous,
+            playback_is_playing,
+            update_playback_state
         ])
         .setup(|app| {
-            use tauri::menu::{Menu, MenuItem};
+            use tauri::menu::{Menu, MenuItem, PredefinedMenuItem};
             use tauri::tray::{TrayIconBuilder, TrayIconEvent};
             
-            // Build tray menu
+            // Build initial tray menu (nothing playing at startup)
             let show_hide = MenuItem::with_id(app, "show_hide", "Show/Hide", true, None::<&str>)?;
+            let previous_track = MenuItem::with_id(app, "previous_track", "Previous Track", true, None::<&str>)?;
+            let play = MenuItem::with_id(app, "play", "Play", true, None::<&str>)?;
+            let next_track = MenuItem::with_id(app, "next_track", "Next Track", true, None::<&str>)?;
+            
+            let separator1 = PredefinedMenuItem::separator(app)?;
+            let separator2 = PredefinedMenuItem::separator(app)?;
             let quit = MenuItem::with_id(app, "quit", "Quit", true, None::<&str>)?;
-            let menu = Menu::with_items(app, &[&show_hide, &quit])?;
+            
+            let menu = Menu::with_items(app, &[
+                &show_hide,
+                &separator1,
+                &previous_track,
+                &play,
+                &next_track,
+                &separator2,
+                &quit
+            ])?;
             
             // Load and decode tray icon
             let icon_bytes = include_bytes!("../icons/32x32.png");
@@ -1096,7 +1317,7 @@ fn main() {
             let icon = tauri::image::Image::new_owned(img.into_raw(), width, height);
             
             // Build tray icon
-            let _tray = TrayIconBuilder::new()
+            let _tray = TrayIconBuilder::with_id("main-tray")
                 .icon(icon)
                 .menu(&menu)
                 .tooltip("Basitune")
@@ -1112,6 +1333,46 @@ fn main() {
                                     let _ = window.unminimize();
                                 }
                             }
+                        }
+                        "play" => {
+                            let app_clone = app.clone();
+                            tauri::async_runtime::spawn(async move {
+                                if let Some(window) = app_clone.get_webview_window("main") {
+                                    let _ = window.eval("window.basitunePlayback && window.basitunePlayback.play()");
+                                }
+                            });
+                        }
+                        "previous_track" => {
+                            let app_clone = app.clone();
+                            tauri::async_runtime::spawn(async move {
+                                if let Some(window) = app_clone.get_webview_window("main") {
+                                    let _ = window.eval("window.basitunePlayback && window.basitunePlayback.previous()");
+                                }
+                            });
+                        }
+                        "pause" => {
+                            let app_clone = app.clone();
+                            tauri::async_runtime::spawn(async move {
+                                if let Some(window) = app_clone.get_webview_window("main") {
+                                    let _ = window.eval("window.basitunePlayback && window.basitunePlayback.togglePlayPause()");
+                                }
+                            });
+                        }
+                        "stop" => {
+                            let app_clone = app.clone();
+                            tauri::async_runtime::spawn(async move {
+                                if let Some(window) = app_clone.get_webview_window("main") {
+                                    let _ = window.eval("window.basitunePlayback && window.basitunePlayback.stop()");
+                                }
+                            });
+                        }
+                        "next_track" => {
+                            let app_clone = app.clone();
+                            tauri::async_runtime::spawn(async move {
+                                if let Some(window) = app_clone.get_webview_window("main") {
+                                    let _ = window.eval("window.basitunePlayback && window.basitunePlayback.next()");
+                                }
+                            });
                         }
                         "quit" => {
                             app.exit(0);
