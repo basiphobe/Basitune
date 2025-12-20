@@ -17,12 +17,14 @@ const DISCORD_APP_ID: &str = "1438326240997281943";
 // Playback state
 struct PlaybackState {
     state: Mutex<String>, // "none", "paused", or "playing"
+    current_song: Mutex<Option<(String, String)>>, // (title, artist)
 }
 
 impl PlaybackState {
     fn new() -> Self {
         Self {
             state: Mutex::new("none".to_string()),
+            current_song: Mutex::new(None),
         }
     }
     
@@ -32,6 +34,18 @@ impl PlaybackState {
     
     fn get_state(&self) -> String {
         self.state.lock().unwrap().clone()
+    }
+    
+    fn set_current_song(&self, title: String, artist: String) {
+        *self.current_song.lock().unwrap() = Some((title, artist));
+    }
+    
+    fn clear_current_song(&self) {
+        *self.current_song.lock().unwrap() = None;
+    }
+    
+    fn get_current_song(&self) -> Option<(String, String)> {
+        self.current_song.lock().unwrap().clone()
     }
 }
 
@@ -1121,72 +1135,161 @@ fn update_playback_state(state: String, app: tauri::AppHandle) -> Result<(), Str
     Ok(())
 }
 
+#[tauri::command]
+fn update_tray_tooltip(title: String, artist: String, app: tauri::AppHandle) -> Result<(), String> {
+    let playback_state: tauri::State<PlaybackState> = app.state();
+    
+    if !title.is_empty() && !artist.is_empty() {
+        playback_state.set_current_song(title.clone(), artist.clone());
+    } else {
+        playback_state.clear_current_song();
+    }
+    
+    // Rebuild menu to show current song
+    // Note: KDE Plasma with libayatana-appindicator (AppIndicator protocol) doesn't support
+    // tray icon tooltips, so we display the song as a disabled menu item instead
+    let state = playback_state.get_state();
+    rebuild_tray_menu(&app, &state)?;
+    
+    Ok(())
+}
+
 fn rebuild_tray_menu(app: &tauri::AppHandle, state: &str) -> Result<(), String> {
     use tauri::menu::{Menu, MenuItem, PredefinedMenuItem};
     
+    let playback_state: tauri::State<PlaybackState> = app.state();
+    let current_song = playback_state.get_current_song();
+    
+    // Build base menu items
     let show_hide = MenuItem::with_id(app, "show_hide", "Show/Hide", true, None::<&str>)
         .map_err(|e| e.to_string())?;
-    
     let separator1 = PredefinedMenuItem::separator(app)
         .map_err(|e| e.to_string())?;
     let separator2 = PredefinedMenuItem::separator(app)
         .map_err(|e| e.to_string())?;
     let quit = MenuItem::with_id(app, "quit", "Quit", true, None::<&str>)
         .map_err(|e| e.to_string())?;
-    
     let previous_track = MenuItem::with_id(app, "previous_track", "Previous Track", true, None::<&str>)
         .map_err(|e| e.to_string())?;
     let next_track = MenuItem::with_id(app, "next_track", "Next Track", true, None::<&str>)
         .map_err(|e| e.to_string())?;
     
-    let menu = match state {
-        "playing" => {
-            let pause = MenuItem::with_id(app, "pause", "Pause", true, None::<&str>)
-                .map_err(|e| e.to_string())?;
-            let stop = MenuItem::with_id(app, "stop", "Stop", true, None::<&str>)
-                .map_err(|e| e.to_string())?;
-            
-            Menu::with_items(app, &[
-                &show_hide,
-                &separator1,
-                &previous_track,
-                &pause,
-                &stop,
-                &next_track,
-                &separator2,
-                &quit
-            ]).map_err(|e| e.to_string())?
-        },
-        "paused" => {
-            let play = MenuItem::with_id(app, "play", "Play", true, None::<&str>)
-                .map_err(|e| e.to_string())?;
-            let stop = MenuItem::with_id(app, "stop", "Stop", true, None::<&str>)
-                .map_err(|e| e.to_string())?;
-            
-            Menu::with_items(app, &[
-                &show_hide,
-                &separator1,
-                &previous_track,
-                &play,
-                &stop,
-                &next_track,
-                &separator2,
-                &quit
-            ]).map_err(|e| e.to_string())?
-        },
-        _ => {
-            let play = MenuItem::with_id(app, "play", "Play", true, None::<&str>)
-                .map_err(|e| e.to_string())?;
-            
-            Menu::with_items(app, &[
-                &show_hide,
-                &separator1,
-                &previous_track,
-                &play,
-                &next_track,
-                &separator2,
-                &quit
-            ]).map_err(|e| e.to_string())?
+    // Build menu based on state
+    let menu = if let Some((title, artist)) = current_song {
+        // Song is playing/loaded - show song info
+        let song_text = format!("♪ {} - {}", title, artist);
+        let now_playing = MenuItem::with_id(app, "now_playing", &song_text, false, None::<&str>)
+            .map_err(|e| e.to_string())?;
+        let separator_song = PredefinedMenuItem::separator(app)
+            .map_err(|e| e.to_string())?;
+        
+        match state {
+            "playing" => {
+                let pause = MenuItem::with_id(app, "pause", "Pause", true, None::<&str>)
+                    .map_err(|e| e.to_string())?;
+                let stop = MenuItem::with_id(app, "stop", "Stop", true, None::<&str>)
+                    .map_err(|e| e.to_string())?;
+                
+                Menu::with_items(app, &[
+                    &now_playing,
+                    &separator_song,
+                    &show_hide,
+                    &separator1,
+                    &previous_track,
+                    &pause,
+                    &stop,
+                    &next_track,
+                    &separator2,
+                    &quit
+                ]).map_err(|e| e.to_string())?
+            },
+            "paused" => {
+                let play = MenuItem::with_id(app, "play", "Play", true, None::<&str>)
+                    .map_err(|e| e.to_string())?;
+                let stop = MenuItem::with_id(app, "stop", "Stop", true, None::<&str>)
+                    .map_err(|e| e.to_string())?;
+                
+                Menu::with_items(app, &[
+                    &now_playing,
+                    &separator_song,
+                    &show_hide,
+                    &separator1,
+                    &previous_track,
+                    &play,
+                    &stop,
+                    &next_track,
+                    &separator2,
+                    &quit
+                ]).map_err(|e| e.to_string())?
+            },
+            _ => {
+                let play = MenuItem::with_id(app, "play", "Play", true, None::<&str>)
+                    .map_err(|e| e.to_string())?;
+                
+                Menu::with_items(app, &[
+                    &now_playing,
+                    &separator_song,
+                    &show_hide,
+                    &separator1,
+                    &previous_track,
+                    &play,
+                    &next_track,
+                    &separator2,
+                    &quit
+                ]).map_err(|e| e.to_string())?
+            }
+        }
+    } else {
+        // No song - standard menu
+        match state {
+            "playing" => {
+                let pause = MenuItem::with_id(app, "pause", "Pause", true, None::<&str>)
+                    .map_err(|e| e.to_string())?;
+                let stop = MenuItem::with_id(app, "stop", "Stop", true, None::<&str>)
+                    .map_err(|e| e.to_string())?;
+                
+                Menu::with_items(app, &[
+                    &show_hide,
+                    &separator1,
+                    &previous_track,
+                    &pause,
+                    &stop,
+                    &next_track,
+                    &separator2,
+                    &quit
+                ]).map_err(|e| e.to_string())?
+            },
+            "paused" => {
+                let play = MenuItem::with_id(app, "play", "Play", true, None::<&str>)
+                    .map_err(|e| e.to_string())?;
+                let stop = MenuItem::with_id(app, "stop", "Stop", true, None::<&str>)
+                    .map_err(|e| e.to_string())?;
+                
+                Menu::with_items(app, &[
+                    &show_hide,
+                    &separator1,
+                    &previous_track,
+                    &play,
+                    &stop,
+                    &next_track,
+                    &separator2,
+                    &quit
+                ]).map_err(|e| e.to_string())?
+            },
+            _ => {
+                let play = MenuItem::with_id(app, "play", "Play", true, None::<&str>)
+                    .map_err(|e| e.to_string())?;
+                
+                Menu::with_items(app, &[
+                    &show_hide,
+                    &separator1,
+                    &previous_track,
+                    &play,
+                    &next_track,
+                    &separator2,
+                    &quit
+                ]).map_err(|e| e.to_string())?
+            }
         }
     };
     
@@ -1218,7 +1321,7 @@ fn main() {
         // Inject sidebar + volume helpers on every page load so they survive navigations
         .on_page_load(|window, _payload| {
             let sidebar_script = include_str!("../../sidebar.js");
-            let volume_script = include_str!("../../volume-fix.js");
+            // let volume_script = include_str!("../../volume-fix.js");
             let diagnostics_script = include_str!("../../audio-diagnostics.js");
             let playback_script = include_str!("../../playback-controls.js");
 
@@ -1228,11 +1331,12 @@ fn main() {
                 println!("[Basitune] Sidebar injected via on_page_load");
             }
 
-            if let Err(e) = window.eval(volume_script) {
-                eprintln!("[Basitune] Failed to inject volume bridge: {}", e);
-            } else {
-                println!("[Basitune] Volume bridge injected via on_page_load");
-            }
+            // Temporarily disabled to test if volume-fix.js is causing audio dropouts
+            // if let Err(e) = window.eval(volume_script) {
+            //     eprintln!("[Basitune] Failed to inject volume bridge: {}", e);
+            // } else {
+            //     println!("[Basitune] Volume bridge injected via on_page_load");
+            // }
 
             if let Err(e) = window.eval(diagnostics_script) {
                 eprintln!("[Basitune] Failed to inject audio diagnostics: {}", e);
@@ -1282,7 +1386,8 @@ fn main() {
             playback_next,
             playback_previous,
             playback_is_playing,
-            update_playback_state
+            update_playback_state,
+            update_tray_tooltip
         ])
         .setup(|app| {
             use tauri::menu::{Menu, MenuItem, PredefinedMenuItem};

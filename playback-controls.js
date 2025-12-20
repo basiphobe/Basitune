@@ -12,6 +12,59 @@
     // Monitor playback state and notify Rust for tray menu updates
     let lastPlaybackState = "none";
     
+    // Track current song for tooltip updates
+    let lastSongInfo = null;
+    
+    function getCurrentSongInfo() {
+        const artistElement = document.querySelector('.byline.ytmusic-player-bar a');
+        const titleElement = document.querySelector('.title.ytmusic-player-bar');
+        
+        if (artistElement && titleElement) {
+            return {
+                artist: artistElement.textContent.trim(),
+                title: titleElement.textContent.trim()
+            };
+        }
+        
+        return null;
+    }
+    
+    function updateTrayTooltip() {
+        const songInfo = getCurrentSongInfo();
+        
+        if (!songInfo) {
+            // No song info, set to default
+            if (lastSongInfo !== null) {
+                lastSongInfo = null;
+                if (window.__TAURI_INTERNALS__?.invoke) {
+                    window.__TAURI_INTERNALS__.invoke('update_tray_tooltip', {
+                        title: '',
+                        artist: ''
+                    }).catch(err => console.error('[Basitune] Failed to update tray tooltip:', err));
+                }
+            }
+            return;
+        }
+        
+        // Check if song changed
+        if (!lastSongInfo || 
+            lastSongInfo.title !== songInfo.title || 
+            lastSongInfo.artist !== songInfo.artist) {
+            lastSongInfo = songInfo;
+            if (window.__TAURI_INTERNALS__?.invoke) {
+                window.__TAURI_INTERNALS__.invoke('update_tray_tooltip', {
+                    title: songInfo.title,
+                    artist: songInfo.artist
+                }).catch(err => console.error('[Basitune] Failed to update tray tooltip:', err));
+            }
+        }
+    }
+    
+    // Check for song changes every 2 seconds
+    setInterval(updateTrayTooltip, 2000);
+    // Also check immediately
+    setTimeout(updateTrayTooltip, 1000);
+    
     function notifyPlaybackState(state) {
         if (window.__TAURI_INTERNALS__ && window.__TAURI_INTERNALS__.invoke) {
             window.__TAURI_INTERNALS__.invoke('update_playback_state', { 

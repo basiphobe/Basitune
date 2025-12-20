@@ -11,12 +11,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Dynamic tray menu with playback controls (Play/Pause, Stop, Previous/Next Track)
 - Smart menu visibility: Stop button only appears when music is playing or paused (not when just loaded)
 - Three-state playback detection (none/paused/playing) for accurate menu state
+- Current song display in tray menu (shows "♪ Title - Artist" as first menu item when playing)
 
 ### Changed
 - Optimized volume-fix.js polling from 200ms to 500ms for better performance
 - Tray menu now updates dynamically based on playback state
 - Faster menu response time (50ms state updates)
 - Improved playback state detection to distinguish between loaded vs played content
+- Temporarily disabled volume-fix.js injection to test audio dropout fix
 
 ### Technical
 - Updated PlaybackState from boolean to three-state string enum ("none"/"paused"/"playing")
@@ -24,6 +26,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Implemented update_playback_state Tauri command for state synchronization
 - Added dynamic tray menu rebuilding based on playback state
 - Fixed Tauri v2 API compatibility (__TAURI_INTERNALS__.invoke)
+- Extended PlaybackState with current_song storage (title, artist)
+- Implemented update_tray_tooltip command for song info synchronization
+- Menu-based song display (KDE/AppIndicator doesn't support tooltips)
 
 ## [1.0.22] - 2025-12-17
 
