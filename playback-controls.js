@@ -50,12 +50,23 @@
         if (!lastSongInfo || 
             lastSongInfo.title !== songInfo.title || 
             lastSongInfo.artist !== songInfo.artist) {
+            const isNewSong = lastSongInfo !== null; // Don't notify on first load
             lastSongInfo = songInfo;
+            
             if (window.__TAURI_INTERNALS__?.invoke) {
+                // Update tray menu
                 window.__TAURI_INTERNALS__.invoke('update_tray_tooltip', {
                     title: songInfo.title,
                     artist: songInfo.artist
                 }).catch(err => console.error('[Basitune] Failed to update tray tooltip:', err));
+                
+                // Show notification for song changes (not initial load)
+                if (isNewSong) {
+                    window.__TAURI_INTERNALS__.invoke('show_notification', {
+                        title: songInfo.title,
+                        artist: songInfo.artist
+                    }).catch(err => console.error('[Basitune] Failed to show notification:', err));
+                }
             }
         }
     }

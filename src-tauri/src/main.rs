@@ -10,6 +10,7 @@ use scraper::{Html, Selector};
 use std::collections::HashMap;
 use std::sync::Mutex;
 use discord_rich_presence::{activity, DiscordIpc, DiscordIpcClient};
+use notify_rust::Notification;
 
 // Discord Application ID (public identifier, not a secret)
 const DISCORD_APP_ID: &str = "1438326240997281943";
@@ -54,6 +55,7 @@ struct ApiConfig {
     openai_api_key: Option<String>,
     genius_access_token: Option<String>,
     close_to_tray: Option<bool>,
+    enable_notifications: Option<bool>,
 }
 
 fn get_config_path(app_handle: &tauri::AppHandle) -> PathBuf {
@@ -104,11 +106,12 @@ fn get_config(app: tauri::AppHandle) -> Result<ApiConfig, String> {
 }
 
 #[tauri::command]
-fn save_config(app: tauri::AppHandle, openai_api_key: String, genius_access_token: String, close_to_tray: bool) -> Result<(), String> {
+fn save_config(app: tauri::AppHandle, openai_api_key: String, genius_access_token: String, close_to_tray: bool, enable_notifications: bool) -> Result<(), String> {
     let config = ApiConfig {
         openai_api_key: if openai_api_key.is_empty() { None } else { Some(openai_api_key) },
         genius_access_token: if genius_access_token.is_empty() { None } else { Some(genius_access_token) },
         close_to_tray: Some(close_to_tray),
+        enable_notifications: Some(enable_notifications),
     };
     
     let config_path = get_config_path(&app);
@@ -1154,6 +1157,26 @@ fn update_tray_tooltip(title: String, artist: String, app: tauri::AppHandle) -> 
     Ok(())
 }
 
+#[tauri::command]
+fn show_notification(title: String, artist: String, app: tauri::AppHandle) -> Result<(), String> {
+    // Check if notifications are enabled
+    let config = load_config(&app);
+    if !config.enable_notifications.unwrap_or(false) {
+        return Ok(());
+    }
+    
+    // Show notification
+    Notification::new()
+        .summary(&format!("🎵 {}", title))
+        .body(&format!("by {}", artist))
+        .appname("Basitune")
+        .timeout(5000) // 5 seconds
+        .show()
+        .map_err(|e| format!("Failed to show notification: {}", e))?;
+    
+    Ok(())
+}
+
 fn rebuild_tray_menu(app: &tauri::AppHandle, state: &str) -> Result<(), String> {
     use tauri::menu::{Menu, MenuItem, PredefinedMenuItem};
     
@@ -1387,7 +1410,8 @@ fn main() {
             playback_previous,
             playback_is_playing,
             update_playback_state,
-            update_tray_tooltip
+            update_tray_tooltip,
+            show_notification
         ])
         .setup(|app| {
             use tauri::menu::{Menu, MenuItem, PredefinedMenuItem};

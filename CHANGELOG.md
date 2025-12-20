@@ -12,6 +12,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Smart menu visibility: Stop button only appears when music is playing or paused (not when just loaded)
 - Three-state playback detection (none/paused/playing) for accurate menu state
 - Current song display in tray menu (shows "♪ Title - Artist" as first menu item when playing)
+- Desktop notifications when songs change (configurable in Settings)
 
 ### Changed
 - Optimized volume-fix.js polling from 200ms to 500ms for better performance
@@ -29,6 +30,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Extended PlaybackState with current_song storage (title, artist)
 - Implemented update_tray_tooltip command for song info synchronization
 - Menu-based song display (KDE/AppIndicator doesn't support tooltips)
+- Added notify-rust crate for cross-platform desktop notifications
+- Implemented show_notification Tauri command with enable_notifications config setting
+- Song change notifications skip initial load, only trigger when tracks change
 
 ## [1.0.22] - 2025-12-17
 

@@ -197,6 +197,17 @@
                                 </small>
                             </div>
                             
+                            <h3 style="margin-top: 30px; margin-bottom: 20px; color: #fff; font-size: 18px; border-top: 1px solid rgba(255, 255, 255, 0.1); padding-top: 24px;">Notifications</h3>
+                            <div style="margin-bottom: 24px;">
+                                <label style="display: flex; align-items: center; color: rgba(255, 255, 255, 0.9); font-size: 13px; cursor: pointer; user-select: none;">
+                                    <input type="checkbox" id="basitune-enable-notifications" style="margin-right: 10px; width: 18px; height: 18px; cursor: pointer; accent-color: #ff0000;" />
+                                    <span>Show notifications when songs change</span>
+                                </label>
+                                <small style="color: rgba(255, 255, 255, 0.6); font-size: 11px; display: block; margin-top: 6px; margin-left: 28px;">
+                                    Display desktop notifications with song title and artist when the track changes.
+                                </small>
+                            </div>
+                            
                             <button id="basitune-save-settings" style="width: 100%; padding: 12px; background: linear-gradient(135deg, #ff0000 0%, #cc0000 100%); border: none; color: #fff; font-size: 14px; font-weight: 600; border-radius: 8px; cursor: pointer; transition: all 0.2s;">
                                 Save Settings
                             </button>
@@ -1226,6 +1237,7 @@
             const openaiInput = document.getElementById('basitune-openai-key');
             const geniusInput = document.getElementById('basitune-genius-token');
             const closeToTrayCheckbox = document.getElementById('basitune-close-to-tray');
+            const enableNotificationsCheckbox = document.getElementById('basitune-enable-notifications');
             
             if (openaiInput && config.openai_api_key) {
                 openaiInput.value = config.openai_api_key;
@@ -1236,6 +1248,9 @@
             if (closeToTrayCheckbox && config.close_to_tray !== undefined) {
                 closeToTrayCheckbox.checked = config.close_to_tray;
             }
+            if (enableNotificationsCheckbox && config.enable_notifications !== undefined) {
+                enableNotificationsCheckbox.checked = config.enable_notifications;
+            }
         } catch (error) {
             console.error('[Basitune] Failed to load settings:', error);
         }
@@ -1245,10 +1260,11 @@
         const openaiInput = document.getElementById('basitune-openai-key');
         const geniusInput = document.getElementById('basitune-genius-token');
         const closeToTrayCheckbox = document.getElementById('basitune-close-to-tray');
+        const enableNotificationsCheckbox = document.getElementById('basitune-enable-notifications');
         const statusDiv = document.getElementById('basitune-settings-status');
         const saveBtn = document.getElementById('basitune-save-settings');
         
-        if (!openaiInput || !geniusInput || !closeToTrayCheckbox || !statusDiv || !saveBtn) {
+        if (!openaiInput || !geniusInput || !closeToTrayCheckbox || !enableNotificationsCheckbox || !statusDiv || !saveBtn) {
             console.error('[Basitune] Settings elements not found');
             return;
         }
@@ -1256,6 +1272,7 @@
         const openaiKey = openaiInput.value.trim();
         const geniusToken = geniusInput.value.trim();
         const closeToTray = closeToTrayCheckbox.checked;
+        const enableNotifications = enableNotificationsCheckbox.checked;
         
         // Show saving status
         statusDiv.style.display = 'block';
@@ -1268,7 +1285,8 @@
             await window.__TAURI__.core.invoke('save_config', {
                 openaiApiKey: openaiKey,
                 geniusAccessToken: geniusToken,
-                closeToTray: closeToTray
+                closeToTray: closeToTray,
+                enableNotifications: enableNotifications
             });
             
             // Show success
