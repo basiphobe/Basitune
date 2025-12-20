@@ -13,6 +13,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Three-state playback detection (none/paused/playing) for accurate menu state
 - Current song display in tray menu (shows "♪ Title - Artist" as first menu item when playing)
 - Desktop notifications when songs change (configurable in Settings)
+  - Shows song title, artist, album, and duration
+  - Interactive Previous/Next track buttons in notifications
+  - 300ms delay to prevent UI glitches when triggered by button actions
 
 ### Changed
 - Optimized volume-fix.js polling from 200ms to 500ms for better performance

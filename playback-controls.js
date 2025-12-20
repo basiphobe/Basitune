@@ -18,12 +18,35 @@
     function getCurrentSongInfo() {
         const artistElement = document.querySelector('.byline.ytmusic-player-bar a');
         const titleElement = document.querySelector('.title.ytmusic-player-bar');
+        const video = getVideoElement();
         
         if (artistElement && titleElement) {
-            return {
+            const info = {
                 artist: artistElement.textContent.trim(),
                 title: titleElement.textContent.trim()
             };
+            
+            // Add duration if available
+            if (video && video.duration && !isNaN(video.duration)) {
+                const minutes = Math.floor(video.duration / 60);
+                const seconds = Math.floor(video.duration % 60);
+                info.duration = `${minutes}:${seconds.toString().padStart(2, '0')}`;
+            }
+            
+            // Try to get album info from the player bar subtitle
+            const subtitleElement = document.querySelector('.subtitle.ytmusic-player-bar');
+            if (subtitleElement) {
+                const subtitleText = subtitleElement.textContent.trim();
+                // Subtitle often contains "Artist • Album" or just "Artist"
+                if (subtitleText.includes('•')) {
+                    const parts = subtitleText.split('•').map(p => p.trim());
+                    if (parts.length > 1) {
+                        info.album = parts[1];
+                    }
+                }
+            }
+            
+            return info;
         }
         
         return null;
@@ -62,10 +85,15 @@
                 
                 // Show notification for song changes (not initial load)
                 if (isNewSong) {
-                    window.__TAURI_INTERNALS__.invoke('show_notification', {
-                        title: songInfo.title,
-                        artist: songInfo.artist
-                    }).catch(err => console.error('[Basitune] Failed to show notification:', err));
+                    // Small delay to prevent UI glitches when previous notification had action buttons
+                    setTimeout(() => {
+                        window.__TAURI_INTERNALS__.invoke('show_notification', {
+                            title: songInfo.title,
+                            artist: songInfo.artist,
+                            duration: songInfo.duration || null,
+                            album: songInfo.album || null
+                        }).catch(err => console.error('[Basitune] Failed to show notification:', err));
+                    }, 300); // 300ms delay to let previous notification thread finish
                 }
             }
         }
