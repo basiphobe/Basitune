@@ -1170,7 +1170,6 @@ fn show_notification(
     let enabled = config.enable_notifications.unwrap_or(false);
     
     if !enabled {
-        println!("[Basitune] Notifications disabled, skipping");
         return Ok(());
     }
     
