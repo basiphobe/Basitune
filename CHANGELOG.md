@@ -7,7 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-## [1.0.20] - 2025-12-20
+## [1.0.23] - 2025-12-20
 
 ### Added
 - Dynamic tray menu with playback controls (Play/Pause, Stop, Previous/Next Track)
