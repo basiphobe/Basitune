@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.0.20] - 2025-12-20
+
 ### Added
 - Dynamic tray menu with playback controls (Play/Pause, Stop, Previous/Next Track)
 - Smart menu visibility: Stop button only appears when music is playing or paused (not when just loaded)
@@ -28,6 +30,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Updated PlaybackState from boolean to three-state string enum ("none"/"paused"/"playing")
 - Created playback-controls.js with YouTube Music DOM control functions
 - Implemented update_playback_state Tauri command for state synchronization
+- Added notify-rust dependency for desktop notifications
 - Added dynamic tray menu rebuilding based on playback state
 - Fixed Tauri v2 API compatibility (__TAURI_INTERNALS__.invoke)
 - Extended PlaybackState with current_song storage (title, artist)
