@@ -1190,58 +1190,78 @@ fn show_notification(
     
     let body = body_parts.join(" • ");
     
-    // Clone app handle for the action handler thread
-    let app_clone = app.clone();
+    // Interactive action buttons only work on Linux (D-Bus based)
+    #[cfg(target_os = "linux")]
+    {
+        // Clone app handle for the action handler thread
+        let app_clone = app.clone();
+        
+        // Show notification with action buttons
+        std::thread::spawn(move || {
+            let notification_result = Notification::new()
+                .summary(&format!("🎵 {}", title))
+                .body(&body)
+                .appname("Basitune")
+                .timeout(5000) // 5 seconds
+                .action("previous", "⏮️ Previous")
+                .action("next", "⏭️ Next")
+                .show();
+            
+            match notification_result {
+                Ok(handle) => {
+                    // Wait for user interaction (blocks until notification closes or action clicked)
+                    handle.wait_for_action(|action| {
+                        match action {
+                            "previous" => {
+                                if let Some(window) = app_clone.get_webview_window("main") {
+                                    let _ = window.eval(r#"
+                                        (function() {
+                                            const prevBtn = document.querySelector('ytmusic-player-bar .previous-button')
+                                                || document.querySelector('[aria-label="Previous"]')
+                                                || document.querySelector('[aria-label="Previous track"]');
+                                            if (prevBtn) prevBtn.click();
+                                        })();
+                                    "#);
+                                }
+                            },
+                            "next" => {
+                                if let Some(window) = app_clone.get_webview_window("main") {
+                                    let _ = window.eval(r#"
+                                        (function() {
+                                            const nextBtn = document.querySelector('ytmusic-player-bar .next-button')
+                                                || document.querySelector('[aria-label="Next"]')
+                                                || document.querySelector('[aria-label="Next track"]');
+                                            if (nextBtn) nextBtn.click();
+                                        })();
+                                    "#);
+                                }
+                            },
+                            _ => {}
+                        }
+                    });
+                },
+                Err(e) => {
+                    eprintln!("[Basitune] Failed to show notification: {}", e);
+                }
+            }
+        });
+    }
     
-    // Show notification with action buttons
-    std::thread::spawn(move || {
-        let notification_result = Notification::new()
+    // macOS and Windows get simple notifications without action buttons
+    #[cfg(not(target_os = "linux"))]
+    {
+        Notification::new()
             .summary(&format!("🎵 {}", title))
             .body(&body)
             .appname("Basitune")
-            .timeout(5000) // 5 seconds
-            .action("previous", "⏮️ Previous")
-            .action("next", "⏭️ Next")
-            .show();
-        
-        match notification_result {
-            Ok(handle) => {
-                // Wait for user interaction (blocks until notification closes or action clicked)
-                handle.wait_for_action(|action| {
-                    match action {
-                        "previous" => {
-                            if let Some(window) = app_clone.get_webview_window("main") {
-                                let _ = window.eval(r#"
-                                    (function() {
-                                        const prevBtn = document.querySelector('ytmusic-player-bar .previous-button')
-                                            || document.querySelector('[aria-label="Previous"]')
-                                            || document.querySelector('[aria-label="Previous track"]');
-                                        if (prevBtn) prevBtn.click();
-                                    })();
-                                "#);
-                            }
-                        },
-                        "next" => {
-                            if let Some(window) = app_clone.get_webview_window("main") {
-                                let _ = window.eval(r#"
-                                    (function() {
-                                        const nextBtn = document.querySelector('ytmusic-player-bar .next-button')
-                                            || document.querySelector('[aria-label="Next"]')
-                                            || document.querySelector('[aria-label="Next track"]');
-                                        if (nextBtn) nextBtn.click();
-                                    })();
-                                "#);
-                            }
-                        },
-                        _ => {}
-                    }
-                });
-            },
-            Err(e) => {
-                eprintln!("[Basitune] Failed to show notification: {}", e);
-            }
-        }
-    });
+            .timeout(5000)
+            .show()
+            .map_err(|e| {
+                let err_msg = format!("Failed to show notification: {}", e);
+                eprintln!("[Basitune] {}", err_msg);
+                err_msg
+            })?;
+    }
     
     Ok(())
 }
