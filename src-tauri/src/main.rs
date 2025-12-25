@@ -56,6 +56,11 @@ struct ApiConfig {
     genius_access_token: Option<String>,
     close_to_tray: Option<bool>,
     enable_notifications: Option<bool>,
+    // Playback position persistence
+    last_song_artist: Option<String>,
+    last_song_title: Option<String>,
+    last_position_seconds: Option<f64>,
+    was_playing: Option<bool>,
 }
 
 fn get_config_path(app_handle: &tauri::AppHandle) -> PathBuf {
@@ -107,11 +112,19 @@ fn get_config(app: tauri::AppHandle) -> Result<ApiConfig, String> {
 
 #[tauri::command]
 fn save_config(app: tauri::AppHandle, openai_api_key: String, genius_access_token: String, close_to_tray: bool, enable_notifications: bool) -> Result<(), String> {
+    // Load existing config to preserve playback state
+    let existing = load_config(&app);
+    
     let config = ApiConfig {
         openai_api_key: if openai_api_key.is_empty() { None } else { Some(openai_api_key) },
         genius_access_token: if genius_access_token.is_empty() { None } else { Some(genius_access_token) },
         close_to_tray: Some(close_to_tray),
         enable_notifications: Some(enable_notifications),
+        // Preserve playback state
+        last_song_artist: existing.last_song_artist,
+        last_song_title: existing.last_song_title,
+        last_position_seconds: existing.last_position_seconds,
+        was_playing: existing.was_playing,
     };
     
     let config_path = get_config_path(&app);
@@ -1266,6 +1279,67 @@ fn show_notification(
     Ok(())
 }
 
+#[derive(Debug, Serialize, Deserialize)]
+struct PlaybackPosition {
+    artist: String,
+    title: String,
+    position_seconds: f64,
+    was_playing: bool,
+}
+
+#[tauri::command]
+fn save_playback_position(app: tauri::AppHandle, artist: String, title: String, position_seconds: f64, was_playing: bool) -> Result<(), String> {
+    // Load existing config
+    let mut config = load_config(&app);
+    
+    // Update playback state
+    config.last_song_artist = Some(artist);
+    config.last_song_title = Some(title);
+    config.last_position_seconds = Some(position_seconds);
+    config.was_playing = Some(was_playing);
+    
+    // Save config
+    let config_path = get_config_path(&app);
+    
+    if let Some(parent) = config_path.parent() {
+        fs::create_dir_all(parent).map_err(|e| format!("Failed to create config directory: {}", e))?;
+    }
+    
+    let json = serde_json::to_string_pretty(&config)
+        .map_err(|e| format!("Failed to serialize config: {}", e))?;
+    
+    fs::write(&config_path, json)
+        .map_err(|e| format!("Failed to write config file: {}", e))?;
+    
+    println!("[Basitune] Saved playback position: {} - {} at {:.1}s (playing: {})", 
+             config.last_song_artist.as_ref().unwrap_or(&"Unknown".to_string()),
+             config.last_song_title.as_ref().unwrap_or(&"Unknown".to_string()),
+             position_seconds, was_playing);
+    
+    Ok(())
+}
+
+#[tauri::command]
+fn get_playback_position(app: tauri::AppHandle) -> Result<Option<PlaybackPosition>, String> {
+    let config = load_config(&app);
+    
+    if let (Some(artist), Some(title), Some(position), Some(was_playing)) = (
+        config.last_song_artist,
+        config.last_song_title,
+        config.last_position_seconds,
+        config.was_playing,
+    ) {
+        Ok(Some(PlaybackPosition {
+            artist,
+            title,
+            position_seconds: position,
+            was_playing,
+        }))
+    } else {
+        Ok(None)
+    }
+}
+
 fn rebuild_tray_menu(app: &tauri::AppHandle, state: &str) -> Result<(), String> {
     use tauri::menu::{Menu, MenuItem, PredefinedMenuItem};
     
@@ -1460,6 +1534,49 @@ fn main() {
                 eprintln!("[Basitune] Failed to inject playback controls: {}", e);
             } else {
                 println!("[Basitune] Playback controls injected via on_page_load");
+                
+                // Attempt to restore playback position
+                let app_handle = window.app_handle().clone();
+                let window_clone = window.clone();
+                tauri::async_runtime::spawn(async move {
+                    // Wait a bit for YouTube Music to load
+                    tokio::time::sleep(std::time::Duration::from_secs(2)).await;
+                    
+                    // Get saved playback position
+                    if let Ok(Some(saved)) = get_playback_position(app_handle.clone()) {
+                        println!("[Basitune] Restoring playback: {} - {} at {:.1}s", 
+                                 saved.artist, saved.title, saved.position_seconds);
+                        
+                        let restore_script = format!(
+                            r#"
+                            (function() {{
+                                // Only restore once per app session
+                                if (window.__basitunePlaybackRestored) {{
+                                    return;
+                                }}
+                                window.__basitunePlaybackRestored = true;
+                                
+                                if (window.basitunePlayback && window.basitunePlayback.restorePlaybackPosition) {{
+                                    window.basitunePlayback.restorePlaybackPosition(
+                                        "{}",
+                                        "{}",
+                                        {},
+                                        {}
+                                    );
+                                }}
+                            }})();
+                            "#,
+                            saved.artist.replace('\\', "\\\\").replace('"', "\\\""),
+                            saved.title.replace('\\', "\\\\").replace('"', "\\\""),
+                            saved.position_seconds,
+                            if saved.was_playing { "true" } else { "false" }
+                        );
+                        
+                        if let Err(e) = window_clone.eval(&restore_script) {
+                            eprintln!("[Basitune] Failed to restore playback position: {}", e);
+                        }
+                    }
+                });
             }
         })
         .plugin(tauri_plugin_single_instance::init(|app, _args, _cwd| {
@@ -1500,7 +1617,9 @@ fn main() {
             playback_is_playing,
             update_playback_state,
             update_tray_tooltip,
-            show_notification
+            show_notification,
+            save_playback_position,
+            get_playback_position
         ])
         .setup(|app| {
             use tauri::menu::{Menu, MenuItem, PredefinedMenuItem};
@@ -1593,6 +1712,31 @@ fn main() {
                             });
                         }
                         "quit" => {
+                            // Save playback position before quitting
+                            if let Some(window) = app.get_webview_window("main") {
+                                tauri::async_runtime::block_on(async move {
+                                    let _ = window.eval(
+                                        r#"
+                                        (function() {
+                                            if (window.basitunePlayback && window.basitunePlayback.getCurrentPlaybackState) {
+                                                const state = window.basitunePlayback.getCurrentPlaybackState();
+                                                if (state && window.__TAURI_INTERNALS__) {
+                                                    window.__TAURI_INTERNALS__.invoke('save_playback_position', {
+                                                        artist: state.artist,
+                                                        title: state.title,
+                                                        positionSeconds: state.position,
+                                                        wasPlaying: state.isPlaying
+                                                    });
+                                                }
+                                            }
+                                        })();
+                                        "#
+                                    );
+                                    
+                                    // Wait for save to complete
+                                    tokio::time::sleep(std::time::Duration::from_millis(300)).await;
+                                });
+                            }
                             app.exit(0);
                         }
                         _ => {}
@@ -1721,7 +1865,7 @@ fn main() {
             // Show the window
             let _ = main_window.show();
 
-            // Handle window close event - either minimize to tray or save state and exit
+            // Handle window close event - either minimize to tray or save window state
             let app_handle = app.handle().clone();
             let window_clone = main_window.clone();
             main_window.on_window_event(move |event| {

@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- Playback position persistence: saves current song position when quitting, restores on next startup
+  - Only restores if the same song is loaded (matches by artist and title)
+  - Resumes playback automatically if song was playing when quit
+  - Prevents duplicate restore attempts when YouTube Music reloads pages
+
 ## [1.0.23] - 2025-12-20
 
 ### Added

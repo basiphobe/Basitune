@@ -339,6 +339,72 @@
             };
         },
         
+        // Get current playback position for persistence
+        getCurrentPlaybackState: function() {
+            const songInfo = getCurrentSongInfo();
+            const video = getVideoElement();
+            
+            if (!songInfo || !video) {
+                return null;
+            }
+            
+            return {
+                artist: songInfo.artist,
+                title: songInfo.title,
+                position: video.currentTime || 0,
+                duration: video.duration || 0,
+                isPlaying: isPlaying()
+            };
+        },
+        
+        // Restore playback position
+        restorePlaybackPosition: function(artist, title, position, shouldPlay) {
+            const maxAttempts = 50; // 5 seconds total (100ms intervals)
+            let attempts = 0;
+            
+            const tryRestore = () => {
+                const currentInfo = getCurrentSongInfo();
+                const video = getVideoElement();
+                
+                // Check if song matches
+                if (currentInfo && 
+                    currentInfo.artist.toLowerCase() === artist.toLowerCase() &&
+                    currentInfo.title.toLowerCase() === title.toLowerCase()) {
+                    
+                    // Check if video is ready
+                    if (video && video.duration && !isNaN(video.duration) && video.duration > 0) {
+                        // Video is ready, seek to position
+                        if (position > 0 && position < video.duration) {
+                            video.currentTime = position;
+                            console.log(`[Basitune] Restored playback position to ${position.toFixed(1)}s`);
+                            
+                            // Resume playback if it was playing
+                            if (shouldPlay && video.paused) {
+                                setTimeout(() => {
+                                    const button = findPlayPauseButton();
+                                    if (button) {
+                                        button.click();
+                                        console.log('[Basitune] Resumed playback');
+                                    }
+                                }, 100);
+                            }
+                        }
+                        return;
+                    }
+                }
+                
+                // Try again if we haven't exceeded max attempts
+                attempts++;
+                if (attempts < maxAttempts) {
+                    setTimeout(tryRestore, 100);
+                } else {
+                    console.log(`[Basitune] Could not restore playback - song not found or different song loaded`);
+                }
+            };
+            
+            tryRestore();
+        },
+        
         // Debug function to show available controls
         debug: function() {
             console.log('[Basitune] Playback Controls Debug:');
@@ -352,5 +418,5 @@
     };
     
     console.log('[Basitune] Playback controls ready. Use window.basitunePlayback to control playback.');
-    console.log('[Basitune] Available methods: play(), pause(), togglePlayPause(), stop(), next(), previous(), isPlaying(), getStatus(), debug()');
+    console.log('[Basitune] Available methods: play(), pause(), togglePlayPause(), stop(), next(), previous(), isPlaying(), getStatus(), getCurrentPlaybackState(), restorePlaybackPosition(), debug()');
 })();

@@ -50,6 +50,16 @@ document.querySelector('video') // HTML5 video element
 - First menu item: Current song "♪ Title - Artist"
 - Updates via `rebuild_tray()` on state changes (50ms delay)
 
+### Playback Position Persistence
+
+**Save on quit, restore on startup:**
+- **ApiConfig fields:** `last_song_artist`, `last_song_title`, `last_position_seconds`, `was_playing` (all `Option<>`)
+- **Save:** Quit tray menu handler calls `getCurrentPlaybackState()` via eval, invokes `save_playback_position` command (300ms delay for async completion)
+- **Restore:** `on_page_load` hook waits 2s, calls `get_playback_position`, evals `restorePlaybackPosition(artist, title, position, shouldPlay)`
+- **Song matching:** Case-insensitive artist/title comparison, polls up to 5 seconds (50 attempts at 100ms intervals)
+- **Session flag:** `window.__basitunePlaybackRestored` prevents duplicate restores when YouTube Music reloads pages
+- **Behavior:** Only restores if same song loads; otherwise fails silently
+
 ## Development Workflows
 
 ```bash
