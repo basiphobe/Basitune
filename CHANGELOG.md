@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.0.24] - 2025-12-25
+
 ### Added
 - Playback position persistence: saves current song position when quitting, restores on next startup
   - Only restores if the same song is loaded (matches by artist and title)
