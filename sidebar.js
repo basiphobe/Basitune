@@ -346,6 +346,22 @@
                                     <span id="basitune-identifier">Loading...</span>
                                 </div>
                             </div>
+                            <div id="basitune-update-container" style="margin-top: 24px;">
+                                <h4 style="color: #fff; font-size: 16px; margin-bottom: 12px;">Updates</h4>
+                                <div style="display: flex; flex-direction: column; gap: 12px;">
+                                    <button id="basitune-check-updates" style="padding: 12px; background: linear-gradient(135deg, #ff0000 0%, #cc0000 100%); border: none; color: #fff; font-size: 14px; font-weight: 600; border-radius: 8px; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center; gap: 8px;">
+                                        <span style="font-size: 16px;">🔄</span>
+                                        <span>Check for Updates</span>
+                                    </button>
+                                    <div id="basitune-update-status" style="display: none; padding: 12px; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 8px; color: rgba(255, 255, 255, 0.9); font-size: 13px;"></div>
+                                    <div id="basitune-update-progress" style="display: none; margin-top: 8px;">
+                                        <div style="width: 100%; height: 4px; background: rgba(255, 255, 255, 0.1); border-radius: 2px; overflow: hidden;">
+                                            <div id="basitune-update-progress-bar" style="width: 0%; height: 100%; background: linear-gradient(90deg, #ff0000, #cc0000); transition: width 0.3s ease;"></div>
+                                        </div>
+                                        <div id="basitune-update-progress-text" style="margin-top: 4px; font-size: 11px; color: rgba(255, 255, 255, 0.6); text-align: center;"></div>
+                                    </div>
+                                </div>
+                            </div>
                             <div id="basitune-links-container" style="margin-top: 24px;">
                                 <h4 style="color: #fff; font-size: 16px; margin-bottom: 12px;">Links</h4>
                                 <div style="display: flex; flex-direction: column; gap: 12px;">
@@ -1344,6 +1360,12 @@
             saveSettingsBtn.addEventListener('click', saveSettings);
         }
         
+        // Check for Updates button
+        const checkUpdatesBtn = document.getElementById('basitune-check-updates');
+        if (checkUpdatesBtn) {
+            checkUpdatesBtn.addEventListener('click', checkForUpdates);
+        }
+        
         // External link handlers for About tab
         document.querySelectorAll('.basitune-external-link').forEach(link => {
             link.addEventListener('click', async (e) => {
@@ -1471,6 +1493,128 @@
             console.error('[Basitune] Failed to load app metadata:', error);
             const versionEl = document.getElementById('basitune-version');
             if (versionEl) versionEl.textContent = 'Error loading';
+        }
+    }
+    
+    // Update check functions
+    async function checkForUpdates() {
+        const checkBtn = document.getElementById('basitune-check-updates');
+        const statusDiv = document.getElementById('basitune-update-status');
+        const progressDiv = document.getElementById('basitune-update-progress');
+        
+        if (!checkBtn || !statusDiv) return;
+        
+        // Show checking status
+        checkBtn.disabled = true;
+        checkBtn.innerHTML = '<span style="font-size: 16px;">⏳</span><span>Checking...</span>';
+        statusDiv.style.display = 'block';
+        statusDiv.style.background = 'rgba(255, 255, 255, 0.05)';
+        statusDiv.style.color = 'rgba(255, 255, 255, 0.9)';
+        statusDiv.textContent = 'Checking for updates...';
+        if (progressDiv) progressDiv.style.display = 'none';
+        
+        try {
+            const updateInfo = await window.__TAURI__.core.invoke('check_for_updates');
+            
+            if (updateInfo.available) {
+                // Update available
+                statusDiv.style.background = 'rgba(0, 200, 0, 0.1)';
+                statusDiv.style.border = '1px solid rgba(0, 200, 0, 0.3)';
+                statusDiv.style.color = '#00ff00';
+                statusDiv.innerHTML = `
+                    <div style="margin-bottom: 8px;"><strong>Update Available!</strong></div>
+                    <div style="font-size: 12px; opacity: 0.8;">Current: ${updateInfo.current_version}</div>
+                    <div style="font-size: 12px; opacity: 0.8;">Latest: ${updateInfo.latest_version}</div>
+                `;
+                
+                // Replace check button with install button
+                checkBtn.innerHTML = '<span style="font-size: 16px;">⬇️</span><span>Install Update</span>';
+                checkBtn.disabled = false;
+                checkBtn.onclick = installUpdate;
+            } else {
+                // No update available
+                statusDiv.style.background = 'rgba(255, 255, 255, 0.05)';
+                statusDiv.style.border = '1px solid rgba(255, 255, 255, 0.1)';
+                statusDiv.style.color = 'rgba(255, 255, 255, 0.9)';
+                statusDiv.textContent = `You're running the latest version (${updateInfo.current_version})`;
+                
+                checkBtn.innerHTML = '<span style="font-size: 16px;">✓</span><span>Up to Date</span>';
+                checkBtn.disabled = false;
+            }
+        } catch (error) {
+            console.error('[Basitune] Failed to check for updates:', error);
+            statusDiv.style.background = 'rgba(200, 0, 0, 0.1)';
+            statusDiv.style.border = '1px solid rgba(200, 0, 0, 0.3)';
+            statusDiv.style.color = '#ff6b6b';
+            statusDiv.textContent = `Error: ${error}`;
+            
+            checkBtn.innerHTML = '<span style="font-size: 16px;">🔄</span><span>Check for Updates</span>';
+            checkBtn.disabled = false;
+        }
+    }
+    
+    async function installUpdate() {
+        const checkBtn = document.getElementById('basitune-check-updates');
+        const statusDiv = document.getElementById('basitune-update-status');
+        const progressDiv = document.getElementById('basitune-update-progress');
+        const progressBar = document.getElementById('basitune-update-progress-bar');
+        const progressText = document.getElementById('basitune-update-progress-text');
+        
+        if (!checkBtn || !statusDiv || !progressDiv || !progressBar || !progressText) return;
+        
+        // Show downloading status
+        checkBtn.disabled = true;
+        checkBtn.innerHTML = '<span style="font-size: 16px;">⏬</span><span>Installing...</span>';
+        statusDiv.style.display = 'block';
+        statusDiv.style.background = 'rgba(255, 255, 255, 0.05)';
+        statusDiv.style.border = '1px solid rgba(255, 255, 255, 0.1)';
+        statusDiv.style.color = 'rgba(255, 255, 255, 0.9)';
+        statusDiv.textContent = 'Downloading update...';
+        progressDiv.style.display = 'block';
+        progressBar.style.width = '0%';
+        progressText.textContent = 'Preparing...';
+        
+        // Set up progress listener
+        window.__basituneUpdateProgress = (percent) => {
+            progressBar.style.width = `${percent}%`;
+            progressText.textContent = `${percent}% downloaded`;
+        };
+        
+        try {
+            await window.__TAURI__.core.invoke('install_update');
+            
+            // Update installed successfully
+            statusDiv.style.background = 'rgba(0, 200, 0, 0.1)';
+            statusDiv.style.border = '1px solid rgba(0, 200, 0, 0.3)';
+            statusDiv.style.color = '#00ff00';
+            statusDiv.innerHTML = `
+                <div><strong>Update Ready!</strong></div>
+                <div style="font-size: 12px; opacity: 0.8; margin-top: 4px;">Restart Basitune to apply the update</div>
+            `;
+            
+            checkBtn.innerHTML = '<span style="font-size: 16px;">✓</span><span>Update Ready</span>';
+            checkBtn.disabled = true;
+            progressBar.style.width = '100%';
+            progressText.textContent = 'Download complete';
+            
+            // Show persistent notification
+            if (window.showUpdateNotification) {
+                window.showUpdateNotification('Update ready! Restart Basitune to apply.', true);
+            }
+            
+        } catch (error) {
+            console.error('[Basitune] Failed to install update:', error);
+            statusDiv.style.background = 'rgba(200, 0, 0, 0.1)';
+            statusDiv.style.border = '1px solid rgba(200, 0, 0, 0.3)';
+            statusDiv.style.color = '#ff6b6b';
+            statusDiv.textContent = `Installation failed: ${error}`;
+            
+            checkBtn.innerHTML = '<span style="font-size: 16px;">❌</span><span>Install Failed</span>';
+            checkBtn.disabled = false;
+            checkBtn.onclick = installUpdate;
+            progressDiv.style.display = 'none';
+        } finally {
+            delete window.__basituneUpdateProgress;
         }
     }
     

@@ -8,6 +8,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- Manual update checker in About tab
+  - "Check for Updates" button with visual feedback
+  - Displays current and available version information
+  - Progress indicator during download
+  - Status messages with color-coded feedback (checking, available, downloading, ready, errors)
+  - Integrates with existing update notification system
+  - Button transforms based on state (Check → Install → Ready/Error)
+  - Works alongside automatic startup update checks
 - Music visualizer with real-time audio visualization
   - New Visualizer tab (🎵) in sidebar alongside Artist, Lyrics, Settings, About
   - 11 visualization styles:
