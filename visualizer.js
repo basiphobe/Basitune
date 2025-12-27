@@ -24,6 +24,118 @@
     window.__basituneVisualizerInitialized = true;
 
     console.log('[Basitune Visualizer] Initializing...');
+    
+    // Create loading overlay for audio context initialization
+    const createLoadingOverlay = () => {
+        const overlay = document.createElement('div');
+        overlay.id = 'basitune-audio-loading';
+        overlay.style.cssText = `
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: linear-gradient(135deg, #1a1a1a 0%, #0a0a0a 100%);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 999999;
+            opacity: 1;
+            transition: opacity 0.5s ease-out;
+        `;
+        
+        // Create content container (avoiding innerHTML for CSP compliance)
+        const container = document.createElement('div');
+        container.style.textAlign = 'center';
+        
+        // Create SVG icon
+        const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+        svg.setAttribute('width', '80');
+        svg.setAttribute('height', '80');
+        svg.setAttribute('viewBox', '0 0 24 24');
+        svg.setAttribute('fill', 'none');
+        svg.setAttribute('stroke', '#ff6b6b');
+        svg.setAttribute('stroke-width', '2');
+        svg.setAttribute('stroke-linecap', 'round');
+        svg.setAttribute('stroke-linejoin', 'round');
+        svg.style.cssText = 'margin-bottom: 24px; animation: pulse 2s ease-in-out infinite;';
+        
+        const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+        path.setAttribute('d', 'M9 18V5l12-2v13');
+        const circle1 = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+        circle1.setAttribute('cx', '6');
+        circle1.setAttribute('cy', '18');
+        circle1.setAttribute('r', '3');
+        const circle2 = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+        circle2.setAttribute('cx', '18');
+        circle2.setAttribute('cy', '16');
+        circle2.setAttribute('r', '3');
+        svg.appendChild(path);
+        svg.appendChild(circle1);
+        svg.appendChild(circle2);
+        
+        // Create title
+        const title = document.createElement('h2');
+        title.textContent = 'Basitune';
+        title.style.cssText = 'color: #fff; font-size: 24px; font-weight: 600; margin: 0 0 12px 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;';
+        
+        // Create subtitle
+        const subtitle = document.createElement('p');
+        subtitle.textContent = 'Initializing high-quality audio...';
+        subtitle.style.cssText = 'color: rgba(255, 255, 255, 0.6); font-size: 14px; margin: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;';
+        
+        // Create progress bar container
+        const progressContainer = document.createElement('div');
+        progressContainer.style.cssText = 'width: 200px; height: 3px; background: rgba(255, 255, 255, 0.1); border-radius: 2px; margin: 24px auto 0; overflow: hidden;';
+        const progressBar = document.createElement('div');
+        progressBar.style.cssText = 'width: 100%; height: 100%; background: linear-gradient(90deg, #ff6b6b, #ff8e53); animation: loading 1.5s ease-in-out infinite;';
+        progressContainer.appendChild(progressBar);
+        
+        // Create style element for animations
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes pulse {
+                0%, 100% { opacity: 1; transform: scale(1); }
+                50% { opacity: 0.7; transform: scale(1.05); }
+            }
+            @keyframes loading {
+                0% { transform: translateX(-100%); }
+                100% { transform: translateX(100%); }
+            }
+        `;
+        
+        // Assemble the overlay
+        container.appendChild(svg);
+        container.appendChild(title);
+        container.appendChild(subtitle);
+        container.appendChild(progressContainer);
+        overlay.appendChild(container);
+        overlay.appendChild(style);
+        
+        document.body.appendChild(overlay);
+        return overlay;
+    };
+    
+    let loadingOverlay = null;
+    
+    // Wait for body to exist before creating overlay
+    const ensureOverlay = () => {
+        if (!loadingOverlay && document.body) {
+            loadingOverlay = createLoadingOverlay();
+        }
+        return loadingOverlay;
+    };
+    
+    // Try to create immediately if body exists, otherwise wait
+    if (document.body) {
+        loadingOverlay = createLoadingOverlay();
+    } else {
+        // Body doesn't exist yet, wait for DOMContentLoaded
+        document.addEventListener('DOMContentLoaded', () => {
+            loadingOverlay = createLoadingOverlay();
+        });
+    }
 
     // Web Audio API state
     let audioContext = null;
@@ -108,20 +220,31 @@
         return document.querySelector('video');
     }
 
-    // Initialize Web Audio API
+    // Initialize Web Audio API - returns Promise that resolves when ready
     function initializeAudioContext() {
         if (isAudioConnected) {
             console.log('[Basitune Visualizer] Audio already connected');
-            return true;
+            return Promise.resolve(true);
         }
 
-        const video = getVideoElement();
-        if (!video) {
-            console.warn('[Basitune Visualizer] No video element found');
-            return false;
-        }
-
-        try {
+        return new Promise((resolve, reject) => {
+            // Wait for video element to appear (YouTube Music loads it asynchronously)
+            const waitForVideo = () => {
+                const video = getVideoElement();
+                if (!video) {
+                    setTimeout(waitForVideo, 200);
+                    return;
+                }
+                
+                connectAudio(video, resolve, reject);
+            };
+            waitForVideo();
+        });
+    }
+    
+    // Connect audio after video element is found
+    function connectAudio(video, resolve, reject) {
+            try {
             // Create audio context only once
             if (!audioContext) {
                 audioContext = new (window.AudioContext || window.webkitAudioContext)();
@@ -231,15 +354,31 @@
                 console.log('[Basitune Visualizer] Audio routing established');
             }
 
-            // Resume context if needed
-            if (audioContext.state === 'suspended') {
-                audioContext.resume();
-            }
-
-            return true;
+            // Wait for audio context to reach 'running' state
+            const waitForRunning = () => {
+                if (audioContext.state === 'running') {
+                    console.log('[Basitune Visualizer] Audio context running');
+                    // Add extra 500ms for stability
+                    setTimeout(() => {
+                        console.log('[Basitune Visualizer] Audio context stable and ready');
+                        resolve(true);
+                    }, 500);
+                } else if (audioContext.state === 'suspended') {
+                    console.log('[Basitune Visualizer] Audio context suspended, resuming...');
+                    audioContext.resume().then(() => {
+                        setTimeout(waitForRunning, 100);
+                    });
+                } else {
+                    // Context is still initializing
+                    setTimeout(waitForRunning, 100);
+                }
+            };
+            
+            waitForRunning();
+            
         } catch (error) {
             console.error('[Basitune Visualizer] Failed to initialize audio context:', error);
-            return false;
+            reject(error);
         }
     }
 
@@ -267,7 +406,7 @@
     }
 
     // Start visualization
-    function start() {
+    async function start() {
         if (isVisualizerActive) {
             console.log('[Basitune Visualizer] Already active');
             return;
@@ -280,12 +419,12 @@
         
         // Ensure audio is connected (should already be if music is playing)
         if (!isAudioConnected) {
-            initializeAudioContext();
+            await initializeAudioContext();
         }
 
         // Resume audio context if suspended
         if (audioContext && audioContext.state === 'suspended') {
-            audioContext.resume();
+            await audioContext.resume();
         }
 
         // Show canvas, hide placeholder
@@ -980,11 +1119,66 @@
 
     console.log('[Basitune Visualizer] API exposed to window.basituneVisualizer');
     
-    // Initialize audio context automatically to enable auto-advance on song end
-    // This runs even if visualizer rendering is not started
+    // Initialize audio context immediately for high-quality audio from start
+    // Show loading overlay until audio is ready
+    const startTime = Date.now();
+    const MIN_LOADING_TIME = 2000; // Minimum 2 seconds display
+    
+    console.log('[Basitune Visualizer] DEBUG: Scheduling audio init in 1000ms');
+    
     setTimeout(() => {
-        console.log('[Basitune Visualizer] Auto-initializing audio context for song end detection');
-        initializeAudioContext();
-    }, 3000); // Wait 3 seconds for page to load
+        console.log('[Basitune Visualizer] DEBUG: Starting audio initialization...');
+        
+        // Ensure overlay is created if it wasn't already
+        const overlay = ensureOverlay();
+        console.log('[Basitune Visualizer] DEBUG: Loading overlay exists:', !!overlay);
+        console.log('[Basitune Visualizer] DEBUG: Loading overlay in DOM:', overlay?.parentNode !== null);
+        
+        initializeAudioContext()
+            .then(() => {
+                const elapsed = Date.now() - startTime;
+                const remainingTime = Math.max(0, MIN_LOADING_TIME - elapsed);
+                
+                console.log('[Basitune Visualizer] DEBUG: Audio ready. Elapsed:', elapsed, 'ms, Remaining:', remainingTime, 'ms');
+                
+                // Wait for minimum display time before hiding
+                setTimeout(() => {
+                    console.log('[Basitune Visualizer] DEBUG: Hiding loading overlay');
+                    // Fade out loading overlay
+                    const currentOverlay = ensureOverlay();
+                    if (currentOverlay) {
+                        currentOverlay.style.opacity = '0';
+                        console.log('[Basitune Visualizer] DEBUG: Overlay opacity set to 0');
+                        setTimeout(() => {
+                            if (currentOverlay.parentNode) {
+                                currentOverlay.parentNode.removeChild(currentOverlay);
+                                console.log('[Basitune Visualizer] DEBUG: Overlay removed from DOM');
+                            }
+                        }, 500);
+                    }
+                    
+                    // Signal to Rust backend that audio is ready for playback restore
+                    if (window.__TAURI_INTERNALS__) {
+                        window.__TAURI_INTERNALS__.invoke('audio_context_ready').catch(() => {
+                            // Command may not exist yet, that's OK
+                        });
+                    }
+                }, remainingTime);
+            })
+            .catch(err => {
+                console.error('[Basitune Visualizer] DEBUG: Failed to initialize audio:', err);
+                // Hide overlay even on error
+                const currentOverlay = ensureOverlay();
+                if (currentOverlay && currentOverlay.parentNode) {
+                    currentOverlay.style.opacity = '0';
+                    setTimeout(() => {
+                        if (currentOverlay.parentNode) {
+                            currentOverlay.parentNode.removeChild(currentOverlay);
+                        }
+                    }, 500);
+                }
+            });
+    }, 100); // Start almost immediately
 })();
+
 

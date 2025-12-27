@@ -38,6 +38,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Canvas-based rendering with smooth 60fps animations
   - Settings persistence across sessions
   - Start/Stop button to control visualizer activation
+  - Full-window mode: overlay that covers entire window for immersive visualization
+    - Full Window/Exit Full Window toggle button
+    - ESC key to exit full-window mode
+  - Loading screen on app startup to ensure high-quality audio initialization
+    - Displays Basitune branding with animated music icon
+    - "Initializing high-quality audio..." message
+    - Prevents audio distortion/crackling during startup
+    - Promise-based audio context initialization with state monitoring
+    - Minimum 2-second display time for smooth user experience
 
 ### Fixed
 - Auto-advance to next track when current song ends (works with or without visualizer running)
@@ -45,9 +54,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Color palettes now apply to all 11 visualizer styles (waveform, circular, radial, line spectrum, dual waveform)
 - Glow effects now render correctly on waveform visualizer
 - Playback position restore on app startup (saves/restores song position when quitting)
-  - Full-window mode: overlay that covers entire window for immersive visualization
-    - Full Window/Exit Full Window toggle button
-    - ESC key to exit full-window mode
+- Canvas dimensions now properly restore to original size when exiting full-window mode
+- Audio context initialization waits for video element to load (prevents initialization failures)
+- Loading overlay creation respects document.body timing (CSP-compliant DOM construction)
     - Close button (×) in top-right corner
     - Canvas automatically resizes to fit full screen (90vw × 90vh)
 

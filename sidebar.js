@@ -1921,12 +1921,9 @@
             sidebarContainer.insertBefore(sidebarCanvas, sidebarContainer.firstChild);
             if (fullWindowBtn) fullWindowBtn.textContent = 'Full Window';
             
-            // Resize canvas back to sidebar dimensions after DOM update
-            setTimeout(() => {
-                if (window.basituneVisualizer?.resizeCanvas) {
-                    window.basituneVisualizer.resizeCanvas();
-                }
-            }, 50);
+            // Restore canvas to original sidebar dimensions (CSS handles display scaling)
+            sidebarCanvas.width = 720;
+            sidebarCanvas.height = 400;
         } else {
             // Enter full window mode - move canvas to overlay
             overlay.classList.add('active');

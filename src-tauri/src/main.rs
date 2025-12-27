@@ -1406,6 +1406,12 @@ fn get_playback_position(app: tauri::AppHandle) -> Result<Option<PlaybackPositio
     }
 }
 
+#[tauri::command]
+fn audio_context_ready() -> Result<(), String> {
+    println!("[Basitune] Audio context ready signal received");
+    Ok(())
+}
+
 fn rebuild_tray_menu(app: &tauri::AppHandle, state: &str) -> Result<(), String> {
     use tauri::menu::{Menu, MenuItem, PredefinedMenuItem};
     
@@ -1697,7 +1703,8 @@ fn main() {
             update_tray_tooltip,
             show_notification,
             save_playback_position,
-            get_playback_position
+            get_playback_position,
+            audio_context_ready
         ])
         .setup(|app| {
             use tauri::menu::{Menu, MenuItem, PredefinedMenuItem};
