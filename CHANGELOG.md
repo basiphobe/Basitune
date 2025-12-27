@@ -16,6 +16,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Integrates with existing update notification system
   - Button transforms based on state (Check → Install → Ready/Error)
   - Works alongside automatic startup update checks
+
+### Fixed
+- Version synchronization across configuration files
+  - All files now consistently show version 1.0.24 (package.json, tauri.conf.json, Cargo.toml)
+  - Enhanced build script to keep Cargo.toml synchronized with other version files
+- Content Security Policy compliance for update checker UI
+  - Replaced innerHTML assignments with DOM manipulation methods
+  - Eliminated CSP violations in update status displays
 - Music visualizer with real-time audio visualization
   - New Visualizer tab (🎵) in sidebar alongside Artist, Lyrics, Settings, About
   - 11 visualization styles:

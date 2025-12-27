@@ -19,6 +19,12 @@ function getBuildNumber() {
   return Math.floor(Date.now() / 1000).toString();
 }
 
+function updateTomlFile(filePath, updater) {
+  const content = fs.readFileSync(filePath, { encoding: 'utf8' });
+  const newContent = updater(content);
+  fs.writeFileSync(filePath, newContent, { encoding: 'utf8' });
+}
+
 function updateJsonFile(filePath, updater) {
   const content = fs.readFileSync(filePath, { encoding: 'utf8' });
   let data;
@@ -50,6 +56,7 @@ function main() {
   const repoRoot = path.resolve(__dirname, '..');
   const packageJsonPath = path.join(repoRoot, 'package.json');
   const tauriConfPath = path.join(repoRoot, 'src-tauri', 'tauri.conf.json');
+  const cargoTomlPath = path.join(repoRoot, 'src-tauri', 'Cargo.toml');
 
   updateJsonFile(packageJsonPath, (pkg) => {
     pkg.version = newVersion;
@@ -64,7 +71,11 @@ function main() {
     return cfg;
   });
 
-  console.log('Version fields updated in package.json and src-tauri/tauri.conf.json');
+  updateTomlFile(cargoTomlPath, (content) => {
+    return content.replace(/^version\s*=\s*"[^"]*"/m, `version = "${newVersion}"`);
+  });
+
+  console.log('Version fields updated in package.json, tauri.conf.json, and Cargo.toml');
 }
 
 main();

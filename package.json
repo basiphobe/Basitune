@@ -1,6 +1,6 @@
 {
   "name": "basitune",
-  "version": "0.1.146",
+  "version": "1.0.24",
   "description": "A lightweight desktop wrapper for YouTube Music",
   "type": "module",
   "scripts": {

@@ -1502,11 +1502,21 @@
         const statusDiv = document.getElementById('basitune-update-status');
         const progressDiv = document.getElementById('basitune-update-progress');
         
-        if (!checkBtn || !statusDiv) return;
+        if (!checkBtn || !statusDiv) {
+            console.error('[Basitune] Required update elements not found');
+            return;
+        }
         
         // Show checking status
         checkBtn.disabled = true;
-        checkBtn.innerHTML = '<span style="font-size: 16px;">⏳</span><span>Checking...</span>';
+        checkBtn.textContent = '';
+        const spinner = document.createElement('span');
+        spinner.style.fontSize = '16px';
+        spinner.textContent = '⏳';
+        const text = document.createElement('span');
+        text.textContent = 'Checking...';
+        checkBtn.appendChild(spinner);
+        checkBtn.appendChild(text);
         statusDiv.style.display = 'block';
         statusDiv.style.background = 'rgba(255, 255, 255, 0.05)';
         statusDiv.style.color = 'rgba(255, 255, 255, 0.9)';
@@ -1521,14 +1531,38 @@
                 statusDiv.style.background = 'rgba(0, 200, 0, 0.1)';
                 statusDiv.style.border = '1px solid rgba(0, 200, 0, 0.3)';
                 statusDiv.style.color = '#00ff00';
-                statusDiv.innerHTML = `
-                    <div style="margin-bottom: 8px;"><strong>Update Available!</strong></div>
-                    <div style="font-size: 12px; opacity: 0.8;">Current: ${updateInfo.current_version}</div>
-                    <div style="font-size: 12px; opacity: 0.8;">Latest: ${updateInfo.latest_version}</div>
-                `;
+                
+                // Clear and rebuild content safely
+                statusDiv.textContent = '';
+                const title = document.createElement('div');
+                title.style.marginBottom = '8px';
+                const titleStrong = document.createElement('strong');
+                titleStrong.textContent = 'Update Available!';
+                title.appendChild(titleStrong);
+                
+                const currentDiv = document.createElement('div');
+                currentDiv.style.fontSize = '12px';
+                currentDiv.style.opacity = '0.8';
+                currentDiv.textContent = `Current: ${updateInfo.current_version}`;
+                
+                const latestDiv = document.createElement('div');
+                latestDiv.style.fontSize = '12px';
+                latestDiv.style.opacity = '0.8';
+                latestDiv.textContent = `Latest: ${updateInfo.latest_version}`;
+                
+                statusDiv.appendChild(title);
+                statusDiv.appendChild(currentDiv);
+                statusDiv.appendChild(latestDiv);
                 
                 // Replace check button with install button
-                checkBtn.innerHTML = '<span style="font-size: 16px;">⬇️</span><span>Install Update</span>';
+                checkBtn.textContent = '';
+                const downloadIcon = document.createElement('span');
+                downloadIcon.style.fontSize = '16px';
+                downloadIcon.textContent = '⬇️';
+                const downloadText = document.createElement('span');
+                downloadText.textContent = 'Install Update';
+                checkBtn.appendChild(downloadIcon);
+                checkBtn.appendChild(downloadText);
                 checkBtn.disabled = false;
                 checkBtn.onclick = installUpdate;
             } else {
@@ -1538,7 +1572,14 @@
                 statusDiv.style.color = 'rgba(255, 255, 255, 0.9)';
                 statusDiv.textContent = `You're running the latest version (${updateInfo.current_version})`;
                 
-                checkBtn.innerHTML = '<span style="font-size: 16px;">✓</span><span>Up to Date</span>';
+                checkBtn.textContent = '';
+                const checkIcon = document.createElement('span');
+                checkIcon.style.fontSize = '16px';
+                checkIcon.textContent = '✓';
+                const checkText = document.createElement('span');
+                checkText.textContent = 'Up to Date';
+                checkBtn.appendChild(checkIcon);
+                checkBtn.appendChild(checkText);
                 checkBtn.disabled = false;
             }
         } catch (error) {
@@ -1548,7 +1589,14 @@
             statusDiv.style.color = '#ff6b6b';
             statusDiv.textContent = `Error: ${error}`;
             
-            checkBtn.innerHTML = '<span style="font-size: 16px;">🔄</span><span>Check for Updates</span>';
+            checkBtn.textContent = '';
+            const errorIcon = document.createElement('span');
+            errorIcon.style.fontSize = '16px';
+            errorIcon.textContent = '🔄';
+            const errorText = document.createElement('span');
+            errorText.textContent = 'Check for Updates';
+            checkBtn.appendChild(errorIcon);
+            checkBtn.appendChild(errorText);
             checkBtn.disabled = false;
         }
     }
@@ -1564,7 +1612,14 @@
         
         // Show downloading status
         checkBtn.disabled = true;
-        checkBtn.innerHTML = '<span style="font-size: 16px;">⏬</span><span>Installing...</span>';
+        checkBtn.textContent = '';
+        const installIcon = document.createElement('span');
+        installIcon.style.fontSize = '16px';
+        installIcon.textContent = '⏬';
+        const installText = document.createElement('span');
+        installText.textContent = 'Installing...';
+        checkBtn.appendChild(installIcon);
+        checkBtn.appendChild(installText);
         statusDiv.style.display = 'block';
         statusDiv.style.background = 'rgba(255, 255, 255, 0.05)';
         statusDiv.style.border = '1px solid rgba(255, 255, 255, 0.1)';
@@ -1587,12 +1642,31 @@
             statusDiv.style.background = 'rgba(0, 200, 0, 0.1)';
             statusDiv.style.border = '1px solid rgba(0, 200, 0, 0.3)';
             statusDiv.style.color = '#00ff00';
-            statusDiv.innerHTML = `
-                <div><strong>Update Ready!</strong></div>
-                <div style="font-size: 12px; opacity: 0.8; margin-top: 4px;">Restart Basitune to apply the update</div>
-            `;
             
-            checkBtn.innerHTML = '<span style="font-size: 16px;">✓</span><span>Update Ready</span>';
+            // Clear and rebuild content safely
+            statusDiv.textContent = '';
+            const title = document.createElement('div');
+            const titleStrong = document.createElement('strong');
+            titleStrong.textContent = 'Update Ready!';
+            title.appendChild(titleStrong);
+            
+            const subtitle = document.createElement('div');
+            subtitle.style.fontSize = '12px';
+            subtitle.style.opacity = '0.8';
+            subtitle.style.marginTop = '4px';
+            subtitle.textContent = 'Restart Basitune to apply the update';
+            
+            statusDiv.appendChild(title);
+            statusDiv.appendChild(subtitle);
+            
+            checkBtn.textContent = '';
+            const readyIcon = document.createElement('span');
+            readyIcon.style.fontSize = '16px';
+            readyIcon.textContent = '✓';
+            const readyText = document.createElement('span');
+            readyText.textContent = 'Update Ready';
+            checkBtn.appendChild(readyIcon);
+            checkBtn.appendChild(readyText);
             checkBtn.disabled = true;
             progressBar.style.width = '100%';
             progressText.textContent = 'Download complete';
@@ -1609,7 +1683,14 @@
             statusDiv.style.color = '#ff6b6b';
             statusDiv.textContent = `Installation failed: ${error}`;
             
-            checkBtn.innerHTML = '<span style="font-size: 16px;">❌</span><span>Install Failed</span>';
+            checkBtn.textContent = '';
+            const failIcon = document.createElement('span');
+            failIcon.style.fontSize = '16px';
+            failIcon.textContent = '❌';
+            const failText = document.createElement('span');
+            failText.textContent = 'Install Failed';
+            checkBtn.appendChild(failIcon);
+            checkBtn.appendChild(failText);
             checkBtn.disabled = false;
             checkBtn.onclick = installUpdate;
             progressDiv.style.display = 'none';
