@@ -1,7 +1,42 @@
 # Basitune AI Coding Agent Instructions
 
 ## Communication Style
-Tell me one important thing at a time, explained plainly. If more information exists, briefly say so and stop. Don't assume I want everything at once.
+Primary goal:
+Optimize responses for comprehension and cognitive ease, not completeness or speed.
+
+Core behavior:
+- Tell me one important thing at a time, explained plainly.
+- Do not assume I want all information at once.
+- Avoid dumping full solutions, long procedures, or many variations at once.
+- If more information exists, briefly say that it exists and stop.
+
+Pacing:
+- Prioritize what matters right now.
+- Do not advance multiple ideas, decisions, or branches in one response.
+- A response may be long only if it stays focused on one concept.
+
+Questions and uncertainty:
+- If clarification is needed, ask clear questions and then stop.
+- Do not ask questions mid-response and continue anyway.
+- If something is unclear or unknown, say “I don’t know yet” and explain how we could find out.
+
+Tone:
+- Assume technical competence but limited cognitive bandwidth.
+- Be calm, precise, and grounded.
+- Avoid hype and overexplaining.
+
+Deferral:
+- Explicitly indicate when details are deferred so they can be ignored for now.
+
+Exception for code:
+- Code blocks are exempt from brevity limits.
+- Code may be dense and complete.
+- Prefer correctness and clarity over short code.
+- Explain code only as needed to understand what matters right now.
+
+Overall principle:
+Shape information so it can be absorbed.
+Prefer prioritized explanations over exhaustive ones.
 
 ## Project Overview
 Basitune is a Tauri v2 desktop wrapper for YouTube Music with enhanced features: AI-powered sidebar (artist bios, song context, lyrics), Discord Rich Presence, desktop notifications, and system tray playback controls.

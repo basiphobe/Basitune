@@ -61,6 +61,10 @@ struct ApiConfig {
     last_song_title: Option<String>,
     last_position_seconds: Option<f64>,
     was_playing: Option<bool>,
+    // Visualizer settings
+    visualizer_style: Option<String>,
+    visualizer_color: Option<String>,
+    visualizer_sensitivity: Option<f64>,
 }
 
 fn get_config_path(app_handle: &tauri::AppHandle) -> PathBuf {
@@ -112,7 +116,7 @@ fn get_config(app: tauri::AppHandle) -> Result<ApiConfig, String> {
 
 #[tauri::command]
 fn save_config(app: tauri::AppHandle, openai_api_key: String, genius_access_token: String, close_to_tray: bool, enable_notifications: bool) -> Result<(), String> {
-    // Load existing config to preserve playback state
+    // Load existing config to preserve playback state and visualizer settings
     let existing = load_config(&app);
     
     let config = ApiConfig {
@@ -125,7 +129,38 @@ fn save_config(app: tauri::AppHandle, openai_api_key: String, genius_access_toke
         last_song_title: existing.last_song_title,
         last_position_seconds: existing.last_position_seconds,
         was_playing: existing.was_playing,
+        // Preserve visualizer settings
+        visualizer_style: existing.visualizer_style,
+        visualizer_color: existing.visualizer_color,
+        visualizer_sensitivity: existing.visualizer_sensitivity,
     };
+    
+    let config_path = get_config_path(&app);
+    
+    // Ensure the directory exists
+    if let Some(parent) = config_path.parent() {
+        fs::create_dir_all(parent).map_err(|e| format!("Failed to create config directory: {}", e))?;
+    }
+    
+    // Serialize and write config
+    let json = serde_json::to_string_pretty(&config)
+        .map_err(|e| format!("Failed to serialize config: {}", e))?;
+    
+    fs::write(&config_path, json)
+        .map_err(|e| format!("Failed to write config file: {}", e))?;
+    
+    Ok(())
+}
+
+#[tauri::command]
+fn save_visualizer_settings(app: tauri::AppHandle, style: String, color: String, sensitivity: f64) -> Result<(), String> {
+    // Load existing config to preserve other settings
+    let mut config = load_config(&app);
+    
+    // Update visualizer settings
+    config.visualizer_style = Some(style);
+    config.visualizer_color = Some(color);
+    config.visualizer_sensitivity = Some(sensitivity);
     
     let config_path = get_config_path(&app);
     
@@ -1510,6 +1545,7 @@ fn main() {
             // let volume_script = include_str!("../../volume-fix.js");
             let diagnostics_script = include_str!("../../audio-diagnostics.js");
             let playback_script = include_str!("../../playback-controls.js");
+            let visualizer_script = include_str!("../../visualizer.js");
 
             if let Err(e) = window.eval(sidebar_script) {
                 eprintln!("[Basitune] Failed to inject sidebar: {}", e);
@@ -1534,6 +1570,16 @@ fn main() {
                 eprintln!("[Basitune] Failed to inject playback controls: {}", e);
             } else {
                 println!("[Basitune] Playback controls injected via on_page_load");
+            }
+
+            if let Err(e) = window.eval(visualizer_script) {
+                eprintln!("[Basitune] Failed to inject visualizer: {}", e);
+            } else {
+                println!("[Basitune] Visualizer injected via on_page_load");
+            }
+
+            // Inject playback controls last so it can attempt restoration
+            {
                 
                 // Attempt to restore playback position
                 let app_handle = window.app_handle().clone();
@@ -1606,6 +1652,7 @@ fn main() {
             clear_discord_presence,
             get_config,
             save_config,
+            save_visualizer_settings,
             get_app_metadata,
             get_changelog,
             playback_play,

@@ -15,7 +15,7 @@
     let currentArtist = '';
     let currentTitle = '';
     let sidebarVisible = false;
-    let activeTab = 'artist'; // 'artist', 'lyrics', 'settings', or 'about'
+    let activeTab = 'artist'; // 'artist', 'lyrics', 'visualizer', 'settings', or 'about'
     let sidebarWidth = 760; // Default width in pixels
     let sidebarFontSize = 14; // Default font size in pixels
     let isResizing = false;
@@ -142,6 +142,10 @@
                         <span class="basitune-tab-icon">📝</span>
                         <span class="basitune-tab-label">Lyrics</span>
                     </button>
+                    <button class="basitune-tab" data-tab="visualizer" title="Music Visualizer">
+                        <span class="basitune-tab-icon">🎵</span>
+                        <span class="basitune-tab-label">Visualizer</span>
+                    </button>
                     <button class="basitune-tab" data-tab="settings" title="Settings">
                         <span class="basitune-tab-icon">⚙️</span>
                         <span class="basitune-tab-label">Settings</span>
@@ -162,6 +166,39 @@
                     <div id="basitune-lyrics-tab" class="basitune-tab-content">
                         <div id="basitune-lyrics-content">
                             <p class="basitune-placeholder">Play a song to see lyrics</p>
+                        </div>
+                    </div>
+                    <div id="basitune-visualizer-tab" class="basitune-tab-content">
+                        <div id="basitune-visualizer-content">
+                            <canvas id="basitune-visualizer-canvas" width="720" height="400" style="width: 100%; height: auto; background: #0a0a0a; border-radius: 8px; margin-bottom: 20px;"></canvas>
+                            <div style="margin-bottom: 16px;">
+                                <label style="display: block; color: rgba(255, 255, 255, 0.9); font-weight: 500; margin-bottom: 8px; font-size: 13px;">Visualization Style</label>
+                                <select id="basitune-viz-style" style="width: 100%; padding: 10px; background: rgba(255, 255, 255, 0.1) !important; border: 1px solid rgba(255, 255, 255, 0.2); border-radius: 6px; color: #fff !important; font-size: 13px; cursor: pointer; -webkit-appearance: none; -moz-appearance: none; appearance: none; box-sizing: border-box;">
+                                    <option value="bars" style="background: #1a1a1a !important; color: #fff !important;">Frequency Bars</option>
+                                    <option value="wave" style="background: #1a1a1a !important; color: #fff !important;">Waveform</option>
+                                    <option value="circular" style="background: #1a1a1a !important; color: #fff !important;">Circular</option>
+                                    <option value="radial" style="background: #1a1a1a !important; color: #fff !important;">Radial Bars</option>
+                                    <option value="spectrum" style="background: #1a1a1a !important; color: #fff !important;">Spectrum</option>
+                                    <option value="particles" style="background: #1a1a1a !important; color: #fff !important;">Particles</option>
+                                    <option value="symmetrical" style="background: #1a1a1a !important; color: #fff !important;">Symmetrical Bars</option>
+                                    <option value="spiral" style="background: #1a1a1a !important; color: #fff !important;">Spiral</option>
+                                    <option value="blob" style="background: #1a1a1a !important; color: #fff !important;">Blob</option>
+                                    <option value="line" style="background: #1a1a1a !important; color: #fff !important;">Line Spectrum</option>
+                                    <option value="dual" style="background: #1a1a1a !important; color: #fff !important;">Dual Waveform</option>
+                                </select>
+                            </div>
+                            <div style="margin-bottom: 16px;">
+                                <label style="display: block; color: rgba(255, 255, 255, 0.9); font-weight: 500; margin-bottom: 8px; font-size: 13px;">Color</label>
+                                <input type="color" id="basitune-viz-color" value="#ff0000" style="width: 100%; height: 40px; background: rgba(255, 255, 255, 0.1); border: 1px solid rgba(255, 255, 255, 0.2); border-radius: 6px; cursor: pointer;" />
+                            </div>
+                            <div style="margin-bottom: 16px;">
+                                <label style="display: block; color: rgba(255, 255, 255, 0.9); font-weight: 500; margin-bottom: 8px; font-size: 13px;">Sensitivity: <span id="basitune-viz-sensitivity-value">1.0</span></label>
+                                <input type="range" id="basitune-viz-sensitivity" min="0.5" max="2.0" step="0.1" value="1.0" style="width: 100%; accent-color: #ff0000;" />
+                            </div>
+                            <div style="display: flex; gap: 12px; margin-bottom: 12px;">
+                                <button id="basitune-viz-toggle" style="flex: 1; padding: 12px; background: linear-gradient(135deg, #ff0000 0%, #cc0000 100%); border: none; color: #fff; font-size: 14px; font-weight: 600; border-radius: 8px; cursor: pointer; transition: all 0.2s;">Start Visualizer</button>
+                                <button id="basitune-viz-fullwindow" style="flex: 1; padding: 12px; background: linear-gradient(135deg, #444 0%, #222 100%); border: none; color: #fff; font-size: 14px; font-weight: 600; border-radius: 8px; cursor: pointer; transition: all 0.2s;">Full Window</button>
+                            </div>
                         </div>
                     </div>
                     <div id="basitune-settings-tab" class="basitune-tab-content">
@@ -247,6 +284,17 @@
                         </div>
                     </div>
                 </div>
+            </div>
+        `);
+        
+        // Create full-window visualizer overlay
+        const fullWindowOverlay = document.createElement('div');
+        fullWindowOverlay.id = 'basitune-visualizer-overlay';
+        // Don't set inline display style - let CSS handle it via the .active class
+        setHTML(fullWindowOverlay, `
+            <div id="basitune-overlay-content">
+                <button id="basitune-overlay-close" title="Exit Full Window (ESC)">×</button>
+                <div id="basitune-overlay-canvas-container"></div>
             </div>
         `);
         
@@ -1004,6 +1052,71 @@
             #basitune-links-container a:active {
                 transform: translateY(0);
             }
+            
+            /* Full-window visualizer overlay */
+            #basitune-visualizer-overlay {
+                display: none;
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100vw;
+                height: 100vh;
+                background: rgba(0, 0, 0, 0.95);
+                z-index: 100000;
+                justify-content: center;
+                align-items: center;
+            }
+            
+            #basitune-visualizer-overlay.active {
+                display: flex;
+            }
+            
+            #basitune-overlay-content {
+                position: relative;
+                width: 100%;
+                height: 100%;
+                display: flex;
+                justify-content: center;
+                align-items: center;
+            }
+            
+            #basitune-overlay-close {
+                position: absolute;
+                top: 20px;
+                right: 20px;
+                background: rgba(255, 0, 0, 0.8);
+                border: none;
+                color: white;
+                width: 48px;
+                height: 48px;
+                border-radius: 50%;
+                font-size: 32px;
+                line-height: 1;
+                cursor: pointer;
+                transition: all 0.3s;
+                box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+                z-index: 100001;
+            }
+            
+            #basitune-overlay-close:hover {
+                background: rgba(255, 0, 0, 1);
+                transform: scale(1.1);
+                box-shadow: 0 6px 16px rgba(255, 0, 0, 0.6);
+            }
+            
+            #basitune-overlay-canvas-container {
+                width: 90vw;
+                height: 90vh;
+                display: flex;
+                justify-content: center;
+                align-items: center;
+            }
+            
+            #basitune-overlay-canvas-container canvas {
+                max-width: 100%;
+                max-height: 100%;
+                object-fit: contain;
+            }
         `;
         
         document.head.appendChild(style);
@@ -1035,6 +1148,7 @@
         
         document.body.appendChild(sidebar);
         document.body.appendChild(reopenBtn);
+        document.body.appendChild(fullWindowOverlay);
         
         // Prevent scroll bleed-through to main page
         const sidebarContent = document.getElementById('basitune-sidebar-content');
@@ -1333,12 +1447,181 @@
             document.getElementById('basitune-artist-tab').classList.add('active');
         } else if (tabName === 'lyrics') {
             document.getElementById('basitune-lyrics-tab').classList.add('active');
+        } else if (tabName === 'visualizer') {
+            document.getElementById('basitune-visualizer-tab').classList.add('active');
+            initializeVisualizer(); // Initialize visualizer when switching to the tab
         } else if (tabName === 'settings') {
             document.getElementById('basitune-settings-tab').classList.add('active');
             loadSettings(); // Load current settings when switching to settings tab
         } else if (tabName === 'about') {
             document.getElementById('basitune-about-tab').classList.add('active');
             loadAboutInfo(); // Load app metadata
+        }
+    }
+    
+    // Initialize visualizer when tab is opened
+    async function initializeVisualizer() {
+        if (!window.basituneVisualizer) {
+            console.error('[Basitune] Visualizer API not available');
+            return;
+        }
+
+        // Set canvas element
+        const canvas = document.getElementById('basitune-visualizer-canvas');
+        if (canvas) {
+            window.basituneVisualizer.setCanvas(canvas);
+        }
+
+        // Load saved settings
+        try {
+            const config = await window.__TAURI__.core.invoke('get_config');
+            const styleSelect = document.getElementById('basitune-viz-style');
+            const colorInput = document.getElementById('basitune-viz-color');
+            const sensitivityInput = document.getElementById('basitune-viz-sensitivity');
+            const sensitivityValue = document.getElementById('basitune-viz-sensitivity-value');
+
+            if (config.visualizer_style && styleSelect) {
+                styleSelect.value = config.visualizer_style;
+                window.basituneVisualizer.updateSettings({ style: config.visualizer_style });
+            }
+            if (config.visualizer_color && colorInput) {
+                colorInput.value = config.visualizer_color;
+                window.basituneVisualizer.updateSettings({ color: config.visualizer_color });
+            }
+            if (config.visualizer_sensitivity !== undefined && sensitivityInput && sensitivityValue) {
+                sensitivityInput.value = config.visualizer_sensitivity;
+                sensitivityValue.textContent = config.visualizer_sensitivity.toFixed(1);
+                window.basituneVisualizer.updateSettings({ sensitivity: config.visualizer_sensitivity });
+            }
+        } catch (error) {
+            console.error('[Basitune] Failed to load visualizer settings:', error);
+        }
+
+        // Setup event listeners for visualizer controls
+        const toggleBtn = document.getElementById('basitune-viz-toggle');
+        const styleSelect = document.getElementById('basitune-viz-style');
+        const colorInput = document.getElementById('basitune-viz-color');
+        const sensitivityInput = document.getElementById('basitune-viz-sensitivity');
+        const sensitivityValue = document.getElementById('basitune-viz-sensitivity-value');
+
+        if (toggleBtn) {
+            toggleBtn.onclick = function() {
+                if (window.basituneVisualizer.isActive()) {
+                    window.basituneVisualizer.stop();
+                    toggleBtn.textContent = 'Start Visualizer';
+                    toggleBtn.style.background = 'linear-gradient(135deg, #ff0000 0%, #cc0000 100%)';
+                } else {
+                    window.basituneVisualizer.start();
+                    toggleBtn.textContent = 'Stop Visualizer';
+                    toggleBtn.style.background = 'linear-gradient(135deg, #666 0%, #444 100%)';
+                }
+            };
+        }
+
+        if (styleSelect) {
+            styleSelect.onchange = async function() {
+                window.basituneVisualizer.updateSettings({ style: styleSelect.value });
+                await saveVisualizerSettings();
+            };
+        }
+
+        if (colorInput) {
+            colorInput.oninput = async function() {
+                window.basituneVisualizer.updateSettings({ color: colorInput.value });
+                await saveVisualizerSettings();
+            };
+        }
+
+        if (sensitivityInput && sensitivityValue) {
+            sensitivityInput.oninput = async function() {
+                const value = parseFloat(sensitivityInput.value);
+                sensitivityValue.textContent = value.toFixed(1);
+                window.basituneVisualizer.updateSettings({ sensitivity: value });
+                await saveVisualizerSettings();
+            };
+        }
+
+        // Full window button
+        const fullWindowBtn = document.getElementById('basitune-viz-fullwindow');
+        if (fullWindowBtn) {
+            fullWindowBtn.onclick = toggleFullWindow;
+        }
+
+        // Overlay close button
+        const overlayCloseBtn = document.getElementById('basitune-overlay-close');
+        if (overlayCloseBtn) {
+            overlayCloseBtn.onclick = toggleFullWindow;
+        }
+
+        // ESC key to exit full window mode
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                const overlay = document.getElementById('basitune-visualizer-overlay');
+                if (overlay && overlay.classList.contains('active')) {
+                    toggleFullWindow();
+                }
+            }
+        });
+
+        console.log('[Basitune] Visualizer initialized');
+    }
+    
+    // Save visualizer settings to backend
+    async function saveVisualizerSettings() {
+        try {
+            const styleSelect = document.getElementById('basitune-viz-style');
+            const colorInput = document.getElementById('basitune-viz-color');
+            const sensitivityInput = document.getElementById('basitune-viz-sensitivity');
+
+            await window.__TAURI__.core.invoke('save_visualizer_settings', {
+                style: styleSelect?.value || 'bars',
+                color: colorInput?.value || '#ff0000',
+                sensitivity: parseFloat(sensitivityInput?.value || '1.0')
+            });
+        } catch (error) {
+            console.error('[Basitune] Failed to save visualizer settings:', error);
+        }
+    }
+    
+    // Toggle full-window visualizer mode
+    function toggleFullWindow() {
+        const overlay = document.getElementById('basitune-visualizer-overlay');
+        const sidebarCanvas = document.getElementById('basitune-visualizer-canvas');
+        const overlayContainer = document.getElementById('basitune-overlay-canvas-container');
+        const sidebarContainer = document.getElementById('basitune-visualizer-content');
+        const fullWindowBtn = document.getElementById('basitune-viz-fullwindow');
+        
+        if (!overlay || !sidebarCanvas || !overlayContainer || !sidebarContainer) {
+            console.error('[Basitune] Required elements not found');
+            return;
+        }
+        
+        const isActive = overlay.classList.contains('active');
+        
+        if (isActive) {
+            // Exit full window mode - move canvas back to sidebar
+            overlay.classList.remove('active');
+            sidebarContainer.insertBefore(sidebarCanvas, sidebarContainer.firstChild);
+            if (fullWindowBtn) fullWindowBtn.textContent = 'Full Window';
+            
+            // Resize canvas back to sidebar dimensions after DOM update
+            setTimeout(() => {
+                if (window.basituneVisualizer?.resizeCanvas) {
+                    window.basituneVisualizer.resizeCanvas();
+                }
+            }, 50);
+        } else {
+            // Enter full window mode - move canvas to overlay
+            overlay.classList.add('active');
+            overlayContainer.appendChild(sidebarCanvas);
+            if (fullWindowBtn) fullWindowBtn.textContent = 'Exit Full Window';
+            
+            // Resize canvas to full window dimensions after DOM update
+            setTimeout(() => {
+                if (window.basituneVisualizer?.resizeCanvas) {
+                    window.basituneVisualizer.resizeCanvas();
+                }
+            }, 50);
         }
     }
     

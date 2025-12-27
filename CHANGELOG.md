@@ -7,6 +7,33 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- Music visualizer with real-time audio visualization
+  - New Visualizer tab (🎵) in sidebar alongside Artist, Lyrics, Settings, About
+  - 11 visualization styles:
+    - Frequency Bars - Classic vertical frequency bars
+    - Waveform - Time-domain waveform visualization
+    - Circular - Radial frequency visualization with center glow
+    - Radial Bars - Sunburst pattern with bars extending from center
+    - Spectrum - Gradient spectrum analyzer
+    - Particles - Animated particles responding to audio frequencies
+    - Symmetrical Bars - Mirrored frequency bars (top/bottom)
+    - Spiral - Frequencies wrapped in animated spiral pattern
+    - Blob - Organic morphing shape reacting to music
+    - Line Spectrum - Connected line graph with filled area
+    - Dual Waveform - DJ-style mirrored waveforms
+  - Customizable color picker for visualization colors
+  - Adjustable sensitivity slider (0.5x - 2.0x)
+  - Web Audio API integration with YouTube Music's audio stream
+  - Canvas-based rendering with smooth 60fps animations
+  - Settings persistence across sessions
+  - Start/Stop button to control visualizer activation
+  - Full-window mode: overlay that covers entire window for immersive visualization
+    - Full Window/Exit Full Window toggle button
+    - ESC key to exit full-window mode
+    - Close button (×) in top-right corner
+    - Canvas automatically resizes to fit full screen (90vw × 90vh)
+
 ## [1.0.24] - 2025-12-25
 
 ### Added
