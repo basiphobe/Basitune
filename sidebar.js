@@ -171,6 +171,7 @@
                     <div id="basitune-visualizer-tab" class="basitune-tab-content">
                         <div id="basitune-visualizer-content">
                             <canvas id="basitune-visualizer-canvas" width="720" height="400" style="width: 100%; height: auto; background: #0a0a0a; border-radius: 8px; margin-bottom: 20px;"></canvas>
+                            
                             <div style="margin-bottom: 16px;">
                                 <label style="display: block; color: rgba(255, 255, 255, 0.9); font-weight: 500; margin-bottom: 8px; font-size: 13px;">Visualization Style</label>
                                 <select id="basitune-viz-style" style="width: 100%; padding: 10px; background: rgba(255, 255, 255, 0.1) !important; border: 1px solid rgba(255, 255, 255, 0.2); border-radius: 6px; color: #fff !important; font-size: 13px; cursor: pointer; -webkit-appearance: none; -moz-appearance: none; appearance: none; box-sizing: border-box;">
@@ -187,18 +188,83 @@
                                     <option value="dual" style="background: #1a1a1a !important; color: #fff !important;">Dual Waveform</option>
                                 </select>
                             </div>
-                            <div style="margin-bottom: 16px;">
-                                <label style="display: block; color: rgba(255, 255, 255, 0.9); font-weight: 500; margin-bottom: 8px; font-size: 13px;">Color</label>
-                                <input type="color" id="basitune-viz-color" value="#ff0000" style="width: 100%; height: 40px; background: rgba(255, 255, 255, 0.1); border: 1px solid rgba(255, 255, 255, 0.2); border-radius: 6px; cursor: pointer;" />
+
+                            <!-- Colors Section -->
+                            <div class="basitune-viz-section">
+                                <div class="basitune-viz-section-header" data-section="colors">
+                                    <span>🎨 Colors</span>
+                                    <span class="basitune-viz-section-toggle">▼</span>
+                                </div>
+                                <div class="basitune-viz-section-content" id="basitune-viz-colors-section">
+                                    <div style="margin-bottom: 12px;">
+                                        <label style="display: block; color: rgba(255, 255, 255, 0.9); font-weight: 500; margin-bottom: 8px; font-size: 13px;">Color Palette</label>
+                                        <select id="basitune-viz-palette" style="width: 100%; padding: 10px; background: rgba(255, 255, 255, 0.1) !important; border: 1px solid rgba(255, 255, 255, 0.2); border-radius: 6px; color: #fff !important; font-size: 13px; cursor: pointer; -webkit-appearance: none; -moz-appearance: none; appearance: none; box-sizing: border-box;">
+                                            <option value="single" style="background: #1a1a1a !important; color: #fff !important;">Single Color</option>
+                                            <option value="rainbow" style="background: #1a1a1a !important; color: #fff !important;">Rainbow</option>
+                                            <option value="fire" style="background: #1a1a1a !important; color: #fff !important;">Fire</option>
+                                            <option value="ocean" style="background: #1a1a1a !important; color: #fff !important;">Ocean</option>
+                                            <option value="synthwave" style="background: #1a1a1a !important; color: #fff !important;">Synthwave</option>
+                                            <option value="neon" style="background: #1a1a1a !important; color: #fff !important;">Neon</option>
+                                        </select>
+                                    </div>
+                                    <div id="basitune-viz-single-color-container" style="margin-bottom: 12px;">
+                                        <label style="display: block; color: rgba(255, 255, 255, 0.9); font-weight: 500; margin-bottom: 8px; font-size: 13px;">Color</label>
+                                        <input type="color" id="basitune-viz-color" value="#ff0000" style="width: 100%; height: 40px; background: rgba(255, 255, 255, 0.1); border: 1px solid rgba(255, 255, 255, 0.2); border-radius: 6px; cursor: pointer;" />
+                                    </div>
+                                </div>
                             </div>
-                            <div style="margin-bottom: 16px;">
-                                <label style="display: block; color: rgba(255, 255, 255, 0.9); font-weight: 500; margin-bottom: 8px; font-size: 13px;">Sensitivity: <span id="basitune-viz-sensitivity-value">1.0</span></label>
-                                <input type="range" id="basitune-viz-sensitivity" min="0.5" max="2.0" step="0.1" value="1.0" style="width: 100%; accent-color: #ff0000;" />
+
+                            <!-- Animation Section -->
+                            <div class="basitune-viz-section">
+                                <div class="basitune-viz-section-header" data-section="animation">
+                                    <span>⚡ Animation</span>
+                                    <span class="basitune-viz-section-toggle">▼</span>
+                                </div>
+                                <div class="basitune-viz-section-content" id="basitune-viz-animation-section">
+                                    <div style="margin-bottom: 12px;">
+                                        <label style="display: block; color: rgba(255, 255, 255, 0.9); font-weight: 500; margin-bottom: 8px; font-size: 13px;">Sensitivity: <span id="basitune-viz-sensitivity-value">1.0</span>x</label>
+                                        <input type="range" id="basitune-viz-sensitivity" min="0.5" max="2.0" step="0.1" value="1.0" style="width: 100%; accent-color: #ff0000;" />
+                                    </div>
+                                    <div id="basitune-viz-speed-container" style="margin-bottom: 12px;">
+                                        <label style="display: block; color: rgba(255, 255, 255, 0.9); font-weight: 500; margin-bottom: 8px; font-size: 13px;">Animation Speed: <span id="basitune-viz-speed-value">1.0</span>x</label>
+                                        <input type="range" id="basitune-viz-speed" min="0.5" max="2.0" step="0.1" value="1.0" style="width: 100%; accent-color: #ff0000;" />
+                                    </div>
+                                </div>
                             </div>
-                            <div style="display: flex; gap: 12px; margin-bottom: 12px;">
+
+                            <!-- Effects Section -->
+                            <div class="basitune-viz-section">
+                                <div class="basitune-viz-section-header" data-section="effects">
+                                    <span>✨ Effects</span>
+                                    <span class="basitune-viz-section-toggle">▼</span>
+                                </div>
+                                <div class="basitune-viz-section-content" id="basitune-viz-effects-section">
+                                    <div style="margin-bottom: 12px;">
+                                        <label style="display: flex; align-items: center; color: rgba(255, 255, 255, 0.9); font-weight: 500; font-size: 13px; cursor: pointer;">
+                                            <input type="checkbox" id="basitune-viz-glow" style="margin-right: 8px; cursor: pointer;">
+                                            Enable Glow Effect
+                                        </label>
+                                    </div>
+                                    <div id="basitune-viz-glow-intensity-container" style="margin-bottom: 12px; display: none;">
+                                        <label style="display: block; color: rgba(255, 255, 255, 0.9); font-weight: 500; margin-bottom: 8px; font-size: 13px;">Glow Intensity: <span id="basitune-viz-glow-value">10</span>px</label>
+                                        <input type="range" id="basitune-viz-glow-intensity" min="0" max="20" step="1" value="10" style="width: 100%; accent-color: #ff0000;" />
+                                    </div>
+                                    <div id="basitune-viz-bar-spacing-container" style="margin-bottom: 12px;">
+                                        <label style="display: block; color: rgba(255, 255, 255, 0.9); font-weight: 500; margin-bottom: 8px; font-size: 13px;">Bar Spacing: <span id="basitune-viz-spacing-value">1</span>px</label>
+                                        <input type="range" id="basitune-viz-bar-spacing" min="0" max="5" step="0.5" value="1" style="width: 100%; accent-color: #ff0000;" />
+                                    </div>
+                                    <div id="basitune-viz-particle-count-container" style="margin-bottom: 12px;">
+                                        <label style="display: block; color: rgba(255, 255, 255, 0.9); font-weight: 500; margin-bottom: 8px; font-size: 13px;">Particle Count: <span id="basitune-viz-particles-value">80</span></label>
+                                        <input type="range" id="basitune-viz-particle-count" min="20" max="200" step="10" value="80" style="width: 100%; accent-color: #ff0000;" />
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div style="display: flex; gap: 12px; margin: 20px 0 12px 0;">
                                 <button id="basitune-viz-toggle" style="flex: 1; padding: 12px; background: linear-gradient(135deg, #ff0000 0%, #cc0000 100%); border: none; color: #fff; font-size: 14px; font-weight: 600; border-radius: 8px; cursor: pointer; transition: all 0.2s;">Start Visualizer</button>
                                 <button id="basitune-viz-fullwindow" style="flex: 1; padding: 12px; background: linear-gradient(135deg, #444 0%, #222 100%); border: none; color: #fff; font-size: 14px; font-weight: 600; border-radius: 8px; cursor: pointer; transition: all 0.2s;">Full Window</button>
                             </div>
+                            <button id="basitune-viz-reset" style="width: 100%; padding: 10px; background: rgba(255, 255, 255, 0.1); border: 1px solid rgba(255, 255, 255, 0.2); color: rgba(255, 255, 255, 0.8); font-size: 13px; font-weight: 500; border-radius: 6px; cursor: pointer; transition: all 0.2s;">Reset to Defaults</button>
                         </div>
                     </div>
                     <div id="basitune-settings-tab" class="basitune-tab-content">
@@ -1117,6 +1183,59 @@
                 max-height: 100%;
                 object-fit: contain;
             }
+            
+            /* Visualizer collapsible sections */
+            .basitune-viz-section {
+                margin-bottom: 16px;
+                border: 1px solid rgba(255, 255, 255, 0.1);
+                border-radius: 8px;
+                overflow: hidden;
+                background: rgba(255, 255, 255, 0.05);
+            }
+            
+            .basitune-viz-section-header {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                padding: 12px 14px;
+                cursor: pointer;
+                user-select: none;
+                background: rgba(255, 255, 255, 0.05);
+                border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+                transition: background 0.2s;
+            }
+            
+            .basitune-viz-section-header:hover {
+                background: rgba(255, 255, 255, 0.08);
+            }
+            
+            .basitune-viz-section-header span:first-child {
+                color: rgba(255, 255, 255, 0.95);
+                font-weight: 600;
+                font-size: 13px;
+            }
+            
+            .basitune-viz-section-toggle {
+                color: rgba(255, 255, 255, 0.6);
+                font-size: 12px;
+                transition: transform 0.3s;
+            }
+            
+            .basitune-viz-section-header.collapsed .basitune-viz-section-toggle {
+                transform: rotate(-90deg);
+            }
+            
+            .basitune-viz-section-content {
+                padding: 14px;
+                max-height: 500px;
+                overflow: hidden;
+                transition: max-height 0.3s ease, padding 0.3s ease;
+            }
+            
+            .basitune-viz-section-content.collapsed {
+                max-height: 0;
+                padding: 0 14px;
+            }
         `;
         
         document.head.appendChild(style);
@@ -1472,17 +1591,65 @@
             window.basituneVisualizer.setCanvas(canvas);
         }
 
+        // Setup collapsible sections
+        document.querySelectorAll('.basitune-viz-section-header').forEach(header => {
+            header.onclick = function() {
+                this.classList.toggle('collapsed');
+                const content = this.nextElementSibling;
+                content.classList.toggle('collapsed');
+            };
+        });
+
+        // Helper function to update visualizer style-dependent controls
+        function updateControlVisibility(style) {
+            const speedContainer = document.getElementById('basitune-viz-speed-container');
+            const barSpacingContainer = document.getElementById('basitune-viz-bar-spacing-container');
+            const particleCountContainer = document.getElementById('basitune-viz-particle-count-container');
+
+            // Animation speed: only for spiral, blob, particles
+            const animatedVisualizers = ['spiral', 'blob', 'particles'];
+            if (speedContainer) {
+                speedContainer.style.display = animatedVisualizers.includes(style) ? 'block' : 'none';
+            }
+
+            // Bar spacing: only for bars, spectrum, symmetrical
+            const barVisualizers = ['bars', 'spectrum', 'symmetrical'];
+            if (barSpacingContainer) {
+                barSpacingContainer.style.display = barVisualizers.includes(style) ? 'block' : 'none';
+            }
+
+            // Particle count: only for particles
+            if (particleCountContainer) {
+                particleCountContainer.style.display = style === 'particles' ? 'block' : 'none';
+            }
+        }
+
         // Load saved settings
         try {
             const config = await window.__TAURI__.core.invoke('get_config');
+            
+            // Basic settings
             const styleSelect = document.getElementById('basitune-viz-style');
             const colorInput = document.getElementById('basitune-viz-color');
             const sensitivityInput = document.getElementById('basitune-viz-sensitivity');
             const sensitivityValue = document.getElementById('basitune-viz-sensitivity-value');
 
+            // Advanced settings
+            const paletteSelect = document.getElementById('basitune-viz-palette');
+            const speedInput = document.getElementById('basitune-viz-speed');
+            const speedValue = document.getElementById('basitune-viz-speed-value');
+            const glowCheckbox = document.getElementById('basitune-viz-glow');
+            const glowIntensityInput = document.getElementById('basitune-viz-glow-intensity');
+            const glowValue = document.getElementById('basitune-viz-glow-value');
+            const barSpacingInput = document.getElementById('basitune-viz-bar-spacing');
+            const spacingValue = document.getElementById('basitune-viz-spacing-value');
+            const particleCountInput = document.getElementById('basitune-viz-particle-count');
+            const particlesValue = document.getElementById('basitune-viz-particles-value');
+
             if (config.visualizer_style && styleSelect) {
                 styleSelect.value = config.visualizer_style;
                 window.basituneVisualizer.updateSettings({ style: config.visualizer_style });
+                updateControlVisibility(config.visualizer_style);
             }
             if (config.visualizer_color && colorInput) {
                 colorInput.value = config.visualizer_color;
@@ -1492,6 +1659,43 @@
                 sensitivityInput.value = config.visualizer_sensitivity;
                 sensitivityValue.textContent = config.visualizer_sensitivity.toFixed(1);
                 window.basituneVisualizer.updateSettings({ sensitivity: config.visualizer_sensitivity });
+            }
+            if (config.color_palette && paletteSelect) {
+                paletteSelect.value = config.color_palette;
+                window.basituneVisualizer.updateSettings({ colorPalette: config.color_palette });
+                // Show/hide single color picker
+                const singleColorContainer = document.getElementById('basitune-viz-single-color-container');
+                if (singleColorContainer) {
+                    singleColorContainer.style.display = config.color_palette === 'single' ? 'block' : 'none';
+                }
+            }
+            if (config.animation_speed !== undefined && speedInput && speedValue) {
+                speedInput.value = config.animation_speed;
+                speedValue.textContent = config.animation_speed.toFixed(1);
+                window.basituneVisualizer.updateSettings({ animationSpeed: config.animation_speed });
+            }
+            if (config.glow_enabled !== undefined && glowCheckbox) {
+                glowCheckbox.checked = config.glow_enabled;
+                window.basituneVisualizer.updateSettings({ glowEnabled: config.glow_enabled });
+                const glowIntensityContainer = document.getElementById('basitune-viz-glow-intensity-container');
+                if (glowIntensityContainer) {
+                    glowIntensityContainer.style.display = config.glow_enabled ? 'block' : 'none';
+                }
+            }
+            if (config.glow_intensity !== undefined && glowIntensityInput && glowValue) {
+                glowIntensityInput.value = config.glow_intensity;
+                glowValue.textContent = Math.round(config.glow_intensity);
+                window.basituneVisualizer.updateSettings({ glowIntensity: config.glow_intensity });
+            }
+            if (config.bar_spacing !== undefined && barSpacingInput && spacingValue) {
+                barSpacingInput.value = config.bar_spacing;
+                spacingValue.textContent = config.bar_spacing;
+                window.basituneVisualizer.updateSettings({ barSpacing: config.bar_spacing });
+            }
+            if (config.particle_count !== undefined && particleCountInput && particlesValue) {
+                particleCountInput.value = config.particle_count;
+                particlesValue.textContent = config.particle_count;
+                window.basituneVisualizer.updateSettings({ particleCount: config.particle_count });
             }
         } catch (error) {
             console.error('[Basitune] Failed to load visualizer settings:', error);
@@ -1503,6 +1707,17 @@
         const colorInput = document.getElementById('basitune-viz-color');
         const sensitivityInput = document.getElementById('basitune-viz-sensitivity');
         const sensitivityValue = document.getElementById('basitune-viz-sensitivity-value');
+        const paletteSelect = document.getElementById('basitune-viz-palette');
+        const speedInput = document.getElementById('basitune-viz-speed');
+        const speedValue = document.getElementById('basitune-viz-speed-value');
+        const glowCheckbox = document.getElementById('basitune-viz-glow');
+        const glowIntensityInput = document.getElementById('basitune-viz-glow-intensity');
+        const glowValue = document.getElementById('basitune-viz-glow-value');
+        const barSpacingInput = document.getElementById('basitune-viz-bar-spacing');
+        const spacingValue = document.getElementById('basitune-viz-spacing-value');
+        const particleCountInput = document.getElementById('basitune-viz-particle-count');
+        const particlesValue = document.getElementById('basitune-viz-particles-value');
+        const resetBtn = document.getElementById('basitune-viz-reset');
 
         if (toggleBtn) {
             toggleBtn.onclick = function() {
@@ -1521,6 +1736,7 @@
         if (styleSelect) {
             styleSelect.onchange = async function() {
                 window.basituneVisualizer.updateSettings({ style: styleSelect.value });
+                updateControlVisibility(styleSelect.value);
                 await saveVisualizerSettings();
             };
         }
@@ -1537,6 +1753,85 @@
                 const value = parseFloat(sensitivityInput.value);
                 sensitivityValue.textContent = value.toFixed(1);
                 window.basituneVisualizer.updateSettings({ sensitivity: value });
+                await saveVisualizerSettings();
+            };
+        }
+
+        if (paletteSelect) {
+            paletteSelect.onchange = async function() {
+                window.basituneVisualizer.updateSettings({ colorPalette: paletteSelect.value });
+                // Show/hide single color picker
+                const singleColorContainer = document.getElementById('basitune-viz-single-color-container');
+                if (singleColorContainer) {
+                    singleColorContainer.style.display = paletteSelect.value === 'single' ? 'block' : 'none';
+                }
+                await saveVisualizerSettings();
+            };
+        }
+
+        if (speedInput && speedValue) {
+            speedInput.oninput = async function() {
+                const value = parseFloat(speedInput.value);
+                speedValue.textContent = value.toFixed(1);
+                window.basituneVisualizer.updateSettings({ animationSpeed: value });
+                await saveVisualizerSettings();
+            };
+        }
+
+        if (glowCheckbox) {
+            glowCheckbox.onchange = async function() {
+                window.basituneVisualizer.updateSettings({ glowEnabled: glowCheckbox.checked });
+                const glowIntensityContainer = document.getElementById('basitune-viz-glow-intensity-container');
+                if (glowIntensityContainer) {
+                    glowIntensityContainer.style.display = glowCheckbox.checked ? 'block' : 'none';
+                }
+                await saveVisualizerSettings();
+            };
+        }
+
+        if (glowIntensityInput && glowValue) {
+            glowIntensityInput.oninput = async function() {
+                const value = parseFloat(glowIntensityInput.value);
+                glowValue.textContent = Math.round(value);
+                window.basituneVisualizer.updateSettings({ glowIntensity: value });
+                await saveVisualizerSettings();
+            };
+        }
+
+        if (barSpacingInput && spacingValue) {
+            barSpacingInput.oninput = async function() {
+                const value = parseFloat(barSpacingInput.value);
+                spacingValue.textContent = value;
+                window.basituneVisualizer.updateSettings({ barSpacing: value });
+                await saveVisualizerSettings();
+            };
+        }
+
+        if (particleCountInput && particlesValue) {
+            particleCountInput.oninput = async function() {
+                const value = parseInt(particleCountInput.value);
+                particlesValue.textContent = value;
+                window.basituneVisualizer.updateSettings({ particleCount: value });
+                await saveVisualizerSettings();
+            };
+        }
+
+        if (resetBtn) {
+            resetBtn.onclick = async function() {
+                window.basituneVisualizer.resetToDefaults();
+                
+                // Reset all UI controls
+                if (styleSelect) styleSelect.value = 'bars';
+                if (colorInput) colorInput.value = '#ff0000';
+                if (sensitivityInput) { sensitivityInput.value = 1.0; sensitivityValue.textContent = '1.0'; }
+                if (paletteSelect) { paletteSelect.value = 'single'; document.getElementById('basitune-viz-single-color-container').style.display = 'block'; }
+                if (speedInput) { speedInput.value = 1.0; speedValue.textContent = '1.0'; }
+                if (glowCheckbox) { glowCheckbox.checked = false; document.getElementById('basitune-viz-glow-intensity-container').style.display = 'none'; }
+                if (glowIntensityInput) { glowIntensityInput.value = 10; glowValue.textContent = '10'; }
+                if (barSpacingInput) { barSpacingInput.value = 1.0; spacingValue.textContent = '1'; }
+                if (particleCountInput) { particleCountInput.value = 80; particlesValue.textContent = '80'; }
+                
+                updateControlVisibility('bars');
                 await saveVisualizerSettings();
             };
         }
@@ -1572,11 +1867,25 @@
             const styleSelect = document.getElementById('basitune-viz-style');
             const colorInput = document.getElementById('basitune-viz-color');
             const sensitivityInput = document.getElementById('basitune-viz-sensitivity');
+            const paletteSelect = document.getElementById('basitune-viz-palette');
+            const speedInput = document.getElementById('basitune-viz-speed');
+            const glowCheckbox = document.getElementById('basitune-viz-glow');
+            const glowIntensityInput = document.getElementById('basitune-viz-glow-intensity');
+            const barSpacingInput = document.getElementById('basitune-viz-bar-spacing');
+            const particleCountInput = document.getElementById('basitune-viz-particle-count');
 
             await window.__TAURI__.core.invoke('save_visualizer_settings', {
-                style: styleSelect?.value || 'bars',
-                color: colorInput?.value || '#ff0000',
-                sensitivity: parseFloat(sensitivityInput?.value || '1.0')
+                settings: {
+                    style: styleSelect?.value || 'bars',
+                    color: colorInput?.value || '#ff0000',
+                    sensitivity: parseFloat(sensitivityInput?.value || '1.0'),
+                    colorPalette: paletteSelect?.value || 'single',
+                    animationSpeed: parseFloat(speedInput?.value || '1.0'),
+                    glowEnabled: glowCheckbox?.checked || false,
+                    glowIntensity: parseFloat(glowIntensityInput?.value || '10.0'),
+                    barSpacing: parseFloat(barSpacingInput?.value || '1.0'),
+                    particleCount: parseInt(particleCountInput?.value || '80')
+                }
             });
         } catch (error) {
             console.error('[Basitune] Failed to save visualizer settings:', error);

@@ -65,6 +65,12 @@ struct ApiConfig {
     visualizer_style: Option<String>,
     visualizer_color: Option<String>,
     visualizer_sensitivity: Option<f64>,
+    color_palette: Option<String>,
+    animation_speed: Option<f64>,
+    glow_enabled: Option<bool>,
+    glow_intensity: Option<f64>,
+    bar_spacing: Option<f64>,
+    particle_count: Option<i32>,
 }
 
 fn get_config_path(app_handle: &tauri::AppHandle) -> PathBuf {
@@ -133,6 +139,12 @@ fn save_config(app: tauri::AppHandle, openai_api_key: String, genius_access_toke
         visualizer_style: existing.visualizer_style,
         visualizer_color: existing.visualizer_color,
         visualizer_sensitivity: existing.visualizer_sensitivity,
+        color_palette: existing.color_palette,
+        animation_speed: existing.animation_speed,
+        glow_enabled: existing.glow_enabled,
+        glow_intensity: existing.glow_intensity,
+        bar_spacing: existing.bar_spacing,
+        particle_count: existing.particle_count,
     };
     
     let config_path = get_config_path(&app);
@@ -152,15 +164,34 @@ fn save_config(app: tauri::AppHandle, openai_api_key: String, genius_access_toke
     Ok(())
 }
 
+#[derive(Debug, Serialize, Deserialize)]
+struct VisualizerSettings {
+    style: String,
+    color: String,
+    sensitivity: f64,
+    color_palette: String,
+    animation_speed: f64,
+    glow_enabled: bool,
+    glow_intensity: f64,
+    bar_spacing: f64,
+    particle_count: i32,
+}
+
 #[tauri::command]
-fn save_visualizer_settings(app: tauri::AppHandle, style: String, color: String, sensitivity: f64) -> Result<(), String> {
+fn save_visualizer_settings(app: tauri::AppHandle, settings: VisualizerSettings) -> Result<(), String> {
     // Load existing config to preserve other settings
     let mut config = load_config(&app);
     
     // Update visualizer settings
-    config.visualizer_style = Some(style);
-    config.visualizer_color = Some(color);
-    config.visualizer_sensitivity = Some(sensitivity);
+    config.visualizer_style = Some(settings.style);
+    config.visualizer_color = Some(settings.color);
+    config.visualizer_sensitivity = Some(settings.sensitivity);
+    config.color_palette = Some(settings.color_palette);
+    config.animation_speed = Some(settings.animation_speed);
+    config.glow_enabled = Some(settings.glow_enabled);
+    config.glow_intensity = Some(settings.glow_intensity);
+    config.bar_spacing = Some(settings.bar_spacing);
+    config.particle_count = Some(settings.particle_count);
     
     let config_path = get_config_path(&app);
     

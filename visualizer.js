@@ -45,6 +45,63 @@
     let barColor = '#ff0000';      // Primary color for visualization
     let backgroundColor = '#0a0a0a'; // Canvas background color
     let sensitivity = 1.0;         // Multiplier for bar heights (0.5 - 2.0)
+    
+    // Advanced settings
+    let colorPalette = 'single';   // 'single', 'rainbow', 'fire', 'ocean', 'synthwave', 'neon'
+    let animationSpeed = 1.0;      // 0.5 - 2.0x multiplier for animated visualizers
+    let glowEnabled = false;       // Enable glow/bloom effect
+    let glowIntensity = 10.0;      // Shadow blur radius (0-20px)
+    let barSpacing = 1.0;          // Gap between bars (0-5px)
+    let particleCount = 80;        // Number of particles (20-200)
+    
+    // Color palette definitions
+    const COLOR_PALETTES = {
+        'single': null, // Uses barColor
+        'rainbow': ['#ff0000', '#ff7f00', '#ffff00', '#00ff00', '#0000ff', '#4b0082', '#9400d3'],
+        'fire': ['#ff0000', '#ff4500', '#ffa500', '#ffff00'],
+        'ocean': ['#000080', '#0000ff', '#00ffff', '#40e0d0'],
+        'synthwave': ['#ff00ff', '#ff1493', '#00ffff', '#9400d3'],
+        'neon': ['#ff00ff', '#00ff00', '#00ffff', '#ffff00']
+    };
+
+    // Get colors for current palette
+    function getPaletteColors() {
+        if (colorPalette === 'single' || !COLOR_PALETTES[colorPalette]) {
+            return [barColor, adjustColorBrightness(barColor, -40)];
+        }
+        return COLOR_PALETTES[colorPalette];
+    }
+    
+    // Get color from palette at position (0.0 - 1.0)
+    function getColorForPalette(position) {
+        const colors = getPaletteColors();
+        if (colors.length === 1) return colors[0];
+        
+        const scaledPos = position * (colors.length - 1);
+        const index = Math.floor(scaledPos);
+        const nextIndex = Math.min(index + 1, colors.length - 1);
+        
+        // Simple color at index (no interpolation for now)
+        return colors[index];
+    }
+    
+    // Apply glow effect
+    function applyGlow() {
+        if (glowEnabled) {
+            canvasCtx.shadowBlur = glowIntensity;
+            canvasCtx.shadowColor = barColor;
+        }
+    }
+    
+    // Clear glow effect
+    function clearGlow() {
+        canvasCtx.shadowBlur = 0;
+    }
+    
+    // Get animation time with speed multiplier
+    function getAnimationTime() {
+        return Date.now() / (1000 / animationSpeed);
+    }
 
     // Get the video element from YouTube Music
     function getVideoElement() {
@@ -248,22 +305,34 @@
         canvasCtx.fillStyle = backgroundColor;
         canvasCtx.fillRect(0, 0, width, height);
 
-        const barWidth = (width / bufferLength) * 2.5;
+        const barWidth = ((width / bufferLength) * 2.5) - barSpacing;
         let x = 0;
+
+        applyGlow();
 
         for (let i = 0; i < bufferLength; i++) {
             const barHeight = (dataArray[i] / 255) * height * sensitivity;
 
-            // Create gradient for bars
+            // Create gradient for bars using palette
             const gradient = canvasCtx.createLinearGradient(0, height - barHeight, 0, height);
-            gradient.addColorStop(0, barColor);
-            gradient.addColorStop(1, adjustColorBrightness(barColor, -40));
+            const colors = getPaletteColors();
+            if (colors.length > 2) {
+                // Multi-color palette
+                colors.forEach((color, idx) => {
+                    gradient.addColorStop(idx / (colors.length - 1), color);
+                });
+            } else {
+                gradient.addColorStop(0, colors[0]);
+                gradient.addColorStop(1, colors[1] || adjustColorBrightness(colors[0], -40));
+            }
 
             canvasCtx.fillStyle = gradient;
             canvasCtx.fillRect(x, height - barHeight, barWidth, barHeight);
 
-            x += barWidth + 1;
+            x += barWidth + barSpacing + 1;
         }
+
+        clearGlow();
     }
 
     // Render waveform visualizer
@@ -390,22 +459,33 @@
         canvasCtx.fillStyle = backgroundColor;
         canvasCtx.fillRect(0, 0, width, height);
 
-        const barWidth = width / bufferLength;
+        const barWidth = (width / bufferLength) - barSpacing;
+
+        applyGlow();
 
         for (let i = 0; i < bufferLength; i++) {
             const barHeight = (dataArray[i] / 255) * height * sensitivity;
-            const x = i * barWidth;
+            const x = i * (barWidth + barSpacing);
             const y = height - barHeight;
 
-            // Create vertical gradient
+            // Create vertical gradient with palette
             const gradient = canvasCtx.createLinearGradient(x, height, x, y);
-            gradient.addColorStop(0, adjustColorBrightness(barColor, -60));
-            gradient.addColorStop(0.5, barColor);
-            gradient.addColorStop(1, adjustColorBrightness(barColor, 60));
+            const colors = getPaletteColors();
+            if (colors.length > 2) {
+                colors.forEach((color, idx) => {
+                    gradient.addColorStop(idx / (colors.length - 1), color);
+                });
+            } else {
+                gradient.addColorStop(0, adjustColorBrightness(colors[0], -60));
+                gradient.addColorStop(0.5, colors[0]);
+                gradient.addColorStop(1, adjustColorBrightness(colors[0], 60));
+            }
 
             canvasCtx.fillStyle = gradient;
-            canvasCtx.fillRect(x, y, barWidth - 1, barHeight);
+            canvasCtx.fillRect(x, y, barWidth, barHeight);
         }
+
+        clearGlow();
     }
 
     // Render particles
@@ -418,20 +498,21 @@
         canvasCtx.fillStyle = backgroundColor;
         canvasCtx.fillRect(0, 0, width, height);
 
-        const particleCount = 80;
+        applyGlow();
 
         for (let i = 0; i < particleCount; i++) {
             const dataIndex = Math.floor((i / particleCount) * bufferLength);
             const intensity = dataArray[dataIndex] / 255;
-            const angle = (i / particleCount) * Math.PI * 2 + (Date.now() / 1000);
+            const angle = (i / particleCount) * Math.PI * 2 + getAnimationTime();
             const distance = intensity * Math.min(width, height) * 0.4 * sensitivity;
 
             const x = centerX + Math.cos(angle) * distance;
             const y = centerY + Math.sin(angle) * distance;
             const size = 2 + intensity * 6;
 
+            const color = getColorForPalette(i / particleCount);
             const gradient = canvasCtx.createRadialGradient(x, y, 0, x, y, size);
-            gradient.addColorStop(0, barColor);
+            gradient.addColorStop(0, color);
             gradient.addColorStop(1, 'transparent');
 
             canvasCtx.fillStyle = gradient;
@@ -439,6 +520,8 @@
             canvasCtx.arc(x, y, size, 0, Math.PI * 2);
             canvasCtx.fill();
         }
+
+        clearGlow();
     }
 
     // Render symmetrical bars (mirrored)
@@ -450,26 +533,44 @@
         canvasCtx.fillStyle = backgroundColor;
         canvasCtx.fillRect(0, 0, width, height);
 
-        const barWidth = width / bufferLength;
+        const barWidth = (width / bufferLength) - barSpacing;
+
+        applyGlow();
 
         for (let i = 0; i < bufferLength; i++) {
             const barHeight = (dataArray[i] / 255) * (height / 2) * sensitivity;
-            const x = i * barWidth;
+            const x = i * (barWidth + barSpacing);
 
+            const colors = getPaletteColors();
+            
             // Top half
             const gradient1 = canvasCtx.createLinearGradient(x, centerY, x, centerY - barHeight);
-            gradient1.addColorStop(0, barColor);
-            gradient1.addColorStop(1, adjustColorBrightness(barColor, -40));
+            if (colors.length > 2) {
+                colors.forEach((color, idx) => {
+                    gradient1.addColorStop(idx / (colors.length - 1), color);
+                });
+            } else {
+                gradient1.addColorStop(0, colors[0]);
+                gradient1.addColorStop(1, adjustColorBrightness(colors[0], -40));
+            }
             canvasCtx.fillStyle = gradient1;
-            canvasCtx.fillRect(x, centerY - barHeight, barWidth - 1, barHeight);
+            canvasCtx.fillRect(x, centerY - barHeight, barWidth, barHeight);
 
             // Bottom half (mirrored)
             const gradient2 = canvasCtx.createLinearGradient(x, centerY, x, centerY + barHeight);
-            gradient2.addColorStop(0, barColor);
-            gradient2.addColorStop(1, adjustColorBrightness(barColor, -40));
+            if (colors.length > 2) {
+                colors.forEach((color, idx) => {
+                    gradient2.addColorStop(idx / (colors.length - 1), color);
+                });
+            } else {
+                gradient2.addColorStop(0, colors[0]);
+                gradient2.addColorStop(1, adjustColorBrightness(colors[0], -40));
+            }
             canvasCtx.fillStyle = gradient2;
-            canvasCtx.fillRect(x, centerY, barWidth - 1, barHeight);
+            canvasCtx.fillRect(x, centerY, barWidth, barHeight);
         }
+
+        clearGlow();
     }
 
     // Render spiral
@@ -484,7 +585,9 @@
 
         const points = 200;
         const spiralTurns = 3;
-        const time = Date.now() / 2000;
+        const time = getAnimationTime() / 2;
+
+        applyGlow();
 
         canvasCtx.strokeStyle = barColor;
         canvasCtx.lineWidth = 2;
@@ -520,8 +623,9 @@
             const x = centerX + Math.cos(angle) * distance;
             const y = centerY + Math.sin(angle) * distance;
 
+            const color = getColorForPalette(progress);
             const gradient = canvasCtx.createRadialGradient(x, y, 0, x, y, 4);
-            gradient.addColorStop(0, barColor);
+            gradient.addColorStop(0, color);
             gradient.addColorStop(1, 'transparent');
 
             canvasCtx.fillStyle = gradient;
@@ -529,6 +633,8 @@
             canvasCtx.arc(x, y, 4, 0, Math.PI * 2);
             canvasCtx.fill();
         }
+
+        clearGlow();
     }
 
     // Render blob
@@ -543,7 +649,7 @@
 
         const points = 32;
         const baseRadius = Math.min(width, height) * 0.2;
-        const time = Date.now() / 1000;
+        const time = getAnimationTime();
 
         canvasCtx.beginPath();
 
@@ -566,11 +672,20 @@
 
         canvasCtx.closePath();
 
-        // Fill with gradient
+        applyGlow();
+
+        // Fill with gradient using palette
+        const colors = getPaletteColors();
         const gradient = canvasCtx.createRadialGradient(centerX, centerY, 0, centerX, centerY, baseRadius * 2);
-        gradient.addColorStop(0, adjustColorBrightness(barColor, 40));
-        gradient.addColorStop(0.7, barColor);
-        gradient.addColorStop(1, adjustColorBrightness(barColor, -40));
+        if (colors.length > 2) {
+            colors.forEach((color, idx) => {
+                gradient.addColorStop(idx / (colors.length - 1), color);
+            });
+        } else {
+            gradient.addColorStop(0, adjustColorBrightness(colors[0], 40));
+            gradient.addColorStop(0.7, colors[0]);
+            gradient.addColorStop(1, adjustColorBrightness(colors[0], -40));
+        }
 
         canvasCtx.fillStyle = gradient;
         canvasCtx.fill();
@@ -579,6 +694,8 @@
         canvasCtx.strokeStyle = barColor;
         canvasCtx.lineWidth = 2;
         canvasCtx.stroke();
+
+        clearGlow();
     }
 
     // Render line spectrum
@@ -699,8 +816,30 @@
         if (settings.color) barColor = settings.color;
         if (settings.backgroundColor) backgroundColor = settings.backgroundColor;
         if (settings.sensitivity !== undefined) sensitivity = settings.sensitivity;
+        if (settings.colorPalette) colorPalette = settings.colorPalette;
+        if (settings.animationSpeed !== undefined) animationSpeed = settings.animationSpeed;
+        if (settings.glowEnabled !== undefined) glowEnabled = settings.glowEnabled;
+        if (settings.glowIntensity !== undefined) glowIntensity = settings.glowIntensity;
+        if (settings.barSpacing !== undefined) barSpacing = settings.barSpacing;
+        if (settings.particleCount !== undefined) particleCount = settings.particleCount;
         
         console.log('[Basitune Visualizer] Settings updated:', settings);
+    }
+    
+    // Reset to default settings
+    function resetToDefaults() {
+        visualizerStyle = 'bars';
+        barColor = '#ff0000';
+        backgroundColor = '#0a0a0a';
+        sensitivity = 1.0;
+        colorPalette = 'single';
+        animationSpeed = 1.0;
+        glowEnabled = false;
+        glowIntensity = 10.0;
+        barSpacing = 1.0;
+        particleCount = 80;
+        
+        console.log('[Basitune Visualizer] Reset to defaults');
     }
 
     // Expose API to window
@@ -710,7 +849,19 @@
         start,
         stop,
         updateSettings,
-        isActive: () => isVisualizerActive
+        resetToDefaults,
+        isActive: () => isVisualizerActive,
+        getSettings: () => ({
+            style: visualizerStyle,
+            color: barColor,
+            sensitivity,
+            colorPalette,
+            animationSpeed,
+            glowEnabled,
+            glowIntensity,
+            barSpacing,
+            particleCount
+        })
     };
 
     console.log('[Basitune Visualizer] API exposed to window.basituneVisualizer');
