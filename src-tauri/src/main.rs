@@ -71,6 +71,7 @@ struct ApiConfig {
     glow_intensity: Option<f64>,
     bar_spacing: Option<f64>,
     particle_count: Option<i32>,
+    line_thickness: Option<f64>,
 }
 
 fn get_config_path(app_handle: &tauri::AppHandle) -> PathBuf {
@@ -145,6 +146,7 @@ fn save_config(app: tauri::AppHandle, openai_api_key: String, genius_access_toke
         glow_intensity: existing.glow_intensity,
         bar_spacing: existing.bar_spacing,
         particle_count: existing.particle_count,
+        line_thickness: existing.line_thickness,
     };
     
     let config_path = get_config_path(&app);
@@ -175,6 +177,7 @@ struct VisualizerSettings {
     glow_intensity: f64,
     bar_spacing: f64,
     particle_count: i32,
+    line_thickness: f64,
 }
 
 #[tauri::command]
@@ -192,6 +195,7 @@ fn save_visualizer_settings(app: tauri::AppHandle, settings: VisualizerSettings)
     config.glow_intensity = Some(settings.glow_intensity);
     config.bar_spacing = Some(settings.bar_spacing);
     config.particle_count = Some(settings.particle_count);
+    config.line_thickness = Some(settings.line_thickness);
     
     let config_path = get_config_path(&app);
     

@@ -257,6 +257,10 @@
                                         <label style="display: block; color: rgba(255, 255, 255, 0.9); font-weight: 500; margin-bottom: 8px; font-size: 13px;">Glow Intensity: <span id="basitune-viz-glow-value">10</span>px</label>
                                         <input type="range" id="basitune-viz-glow-intensity" min="0" max="20" step="1" value="10" style="width: 100%; accent-color: #ff0000;" />
                                     </div>
+                                    <div id="basitune-viz-line-thickness-container" style="margin-bottom: 12px;">
+                                        <label style="display: block; color: rgba(255, 255, 255, 0.9); font-weight: 500; margin-bottom: 8px; font-size: 13px;">Line Thickness: <span id="basitune-viz-thickness-value">2</span>px</label>
+                                        <input type="range" id="basitune-viz-line-thickness" min="1" max="10" step="0.5" value="2" style="width: 100%; accent-color: #ff0000;" />
+                                    </div>
                                     <div id="basitune-viz-bar-spacing-container" style="margin-bottom: 12px;">
                                         <label style="display: block; color: rgba(255, 255, 255, 0.9); font-weight: 500; margin-bottom: 8px; font-size: 13px;">Bar Spacing: <span id="basitune-viz-spacing-value">1</span>px</label>
                                         <input type="range" id="basitune-viz-bar-spacing" min="0" max="5" step="0.5" value="1" style="width: 100%; accent-color: #ff0000;" />
@@ -1613,6 +1617,7 @@
             const speedContainer = document.getElementById('basitune-viz-speed-container');
             const barSpacingContainer = document.getElementById('basitune-viz-bar-spacing-container');
             const particleCountContainer = document.getElementById('basitune-viz-particle-count-container');
+            const lineThicknessContainer = document.getElementById('basitune-viz-line-thickness-container');
 
             // Animation speed: only for spiral, blob, particles
             const animatedVisualizers = ['spiral', 'blob', 'particles'];
@@ -1629,6 +1634,12 @@
             // Particle count: only for particles
             if (particleCountContainer) {
                 particleCountContainer.style.display = style === 'particles' ? 'block' : 'none';
+            }
+            
+            // Line thickness: for waveform, circular, radial, spiral, blob, line spectrum, dual waveform
+            const lineVisualizers = ['wave', 'circular', 'radial', 'spiral', 'blob', 'line', 'dual'];
+            if (lineThicknessContainer) {
+                lineThicknessContainer.style.display = lineVisualizers.includes(style) ? 'block' : 'none';
             }
         }
 
@@ -1705,6 +1716,15 @@
                 particlesValue.textContent = config.particle_count;
                 window.basituneVisualizer.updateSettings({ particleCount: config.particle_count });
             }
+            if (config.line_thickness !== undefined) {
+                const lineThicknessInput = document.getElementById('basitune-viz-line-thickness');
+                const thicknessValue = document.getElementById('basitune-viz-thickness-value');
+                if (lineThicknessInput && thicknessValue) {
+                    lineThicknessInput.value = config.line_thickness;
+                    thicknessValue.textContent = config.line_thickness;
+                    window.basituneVisualizer.updateSettings({ lineThickness: config.line_thickness });
+                }
+            }
         } catch (error) {
             console.error('[Basitune] Failed to load visualizer settings:', error);
         }
@@ -1725,6 +1745,8 @@
         const spacingValue = document.getElementById('basitune-viz-spacing-value');
         const particleCountInput = document.getElementById('basitune-viz-particle-count');
         const particlesValue = document.getElementById('basitune-viz-particles-value');
+        const lineThicknessInput = document.getElementById('basitune-viz-line-thickness');
+        const thicknessValue = document.getElementById('basitune-viz-thickness-value');
         const resetBtn = document.getElementById('basitune-viz-reset');
 
         if (toggleBtn) {
@@ -1824,6 +1846,15 @@
             };
         }
 
+        if (lineThicknessInput && thicknessValue) {
+            lineThicknessInput.oninput = async function() {
+                const value = parseFloat(lineThicknessInput.value);
+                thicknessValue.textContent = value;
+                window.basituneVisualizer.updateSettings({ lineThickness: value });
+                await saveVisualizerSettings();
+            };
+        }
+
         if (resetBtn) {
             resetBtn.onclick = async function() {
                 window.basituneVisualizer.resetToDefaults();
@@ -1838,6 +1869,7 @@
                 if (glowIntensityInput) { glowIntensityInput.value = 10; glowValue.textContent = '10'; }
                 if (barSpacingInput) { barSpacingInput.value = 1.0; spacingValue.textContent = '1'; }
                 if (particleCountInput) { particleCountInput.value = 80; particlesValue.textContent = '80'; }
+                if (lineThicknessInput) { lineThicknessInput.value = 2.0; thicknessValue.textContent = '2'; }
                 
                 updateControlVisibility('bars');
                 await saveVisualizerSettings();
@@ -1881,18 +1913,20 @@
             const glowIntensityInput = document.getElementById('basitune-viz-glow-intensity');
             const barSpacingInput = document.getElementById('basitune-viz-bar-spacing');
             const particleCountInput = document.getElementById('basitune-viz-particle-count');
+            const lineThicknessInput = document.getElementById('basitune-viz-line-thickness');
 
             await window.__TAURI__.core.invoke('save_visualizer_settings', {
                 settings: {
                     style: styleSelect?.value || 'bars',
                     color: colorInput?.value || '#ff0000',
                     sensitivity: parseFloat(sensitivityInput?.value || '1.0'),
-                    colorPalette: paletteSelect?.value || 'single',
-                    animationSpeed: parseFloat(speedInput?.value || '1.0'),
-                    glowEnabled: glowCheckbox?.checked || false,
-                    glowIntensity: parseFloat(glowIntensityInput?.value || '10.0'),
-                    barSpacing: parseFloat(barSpacingInput?.value || '1.0'),
-                    particleCount: parseInt(particleCountInput?.value || '80')
+                    color_palette: paletteSelect?.value || 'single',
+                    animation_speed: parseFloat(speedInput?.value || '1.0'),
+                    glow_enabled: glowCheckbox?.checked || false,
+                    glow_intensity: parseFloat(glowIntensityInput?.value || '10.0'),
+                    bar_spacing: parseFloat(barSpacingInput?.value || '1.0'),
+                    particle_count: parseInt(particleCountInput?.value || '80'),
+                    line_thickness: parseFloat(lineThicknessInput?.value || '2.0')
                 }
             });
         } catch (error) {

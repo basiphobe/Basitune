@@ -26,6 +26,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     - Color palettes: 6 presets (single, rainbow, fire, ocean, synthwave, neon)
     - Animation speed control (0.5x - 2.0x) for spiral, blob, and particles
     - Glow effects with adjustable intensity (0-20px shadow blur)
+    - Line thickness control (1-10px, 0.5px steps) for line-based visualizers (waveform, circular, radial, spiral, blob, line spectrum, dual waveform)
     - Bar spacing control (0-5px) for bars, spectrum, and symmetrical visualizers
     - Particle count slider (20-200) for particles visualizer
     - Collapsible UI sections (Colors, Animation, Effects)

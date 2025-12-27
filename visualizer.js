@@ -165,6 +165,7 @@
     let glowIntensity = 10.0;      // Shadow blur radius (0-20px)
     let barSpacing = 1.0;          // Gap between bars (0-5px)
     let particleCount = 80;        // Number of particles (20-200)
+    let lineThickness = 2.0;       // Line width for stroke-based visualizers (1-10px)
     
     // Color palette definitions
     const COLOR_PALETTES = {
@@ -566,7 +567,7 @@
             canvasCtx.shadowColor = getColorForPalette(0.5);
         }
         
-        canvasCtx.lineWidth = 2;
+        canvasCtx.lineWidth = lineThickness;
         canvasCtx.beginPath();
 
         const sliceWidth = width / waveData.length;
@@ -622,7 +623,7 @@
             gradient.addColorStop(1, adjustColorBrightness(color, -40));
 
             canvasCtx.strokeStyle = gradient;
-            canvasCtx.lineWidth = 2;
+            canvasCtx.lineWidth = lineThickness;
             canvasCtx.beginPath();
             canvasCtx.moveTo(x1, y1);
             canvasCtx.lineTo(x2, y2);
@@ -666,7 +667,7 @@
             gradient.addColorStop(1, adjustColorBrightness(color, 40));
 
             canvasCtx.strokeStyle = gradient;
-            canvasCtx.lineWidth = 4;
+            canvasCtx.lineWidth = lineThickness;
             canvasCtx.beginPath();
             canvasCtx.moveTo(x1, y1);
             canvasCtx.lineTo(x2, y2);
@@ -814,7 +815,7 @@
         applyGlow();
 
         canvasCtx.strokeStyle = barColor;
-        canvasCtx.lineWidth = 2;
+        canvasCtx.lineWidth = lineThickness;
         canvasCtx.beginPath();
 
         for (let i = 0; i < points; i++) {
@@ -916,7 +917,7 @@
 
         // Add outline
         canvasCtx.strokeStyle = barColor;
-        canvasCtx.lineWidth = 2;
+        canvasCtx.lineWidth = lineThickness;
         canvasCtx.stroke();
 
         clearGlow();
@@ -945,7 +946,7 @@
         }
 
         applyGlow();
-        canvasCtx.lineWidth = 2;
+        canvasCtx.lineWidth = lineThickness;
         canvasCtx.beginPath();
 
         for (let i = 0; i < bufferLength; i++) {
@@ -1002,7 +1003,7 @@
         }
 
         applyGlow();
-        canvasCtx.lineWidth = 2;
+        canvasCtx.lineWidth = lineThickness;
 
         // Top waveform
         canvasCtx.beginPath();
@@ -1075,6 +1076,7 @@
         if (settings.glowIntensity !== undefined) glowIntensity = settings.glowIntensity;
         if (settings.barSpacing !== undefined) barSpacing = settings.barSpacing;
         if (settings.particleCount !== undefined) particleCount = settings.particleCount;
+        if (settings.lineThickness !== undefined) lineThickness = settings.lineThickness;
         
         console.log('[Basitune Visualizer] Settings updated:', settings);
     }
@@ -1091,6 +1093,7 @@
         glowIntensity = 10.0;
         barSpacing = 1.0;
         particleCount = 80;
+        lineThickness = 2.0;
         
         console.log('[Basitune Visualizer] Reset to defaults');
     }
@@ -1113,7 +1116,8 @@
             glowEnabled,
             glowIntensity,
             barSpacing,
-            particleCount
+            particleCount,
+            lineThickness
         })
     };
 
