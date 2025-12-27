@@ -22,12 +22,29 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     - Blob - Organic morphing shape reacting to music
     - Line Spectrum - Connected line graph with filled area
     - Dual Waveform - DJ-style mirrored waveforms
+  - Advanced visualizer controls:
+    - Color palettes: 6 presets (single, rainbow, fire, ocean, synthwave, neon)
+    - Animation speed control (0.5x - 2.0x) for spiral, blob, and particles
+    - Glow effects with adjustable intensity (0-20px shadow blur)
+    - Bar spacing control (0-5px) for bars, spectrum, and symmetrical visualizers
+    - Particle count slider (20-200) for particles visualizer
+    - Collapsible UI sections (Colors, Animation, Effects)
+    - Smart control visibility based on active visualizer style
+    - Reset to Defaults button
+  - Visualizer placeholder when stopped ("Click Start to begin visualization")
   - Customizable color picker for visualization colors
   - Adjustable sensitivity slider (0.5x - 2.0x)
   - Web Audio API integration with YouTube Music's audio stream
   - Canvas-based rendering with smooth 60fps animations
   - Settings persistence across sessions
   - Start/Stop button to control visualizer activation
+
+### Fixed
+- Auto-advance to next track when current song ends (works with or without visualizer running)
+- Volume control and mute toggle now work correctly after audio context initialization
+- Color palettes now apply to all 11 visualizer styles (waveform, circular, radial, line spectrum, dual waveform)
+- Glow effects now render correctly on waveform visualizer
+- Playback position restore on app startup (saves/restores song position when quitting)
   - Full-window mode: overlay that covers entire window for immersive visualization
     - Full Window/Exit Full Window toggle button
     - ESC key to exit full-window mode

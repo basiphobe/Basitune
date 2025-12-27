@@ -170,7 +170,15 @@
                     </div>
                     <div id="basitune-visualizer-tab" class="basitune-tab-content">
                         <div id="basitune-visualizer-content">
-                            <canvas id="basitune-visualizer-canvas" width="720" height="400" style="width: 100%; height: auto; background: #0a0a0a; border-radius: 8px; margin-bottom: 20px;"></canvas>
+                            <div id="basitune-visualizer-placeholder" style="width: 100%; height: 400px; background: linear-gradient(135deg, rgba(255, 255, 255, 0.05) 0%, rgba(255, 255, 255, 0.02) 100%); border: 1px dashed rgba(255, 255, 255, 0.2); border-radius: 8px; margin-bottom: 20px; display: flex; align-items: center; justify-content: center; flex-direction: column; gap: 12px;">
+                                <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="rgba(255, 255, 255, 0.3)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M9 18V5l12-2v13"></path>
+                                    <circle cx="6" cy="18" r="3"></circle>
+                                    <circle cx="18" cy="16" r="3"></circle>
+                                </svg>
+                                <p style="color: rgba(255, 255, 255, 0.4); font-size: 14px; margin: 0;">Click Start to begin visualization</p>
+                            </div>
+                            <canvas id="basitune-visualizer-canvas" width="720" height="400" style="width: 100%; height: auto; background: #0a0a0a; border-radius: 8px; margin-bottom: 20px; display: none;"></canvas>
                             
                             <div style="margin-bottom: 16px;">
                                 <label style="display: block; color: rgba(255, 255, 255, 0.9); font-weight: 500; margin-bottom: 8px; font-size: 13px;">Visualization Style</label>

@@ -148,6 +148,41 @@
                 
                 gainNode.gain.value = targetGain;
                 console.log('[Basitune Visualizer] GainNode set to match YouTube Music slider:', targetGain);
+                
+                // Listen for volume slider changes to keep gainNode in sync
+                if (ytVolumeSlider) {
+                    const updateGainFromSlider = () => {
+                        if (gainNode && ytVolumeSlider.value) {
+                            const newGain = parseInt(ytVolumeSlider.value) / 100;
+                            gainNode.gain.value = newGain;
+                            console.log('[Basitune Visualizer] Volume synced to:', newGain);
+                        }
+                    };
+                    
+                    // Try multiple event types to catch volume changes
+                    ytVolumeSlider.addEventListener('input', updateGainFromSlider);
+                    ytVolumeSlider.addEventListener('change', updateGainFromSlider);
+                    ytVolumeSlider.addEventListener('value-change', updateGainFromSlider); // Polymer custom event
+                    
+                    console.log('[Basitune Visualizer] Volume sync listeners attached');
+                }
+                
+                // Listen for mute/unmute via video volumechange event
+                const syncVolumeFromVideo = () => {
+                    if (video && gainNode) {
+                        if (video.muted) {
+                            gainNode.gain.value = 0;
+                            console.log('[Basitune Visualizer] Muted');
+                        } else if (ytVolumeSlider && ytVolumeSlider.value) {
+                            const newGain = parseInt(ytVolumeSlider.value) / 100;
+                            gainNode.gain.value = newGain;
+                            console.log('[Basitune Visualizer] Unmuted, volume restored to:', newGain);
+                        }
+                    }
+                };
+                
+                video.addEventListener('volumechange', syncVolumeFromVideo);
+                console.log('[Basitune Visualizer] Video volumechange listener attached for mute/unmute');
             }
 
             // Connect video element to analyser only once
@@ -162,17 +197,34 @@
                 // Listen for song end and manually advance to next track
                 video.addEventListener('ended', () => {
                     console.log('[Basitune Visualizer] Song ended, auto-advancing to next track');
-                    const nextButton = document.querySelector('.next-button[aria-label="Next"]');
+                    
+                    const nextButton = document.querySelector('ytmusic-player-bar .next-button')
+                        || document.querySelector('[aria-label="Next"]')
+                        || document.querySelector('[aria-label="Next track"]');
+                    
                     if (nextButton) {
                         nextButton.click();
+                        
                         // YouTube Music loads the next track but doesn't auto-play it
-                        // Wait a moment for the new track to load, then start playback
-                        setTimeout(() => {
+                        // Wait for track to load, then start playback with retry logic
+                        let retryCount = 0;
+                        const attemptPlay = () => {
                             const video = getVideoElement();
+                            
                             if (video && video.paused) {
-                                video.play().catch(err => console.warn('[Basitune Visualizer] Auto-play failed:', err));
+                                video.play()
+                                    .catch(err => {
+                                        console.warn('[Basitune Visualizer] Auto-play attempt', retryCount + 1, 'failed:', err.message);
+                                        if (retryCount < 3) {
+                                            retryCount++;
+                                            setTimeout(attemptPlay, 300);
+                                        }
+                                    });
                             }
-                        }, 500);
+                        };
+                        setTimeout(attemptPlay, 800);
+                    } else {
+                        console.warn('[Basitune Visualizer] Next button not found');
                     }
                 });
                 
@@ -225,7 +277,7 @@
             console.error('[Basitune Visualizer] Cannot start - canvas not set');
             return;
         }
-
+        
         // Ensure audio is connected (should already be if music is playing)
         if (!isAudioConnected) {
             initializeAudioContext();
@@ -235,6 +287,11 @@
         if (audioContext && audioContext.state === 'suspended') {
             audioContext.resume();
         }
+
+        // Show canvas, hide placeholder
+        const placeholder = document.getElementById('basitune-visualizer-placeholder');
+        if (placeholder) placeholder.style.display = 'none';
+        if (canvas) canvas.style.display = 'block';
 
         isVisualizerActive = true;
         console.log('[Basitune Visualizer] Started rendering');
@@ -256,6 +313,11 @@
             canvasCtx.fillStyle = backgroundColor;
             canvasCtx.fillRect(0, 0, canvas.width, canvas.height);
         }
+
+        // Hide canvas, show placeholder
+        const placeholder = document.getElementById('basitune-visualizer-placeholder');
+        if (canvas) canvas.style.display = 'none';
+        if (placeholder) placeholder.style.display = 'flex';
 
         console.log('[Basitune Visualizer] Stopped rendering');
         // Note: We keep the audio connection active to avoid crackling on restart
@@ -348,8 +410,24 @@
         const waveData = new Uint8Array(analyser.fftSize);
         analyser.getByteTimeDomainData(waveData);
 
+        // Create gradient for palette support
+        const colors = getPaletteColors();
+        if (colors.length > 1) {
+            const gradient = canvasCtx.createLinearGradient(0, 0, width, 0);
+            colors.forEach((color, i) => {
+                gradient.addColorStop(i / (colors.length - 1), color);
+            });
+            canvasCtx.strokeStyle = gradient;
+        } else {
+            canvasCtx.strokeStyle = barColor;
+        }
+
+        if (glowEnabled) {
+            canvasCtx.shadowBlur = glowIntensity;
+            canvasCtx.shadowColor = getColorForPalette(0.5);
+        }
+        
         canvasCtx.lineWidth = 2;
-        canvasCtx.strokeStyle = barColor;
         canvasCtx.beginPath();
 
         const sliceWidth = width / waveData.length;
@@ -370,6 +448,7 @@
 
         canvasCtx.lineTo(width, height / 2);
         canvasCtx.stroke();
+        clearGlow();
     }
 
     // Render circular visualizer
@@ -387,6 +466,7 @@
         const barCount = bufferLength;
         const angleStep = (Math.PI * 2) / barCount;
 
+        applyGlow();
         for (let i = 0; i < barCount; i++) {
             const angle = i * angleStep;
             const barHeight = (dataArray[i] / 255) * radius * sensitivity;
@@ -396,10 +476,11 @@
             const x2 = centerX + Math.cos(angle) * (radius + barHeight);
             const y2 = centerY + Math.sin(angle) * (radius + barHeight);
 
-            // Create gradient
+            // Create gradient with palette support
             const gradient = canvasCtx.createLinearGradient(x1, y1, x2, y2);
-            gradient.addColorStop(0, barColor);
-            gradient.addColorStop(1, adjustColorBrightness(barColor, -40));
+            const color = getColorForPalette(i / barCount);
+            gradient.addColorStop(0, color);
+            gradient.addColorStop(1, adjustColorBrightness(color, -40));
 
             canvasCtx.strokeStyle = gradient;
             canvasCtx.lineWidth = 2;
@@ -408,11 +489,12 @@
             canvasCtx.lineTo(x2, y2);
             canvasCtx.stroke();
         }
+        clearGlow();
 
         // Draw center circle
         canvasCtx.beginPath();
         canvasCtx.arc(centerX, centerY, radius * 0.1, 0, Math.PI * 2);
-        canvasCtx.fillStyle = barColor;
+        canvasCtx.fillStyle = getColorForPalette(0.5);
         canvasCtx.fill();
     }
 
@@ -429,6 +511,7 @@
         const radius = Math.min(width, height) * 0.3;
         const barCount = 64;
 
+        applyGlow();
         for (let i = 0; i < barCount; i++) {
             const angle = (i / barCount) * Math.PI * 2;
             const barHeight = (dataArray[i * 2] / 255) * radius * sensitivity;
@@ -439,8 +522,9 @@
             const y2 = centerY + Math.sin(angle) * (radius + barHeight);
 
             const gradient = canvasCtx.createLinearGradient(x1, y1, x2, y2);
-            gradient.addColorStop(0, barColor);
-            gradient.addColorStop(1, adjustColorBrightness(barColor, 40));
+            const color = getColorForPalette(i / barCount);
+            gradient.addColorStop(0, color);
+            gradient.addColorStop(1, adjustColorBrightness(color, 40));
 
             canvasCtx.strokeStyle = gradient;
             canvasCtx.lineWidth = 4;
@@ -449,6 +533,7 @@
             canvasCtx.lineTo(x2, y2);
             canvasCtx.stroke();
         }
+        clearGlow();
     }
 
     // Render spectrum with gradient
@@ -708,7 +793,19 @@
 
         const pointWidth = width / bufferLength;
 
-        canvasCtx.strokeStyle = barColor;
+        // Create gradient for palette support
+        const colors = getPaletteColors();
+        if (colors.length > 1) {
+            const gradient = canvasCtx.createLinearGradient(0, 0, width, 0);
+            colors.forEach((color, i) => {
+                gradient.addColorStop(i / (colors.length - 1), color);
+            });
+            canvasCtx.strokeStyle = gradient;
+        } else {
+            canvasCtx.strokeStyle = barColor;
+        }
+
+        applyGlow();
         canvasCtx.lineWidth = 2;
         canvasCtx.beginPath();
 
@@ -724,17 +821,19 @@
         }
 
         canvasCtx.stroke();
+        clearGlow();
 
         // Fill area under line
         canvasCtx.lineTo(width, height);
         canvasCtx.lineTo(0, height);
         canvasCtx.closePath();
 
-        const gradient = canvasCtx.createLinearGradient(0, 0, 0, height);
-        gradient.addColorStop(0, barColor + '80'); // Semi-transparent
-        gradient.addColorStop(1, backgroundColor);
+        const fillGradient = canvasCtx.createLinearGradient(0, 0, 0, height);
+        const topColor = getColorForPalette(0.5);
+        fillGradient.addColorStop(0, topColor + '80'); // Semi-transparent
+        fillGradient.addColorStop(1, backgroundColor);
 
-        canvasCtx.fillStyle = gradient;
+        canvasCtx.fillStyle = fillGradient;
         canvasCtx.fill();
     }
 
@@ -751,9 +850,22 @@
 
         const sliceWidth = width / bufferLength;
 
-        // Top waveform
-        canvasCtx.strokeStyle = barColor;
+        // Create gradient for palette support
+        const colors = getPaletteColors();
+        if (colors.length > 1) {
+            const gradient = canvasCtx.createLinearGradient(0, 0, width, 0);
+            colors.forEach((color, i) => {
+                gradient.addColorStop(i / (colors.length - 1), color);
+            });
+            canvasCtx.strokeStyle = gradient;
+        } else {
+            canvasCtx.strokeStyle = barColor;
+        }
+
+        applyGlow();
         canvasCtx.lineWidth = 2;
+
+        // Top waveform
         canvasCtx.beginPath();
 
         for (let i = 0; i < bufferLength; i++) {
@@ -786,9 +898,11 @@
         }
 
         canvasCtx.stroke();
+        clearGlow();
 
         // Center line
-        canvasCtx.strokeStyle = adjustColorBrightness(barColor, -40);
+        const centerColor = getColorForPalette(0.5);
+        canvasCtx.strokeStyle = adjustColorBrightness(centerColor, -40);
         canvasCtx.lineWidth = 1;
         canvasCtx.beginPath();
         canvasCtx.moveTo(0, centerY);
@@ -865,4 +979,12 @@
     };
 
     console.log('[Basitune Visualizer] API exposed to window.basituneVisualizer');
+    
+    // Initialize audio context automatically to enable auto-advance on song end
+    // This runs even if visualizer rendering is not started
+    setTimeout(() => {
+        console.log('[Basitune Visualizer] Auto-initializing audio context for song end detection');
+        initializeAudioContext();
+    }, 3000); // Wait 3 seconds for page to load
 })();
+
