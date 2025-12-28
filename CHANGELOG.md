@@ -5,77 +5,17 @@ All notable changes to Basitune will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Fixed
+- Playback restoration no longer triggers on YouTube Music's background page refreshes
+  - Uses localStorage with time-based restriction (minimum 5 minutes between restore attempts)
+  - Prevents random auto-play when app is idle or unattended
+  - Fixes audio buffer corruption that caused 10-15 second pause/play delays
+
 ## [1.0.25] - 2025-12-27
 
-### Added
-- Manual update checker in About tab
-  - "Check for Updates" button with visual feedback
-  - Displays current and available version information
-  - Progress indicator during download
-  - Status messages with color-coded feedback (checking, available, downloading, ready, errors)
-  - Integrates with existing update notification system
-  - Button transforms based on state (Check → Install → Ready/Error)
-  - Works alongside automatic startup update checks
-
-### Fixed
-- Version synchronization across configuration files
-  - All files now consistently show version 1.0.24 (package.json, tauri.conf.json, Cargo.toml)
-  - Enhanced build script to keep Cargo.toml synchronized with other version files
-- Content Security Policy compliance for update checker UI
-  - Replaced innerHTML assignments with DOM manipulation methods
-  - Eliminated CSP violations in update status displays
-- Music visualizer with real-time audio visualization
-  - New Visualizer tab (🎵) in sidebar alongside Artist, Lyrics, Settings, About
-  - 11 visualization styles:
-    - Frequency Bars - Classic vertical frequency bars
-    - Waveform - Time-domain waveform visualization
-    - Circular - Radial frequency visualization with center glow
-    - Radial Bars - Sunburst pattern with bars extending from center
-    - Spectrum - Gradient spectrum analyzer
-    - Particles - Animated particles responding to audio frequencies
-    - Symmetrical Bars - Mirrored frequency bars (top/bottom)
-    - Spiral - Frequencies wrapped in animated spiral pattern
-    - Blob - Organic morphing shape reacting to music
-    - Line Spectrum - Connected line graph with filled area
-    - Dual Waveform - DJ-style mirrored waveforms
-  - Advanced visualizer controls:
-    - Color palettes: 6 presets (single, rainbow, fire, ocean, synthwave, neon)
-    - Animation speed control (0.5x - 2.0x) for spiral, blob, and particles
-    - Glow effects with adjustable intensity (0-20px shadow blur)
-    - Line thickness control (1-10px, 0.5px steps) for line-based visualizers (waveform, circular, radial, spiral, blob, line spectrum, dual waveform)
-    - Bar spacing control (0-5px) for bars, spectrum, and symmetrical visualizers
-    - Particle count slider (20-200) for particles visualizer
-    - Collapsible UI sections (Colors, Animation, Effects)
-    - Smart control visibility based on active visualizer style
-    - Reset to Defaults button
-  - Visualizer placeholder when stopped ("Click Start to begin visualization")
-  - Customizable color picker for visualization colors
-  - Adjustable sensitivity slider (0.5x - 2.0x)
-  - Web Audio API integration with YouTube Music's audio stream
-  - Canvas-based rendering with smooth 60fps animations
-  - Settings persistence across sessions
-  - Start/Stop button to control visualizer activation
-  - Full-window mode: overlay that covers entire window for immersive visualization
-    - Full Window/Exit Full Window toggle button
-    - ESC key to exit full-window mode
-  - Loading screen on app startup to ensure high-quality audio initialization
-    - Displays Basitune branding with animated music icon
-    - "Initializing high-quality audio..." message
-    - Prevents audio distortion/crackling during startup
-    - Promise-based audio context initialization with state monitoring
-    - Minimum 2-second display time for smooth user experience
-
-### Fixed
-- Auto-advance to next track when current song ends (works with or without visualizer running)
-- Volume control and mute toggle now work correctly after audio context initialization
-- Color palettes now apply to all 11 visualizer styles (waveform, circular, radial, line spectrum, dual waveform)
-- Glow effects now render correctly on waveform visualizer
-- Playback position restore on app startup (saves/restores song position when quitting)
-- Canvas dimensions now properly restore to original size when exiting full-window mode
-- Audio context initialization waits for video element to load (prevents initialization failures)
-- Loading overlay creation respects document.body timing (CSP-compliant DOM construction)
-    - Close button (×) in top-right corner
-    - Canvas automatically resizes to fit full screen (90vw × 90vh)
+LLMLibs
 
 ## [1.0.24] - 2025-12-25
 

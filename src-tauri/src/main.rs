@@ -1724,19 +1724,39 @@ fn main() {
                         let restore_script = format!(
                             r#"
                             (function() {{
-                                // Only restore once per app session
-                                if (window.__basitunePlaybackRestored) {{
-                                    return;
-                                }}
-                                window.__basitunePlaybackRestored = true;
+                                // Use localStorage to persist restoration flag across YouTube Music page reloads
+                                // This prevents restoration on YouTube Music's background refreshes/navigations
+                                const RESTORATION_KEY = '__basitunePlaybackRestoredTime';
+                                const MIN_MINUTES_BETWEEN_RESTORES = 5;
                                 
-                                if (window.basitunePlayback && window.basitunePlayback.restorePlaybackPosition) {{
-                                    window.basitunePlayback.restorePlaybackPosition(
-                                        "{}",
-                                        "{}",
-                                        {},
-                                        {}
-                                    );
+                                try {{
+                                    const lastRestoreTime = localStorage.getItem(RESTORATION_KEY);
+                                    const now = Date.now();
+                                    
+                                    if (lastRestoreTime) {{
+                                        const minutesSinceLastRestore = (now - parseInt(lastRestoreTime, 10)) / 1000 / 60;
+                                        
+                                        if (minutesSinceLastRestore < MIN_MINUTES_BETWEEN_RESTORES) {{
+                                            console.log('[Basitune] Skipping restoration - only ' + minutesSinceLastRestore.toFixed(1) + ' minutes since last restore');
+                                            return;
+                                        }}
+                                    }}
+                                    
+                                    // Mark that we're attempting restoration
+                                    localStorage.setItem(RESTORATION_KEY, now.toString());
+                                    console.log('[Basitune] Attempting playback restoration (last restore: ' + 
+                                               (lastRestoreTime ? ((now - parseInt(lastRestoreTime, 10)) / 1000 / 60).toFixed(1) + ' minutes ago' : 'never') + ')');
+                                    
+                                    if (window.basitunePlayback && window.basitunePlayback.restorePlaybackPosition) {{
+                                        window.basitunePlayback.restorePlaybackPosition(
+                                            "{}",
+                                            "{}",
+                                            {},
+                                            {}
+                                        );
+                                    }}
+                                }} catch (e) {{
+                                    console.error('[Basitune] Restoration error:', e);
                                 }}
                             }})();
                             "#,
