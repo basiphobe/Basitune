@@ -24,6 +24,8 @@ Basitune is a minimal desktop application that provides a dedicated window for Y
 - **Content caching**: Reduces API costs by caching artist info, song context, and lyrics
 - **Window state memory**: Remembers window size, position, maximized state, sidebar visibility, and sidebar width
 - **Single instance**: Only one app instance can run at a time - launching again focuses existing window
+- **System tray integration**: Minimize to tray with playback controls (Play/Pause, Stop, Previous/Next)
+- **Desktop notifications**: Song change notifications with interactive Previous/Next buttons (Linux) - click notification to focus window
 - **Lightweight**: Uses the system's native webview instead of bundling a browser
 - **Cross-platform**: Runs on Linux, Windows, and macOS
 - **Simple and clean**: No unnecessary features, just YouTube Music in a desktop app
@@ -283,7 +285,6 @@ Toggle sidebar visibility by clicking the × button. Your preference is saved ac
 Possible future features:
 
 - System media controls integration (MPRIS on Linux, SMTC on Windows, Now Playing on macOS)
-- System tray integration (minimize to tray)
 - Custom Discord assets/icons
 - User preference configuration UI
 - Keyboard shortcuts customization

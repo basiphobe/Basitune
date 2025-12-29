@@ -1373,6 +1373,7 @@ fn show_notification(
                 .body(&body)
                 .appname("Basitune")
                 .timeout(5000) // 5 seconds
+                .action("default", "Open") // Clicking notification body triggers this
                 .action("previous", "⏮️ Previous")
                 .action("next", "⏭️ Next")
                 .show();
@@ -1382,6 +1383,14 @@ fn show_notification(
                     // Wait for user interaction (blocks until notification closes or action clicked)
                     handle.wait_for_action(|action| {
                         match action {
+                            "default" => {
+                                // Clicking notification body opens/focuses the main window
+                                if let Some(window) = app_clone.get_webview_window("main") {
+                                    let _ = window.show();
+                                    let _ = window.unminimize();
+                                    let _ = window.set_focus();
+                                }
+                            },
                             "previous" => {
                                 if let Some(window) = app_clone.get_webview_window("main") {
                                     let _ = window.eval(r#"
