@@ -1132,7 +1132,7 @@ fn update_discord_presence(
         let payload = activity::Activity::new()
             .details(&details_text)
             .state(&state_text)
-            .assets(activity::Assets::new().large_text("Basitune"));
+            .assets(activity::Assets::new().large_image("logo").large_text("Basitune"));
             
         match client.set_activity(payload) {
             Ok(_) => {
@@ -1153,7 +1153,7 @@ fn update_discord_presence(
                             let retry_payload = activity::Activity::new()
                                 .details(&details_text)
                                 .state(&state_text)
-                                .assets(activity::Assets::new().large_text("Basitune"));
+                                .assets(activity::Assets::new().large_image("logo").large_text("Basitune"));
                             
                             match new_client.set_activity(retry_payload) {
                                 Ok(_) => {
@@ -1183,7 +1183,7 @@ fn update_discord_presence(
                     let payload = activity::Activity::new()
                         .details(&details_text)
                         .state(&state_text)
-                        .assets(activity::Assets::new().large_text("Basitune"));
+                        .assets(activity::Assets::new().large_image("logo").large_text("Basitune"));
                     
                     match new_client.set_activity(payload) {
                         Ok(_) => {

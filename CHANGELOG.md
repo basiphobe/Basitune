@@ -7,13 +7,28 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.0.27] - 2025-12-29
+
+### Changed
+- Discord Rich Presence now displays custom Basitune logo instead of default placeholder icon
+  - Large image shows app branding in user profiles
+  - Small overlay icon also uses Basitune logo
+
+## [1.0.26] - 2025-12-28
+
 ### Added
 - Clicking notification body now brings main window to focus (Linux only)
   - Shows window if hidden, unminimizes if minimized
   - Requests attention via taskbar if window is on another virtual desktop
   - Previous/Next buttons in notifications continue to work as before
 
-## [1.0.26] - 2025-12-28
+### Fixed
+- Playback restoration no longer triggers on YouTube Music's background page refreshes
+  - Uses localStorage with time-based restriction (minimum 5 minutes between restore attempts)
+  - Prevents random auto-play when app is idle or unattended
+  - Fixes audio buffer corruption that caused 10-15 second pause/play delays
+
+## [1.0.25] - 2025-12-27
 
 ### Fixed
 - Playback restoration no longer triggers on YouTube Music's background page refreshes
