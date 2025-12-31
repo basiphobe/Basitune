@@ -152,6 +152,10 @@
     let animationId = null;
     let isVisualizerActive = false;
     
+    // Window visibility tracking
+    let isWindowVisible = !document.hidden;
+    let lastActivityTime = Date.now();
+    
     // Visualizer settings (configurable via UI)
     let visualizerStyle = 'bars';  // Current visualization style
     let barColor = '#ff0000';      // Primary color for visualization
@@ -292,7 +296,20 @@
                 }
                 
                 // Listen for mute/unmute via video volumechange event
+                // Only restore volume when window is visible to prevent ghost playback issues
                 const syncVolumeFromVideo = () => {
+                    if (!isWindowVisible) {
+                        // Skip volume restoration when window is hidden
+                        return;
+                    }
+                    
+                    const timeSinceActivity = Date.now() - lastActivityTime;
+                    if (timeSinceActivity > 300000) { // 5 minutes
+                        // Skip volume changes after extended inactivity to prevent overnight issues
+                        console.log('[Basitune Visualizer] Skipping volume sync after long inactivity');
+                        return;
+                    }
+                    
                     if (video && gainNode) {
                         if (video.muted) {
                             gainNode.gain.value = 0;
@@ -1122,6 +1139,25 @@
     };
 
     console.log('[Basitune Visualizer] API exposed to window.basituneVisualizer');
+    
+    // Setup window visibility and activity tracking
+    document.addEventListener('visibilitychange', () => {
+        isWindowVisible = !document.hidden;
+        
+        // Reset activity time when window becomes visible
+        if (isWindowVisible) {
+            lastActivityTime = Date.now();
+        }
+    });
+    
+    // Track user activity to detect inactivity
+    ['mousedown', 'keydown', 'touchstart', 'wheel'].forEach(eventType => {
+        document.addEventListener(eventType, () => {
+            lastActivityTime = Date.now();
+        }, { passive: true });
+    });
+    
+    console.log('[Basitune Visualizer] Window visibility and activity tracking initialized');
     
     // Initialize audio context immediately for high-quality audio from start
     // Show loading overlay until audio is ready

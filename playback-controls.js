@@ -15,6 +15,21 @@
     // Track current song for tooltip updates
     let lastSongInfo = null;
     
+    // Track window visibility to prevent state updates when hidden
+    let isWindowVisible = !document.hidden;
+    
+    // Listen for visibility changes
+    document.addEventListener('visibilitychange', () => {
+        isWindowVisible = !document.hidden;
+        // When window becomes visible again, update state immediately
+        if (isWindowVisible) {
+            setTimeout(() => {
+                updatePlaybackState();
+                updateTrayTooltip();
+            }, 100);
+        }
+    });
+    
     function getCurrentSongInfo() {
         const artistElement = document.querySelector('.byline.ytmusic-player-bar a');
         const titleElement = document.querySelector('.title.ytmusic-player-bar');
@@ -123,6 +138,11 @@
     }
     
     function updatePlaybackState() {
+        // Skip updates when window is hidden to prevent ghost playback issues
+        if (!isWindowVisible) {
+            return;
+        }
+        
         const currentState = getPlaybackState();
         
         if (currentState !== lastPlaybackState) {

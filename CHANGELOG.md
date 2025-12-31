@@ -5,6 +5,14 @@ All notable changes to Basitune will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Fixed
+- Ghost playback and audio dropout after extended runtime (overnight)
+  - Skips volume restoration during inactivity periods (>5 minutes) to prevent spurious volume changes
+  - Prevents playback state updates when window is hidden (reduces unnecessary monitoring)
+  - Fixes volume restoration loop that caused silent playback with moving playhead
+
 ## [1.0.27] - 2025-12-29
 
 ### Changed
