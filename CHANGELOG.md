@@ -7,7 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-## [0.2.0] - 2025-12-31
+## [1.0.28] - 2025-12-31
 
 ### Changed
 - **Major internal refactoring**: Modularized codebase for improved maintainability
