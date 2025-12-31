@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.2.0] - 2025-12-31
+
+### Changed
+- **Major internal refactoring**: Modularized codebase for improved maintainability
+  - Split monolithic 2117-line main.rs into 12 focused modules
+  - Created dedicated modules: config, cache, utils, ai (openai/genius), discord, playback, tray, notifications, sidebar, updater
+  - Organized JavaScript injection scripts into src/scripts/ directory
+  - No user-facing changes or breaking API modifications
+
 ### Fixed
 - Ghost playback and audio dropout after extended runtime (overnight)
   - Skips volume restoration during inactivity periods (>5 minutes) to prevent spurious volume changes
