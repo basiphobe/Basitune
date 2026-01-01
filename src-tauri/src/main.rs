@@ -248,24 +248,29 @@ fn main() {
                                 tauri::async_runtime::block_on(async move {
                                     let _ = window.eval(
                                         r#"
-                                        (function() {
+                                        (async function() {
                                             if (window.basitunePlayback && window.basitunePlayback.getCurrentPlaybackState) {
                                                 const state = window.basitunePlayback.getCurrentPlaybackState();
                                                 if (state && window.__TAURI_INTERNALS__) {
-                                                    window.__TAURI_INTERNALS__.invoke('save_playback_position', {
-                                                        artist: state.artist,
-                                                        title: state.title,
-                                                        positionSeconds: state.position,
-                                                        wasPlaying: state.isPlaying
-                                                    });
+                                                    try {
+                                                        await window.__TAURI_INTERNALS__.invoke('save_playback_position', {
+                                                            artist: state.artist,
+                                                            title: state.title,
+                                                            positionSeconds: state.position,
+                                                            wasPlaying: state.isPlaying
+                                                        });
+                                                        console.log('[Basitune] Playback position saved successfully');
+                                                    } catch (e) {
+                                                        console.error('[Basitune] Failed to save playback position:', e);
+                                                    }
                                                 }
                                             }
                                         })();
                                         "#
                                     );
                                     
-                                    // Wait for save to complete
-                                    tokio::time::sleep(std::time::Duration::from_millis(300)).await;
+                                    // Wait longer for save to complete
+                                    tokio::time::sleep(std::time::Duration::from_millis(500)).await;
                                 });
                             }
                             app.exit(0);

@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 - Auto-advance feature no longer triggers when window is hidden, preventing ghost playback after overnight runtime
+- Playback position now saves reliably on quit (increased delay and made invoke async)
 
 ## [1.0.28] - 2025-12-31
 
