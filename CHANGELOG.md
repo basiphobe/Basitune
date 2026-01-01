@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- User-configurable setting to control automatic playback resumption on app startup
+  - New "Automatically resume playback when the app starts" option in Settings tab
+  - Enabled by default to maintain current behavior
+  - When disabled, app will restore position but stay paused
+
 ### Fixed
 - Auto-advance feature no longer triggers when window is hidden, preventing ghost playback after overnight runtime
 - Playback position now saves reliably on quit (increased delay and made invoke async)

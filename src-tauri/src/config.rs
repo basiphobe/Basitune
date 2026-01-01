@@ -9,6 +9,7 @@ pub struct ApiConfig {
     pub genius_access_token: Option<String>,
     pub close_to_tray: Option<bool>,
     pub enable_notifications: Option<bool>,
+    pub resume_playback_on_startup: Option<bool>,
     // Playback position persistence
     pub last_song_artist: Option<String>,
     pub last_song_title: Option<String>,
@@ -124,7 +125,7 @@ pub fn get_config(app: tauri::AppHandle) -> Result<ApiConfig, String> {
 }
 
 #[tauri::command]
-pub fn save_config(app: tauri::AppHandle, openai_api_key: String, genius_access_token: String, close_to_tray: bool, enable_notifications: bool) -> Result<(), String> {
+pub fn save_config(app: tauri::AppHandle, openai_api_key: String, genius_access_token: String, close_to_tray: bool, enable_notifications: bool, resume_playback_on_startup: bool) -> Result<(), String> {
     // Load existing config to preserve playback state and visualizer settings
     let existing = load_config(&app);
     
@@ -133,6 +134,7 @@ pub fn save_config(app: tauri::AppHandle, openai_api_key: String, genius_access_
         genius_access_token: if genius_access_token.is_empty() { None } else { Some(genius_access_token) },
         close_to_tray: Some(close_to_tray),
         enable_notifications: Some(enable_notifications),
+        resume_playback_on_startup: Some(resume_playback_on_startup),
         // Preserve playback state
         last_song_artist: existing.last_song_artist,
         last_song_title: existing.last_song_title,

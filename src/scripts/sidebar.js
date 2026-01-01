@@ -323,6 +323,17 @@
                                 </small>
                             </div>
                             
+                            <h3 style="margin-top: 30px; margin-bottom: 20px; color: #fff; font-size: 18px; border-top: 1px solid rgba(255, 255, 255, 0.1); padding-top: 24px;">Playback</h3>
+                            <div style="margin-bottom: 24px;">
+                                <label style="display: flex; align-items: center; color: rgba(255, 255, 255, 0.9); font-size: 13px; cursor: pointer; user-select: none;">
+                                    <input type="checkbox" id="basitune-resume-playback" style="margin-right: 10px; width: 18px; height: 18px; cursor: pointer; accent-color: #ff0000;" />
+                                    <span>Automatically resume playback when the app starts</span>
+                                </label>
+                                <small style="color: rgba(255, 255, 255, 0.6); font-size: 11px; display: block; margin-top: 6px; margin-left: 28px;">
+                                    When enabled, playback will automatically resume where you left off if music was playing when you closed the app.
+                                </small>
+                            </div>
+                            
                             <button id="basitune-save-settings" style="width: 100%; padding: 12px; background: linear-gradient(135deg, #ff0000 0%, #cc0000 100%); border: none; color: #fff; font-size: 14px; font-weight: 600; border-radius: 8px; cursor: pointer; transition: all 0.2s;">
                                 Save Settings
                             </button>
@@ -1708,6 +1719,7 @@
             const geniusInput = document.getElementById('basitune-genius-token');
             const closeToTrayCheckbox = document.getElementById('basitune-close-to-tray');
             const enableNotificationsCheckbox = document.getElementById('basitune-enable-notifications');
+            const resumePlaybackCheckbox = document.getElementById('basitune-resume-playback');
             
             if (openaiInput && config.openai_api_key) {
                 openaiInput.value = config.openai_api_key;
@@ -1721,6 +1733,12 @@
             if (enableNotificationsCheckbox && config.enable_notifications !== undefined) {
                 enableNotificationsCheckbox.checked = config.enable_notifications;
             }
+            if (resumePlaybackCheckbox && config.resume_playback_on_startup !== undefined) {
+                resumePlaybackCheckbox.checked = config.resume_playback_on_startup;
+            } else if (resumePlaybackCheckbox) {
+                // Default to true if not set
+                resumePlaybackCheckbox.checked = true;
+            }
         } catch (error) {
             console.error('[Basitune] Failed to load settings:', error);
         }
@@ -1731,10 +1749,11 @@
         const geniusInput = document.getElementById('basitune-genius-token');
         const closeToTrayCheckbox = document.getElementById('basitune-close-to-tray');
         const enableNotificationsCheckbox = document.getElementById('basitune-enable-notifications');
+        const resumePlaybackCheckbox = document.getElementById('basitune-resume-playback');
         const statusDiv = document.getElementById('basitune-settings-status');
         const saveBtn = document.getElementById('basitune-save-settings');
         
-        if (!openaiInput || !geniusInput || !closeToTrayCheckbox || !enableNotificationsCheckbox || !statusDiv || !saveBtn) {
+        if (!openaiInput || !geniusInput || !closeToTrayCheckbox || !enableNotificationsCheckbox || !resumePlaybackCheckbox || !statusDiv || !saveBtn) {
             console.error('[Basitune] Settings elements not found');
             return;
         }
@@ -1743,6 +1762,7 @@
         const geniusToken = geniusInput.value.trim();
         const closeToTray = closeToTrayCheckbox.checked;
         const enableNotifications = enableNotificationsCheckbox.checked;
+        const resumePlaybackOnStartup = resumePlaybackCheckbox.checked;
         
         // Show saving status
         statusDiv.style.display = 'block';
@@ -1756,7 +1776,8 @@
                 openaiApiKey: openaiKey,
                 geniusAccessToken: geniusToken,
                 closeToTray: closeToTray,
-                enableNotifications: enableNotifications
+                enableNotifications: enableNotifications,
+                resumePlaybackOnStartup: resumePlaybackOnStartup
             });
             
             // Show success

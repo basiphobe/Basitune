@@ -69,6 +69,10 @@ fn main() {
                         println!("[Basitune] Restoring playback: {} - {} at {:.1}s", 
                                  saved.artist, saved.title, saved.position_seconds);
                         
+                        // Check if auto-play is enabled in settings
+                        let config = config::load_config(&app_handle);
+                        let should_auto_play = saved.was_playing && config.resume_playback_on_startup.unwrap_or(true);
+                        
                         let restore_script = format!(
                             r#"
                             (function() {{
@@ -91,7 +95,7 @@ fn main() {
                             saved.artist.replace('\\', "\\\\").replace('"', "\\\""),
                             saved.title.replace('\\', "\\\\").replace('"', "\\\""),
                             saved.position_seconds,
-                            if saved.was_playing { "true" } else { "false" }
+                            if should_auto_play { "true" } else { "false" }
                         );
                         
                         if let Err(e) = window_clone.eval(&restore_script) {
