@@ -417,8 +417,6 @@
                 attempts++;
                 if (attempts < maxAttempts) {
                     setTimeout(tryRestore, 100);
-                } else {
-                    console.log(`[Basitune] Could not restore playback - song not found or different song loaded`);
                 }
             };
             

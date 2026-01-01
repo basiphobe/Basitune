@@ -4,6 +4,10 @@
 use basitune_lib::*;
 use tauri::{Manager, PhysicalPosition, PhysicalSize};
 use std::time::Duration;
+use std::sync::atomic::{AtomicBool, Ordering};
+
+// Global flag to track if playback restoration has been attempted this session
+static PLAYBACK_RESTORED: AtomicBool = AtomicBool::new(false);
 
 fn main() {
     // Initialize state
@@ -51,6 +55,12 @@ fn main() {
                 let app_handle = window.app_handle().clone();
                 let window_clone = window.clone();
                 tauri::async_runtime::spawn(async move {
+                    // Only restore once per app session (not on page reloads)
+                    if PLAYBACK_RESTORED.swap(true, Ordering::SeqCst) {
+                        println!("[Basitune] Skipping restoration - already attempted this session");
+                        return;
+                    }
+                    
                     // Wait a bit for YouTube Music to load
                     tokio::time::sleep(std::time::Duration::from_secs(2)).await;
                     
@@ -62,23 +72,7 @@ fn main() {
                         let restore_script = format!(
                             r#"
                             (function() {{
-                                const RESTORATION_KEY = '__basitunePlaybackRestoredTime';
-                                const MIN_MINUTES_BETWEEN_RESTORES = 5;
-                                
                                 try {{
-                                    const lastRestoreTime = localStorage.getItem(RESTORATION_KEY);
-                                    const now = Date.now();
-                                    
-                                    if (lastRestoreTime) {{
-                                        const minutesSinceLastRestore = (now - parseInt(lastRestoreTime, 10)) / 1000 / 60;
-                                        
-                                        if (minutesSinceLastRestore < MIN_MINUTES_BETWEEN_RESTORES) {{
-                                            console.log('[Basitune] Skipping restoration - only ' + minutesSinceLastRestore.toFixed(1) + ' minutes since last restore');
-                                            return;
-                                        }}
-                                    }}
-                                    
-                                    localStorage.setItem(RESTORATION_KEY, now.toString());
                                     console.log('[Basitune] Attempting playback restoration');
                                     
                                     if (window.basitunePlayback && window.basitunePlayback.restorePlaybackPosition) {{

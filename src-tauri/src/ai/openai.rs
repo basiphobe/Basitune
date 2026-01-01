@@ -6,7 +6,6 @@ pub struct OpenAIRequest {
     pub model: String,
     pub messages: Vec<OpenAIMessage>,
     pub max_tokens: u32,
-    pub temperature: f32,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -35,8 +34,7 @@ pub async fn call_openai(prompt: String, max_tokens: u32, app_handle: &tauri::Ap
             role: "user".to_string(),
             content: prompt,
         }],
-        max_tokens,
-        temperature: 0.7,
+        max_tokens: max_tokens,
     };
     
     let client = reqwest::Client::builder()
@@ -59,9 +57,7 @@ pub async fn call_openai(prompt: String, max_tokens: u32, app_handle: &tauri::Ap
         return Err(format!("OpenAI API error {}: {}", status, error_text));
     }
     
-    let result: OpenAIResponse = response
-        .json()
-        .await
+    let result: OpenAIResponse = response.json().await
         .map_err(|e| format!("Failed to parse OpenAI response: {}", e))?;
     
     result
@@ -83,7 +79,10 @@ pub async fn get_artist_info(artist: String, app: tauri::AppHandle) -> Result<St
     let mut cache = load_cache(&app);
     
     if let Some(cached_info) = cache.artist_info.get(&cache_key) {
-        return Ok(cached_info.clone());
+        // Reject empty cached values (from previous API failures)
+        if !cached_info.trim().is_empty() {
+            return Ok(cached_info.clone());
+        }
     }
     
     let prompt = format!(
@@ -115,7 +114,10 @@ pub async fn get_song_context(title: String, artist: String, app: tauri::AppHand
     let mut cache = load_cache(&app);
     
     if let Some(cached_context) = cache.song_context.get(&cache_key) {
-        return Ok(cached_context.clone());
+        // Reject empty cached values (from previous API failures)
+        if !cached_context.trim().is_empty() {
+            return Ok(cached_context.clone());
+        }
     }
     
     let prompt = format!(
@@ -123,7 +125,10 @@ pub async fn get_song_context(title: String, artist: String, app: tauri::AppHand
         title, artist
     );
     
+    println!("[Basitune] Calling OpenAI for song context: {} - {}", title, artist);
     let result = call_openai(prompt, 500, &app).await?;
+    println!("[Basitune] OpenAI response length: {} chars", result.len());
+    println!("[Basitune] OpenAI response preview: {}", if result.len() > 100 { &result[..100] } else { &result });
     
     // Save to cache
     cache.song_context.insert(cache_key, result.clone());

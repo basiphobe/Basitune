@@ -10,6 +10,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 - Auto-advance feature no longer triggers when window is hidden, preventing ghost playback after overnight runtime
 - Playback position now saves reliably on quit (increased delay and made invoke async)
+- Playback restoration now only triggers on app launch, not on YouTube Music page reloads (session-based flag instead of time-based throttle)
+- Lyrics tab now fetches lyrics when opened even if song hasn't changed (improved robustness)
+- Song context errors now display helpful messages instead of failing silently
+- AI-generated content (artist info, song context) now validates cache entries to prevent serving empty responses from failed API calls
 
 ## [1.0.28] - 2025-12-31
 

@@ -1803,6 +1803,19 @@
             document.getElementById('basitune-artist-tab').classList.add('active');
         } else if (tabName === 'lyrics') {
             document.getElementById('basitune-lyrics-tab').classList.add('active');
+            // Fetch lyrics for current song when switching to lyrics tab
+            // This ensures lyrics are loaded even if they weren't fetched on initial load
+            if (currentTitle && currentArtist) {
+                fetchLyrics(currentTitle, currentArtist);
+            } else {
+                // If no current song info, try to get it now
+                const songInfo = getCurrentSongInfo();
+                if (songInfo) {
+                    currentTitle = songInfo.title;
+                    currentArtist = songInfo.artist;
+                    fetchLyrics(currentTitle, currentArtist);
+                }
+            }
         } else if (tabName === 'visualizer') {
             document.getElementById('basitune-visualizer-tab').classList.add('active');
             initializeVisualizer(); // Initialize visualizer when switching to the tab
@@ -2349,8 +2362,6 @@
             // Call Tauri command
             const context = await window.__TAURI__.core.invoke('get_song_context', { title, artist });
             
-            console.log('[Basitune] Received AI song context');
-            
             // Display song context with read more functionality
             const expandableContext = makeExpandable(contextDiv, context, 250);
             setHTML(contextDiv, `<h5></h5><p></p>`);
@@ -2358,13 +2369,12 @@
             const ctxP = contextDiv.querySelector('p');
             setText(ctxH5, `About "${title}"`);
             setHTML(ctxP, expandableContext);
-            console.log('[Basitune] Song context rendered; length:', ctxP?.textContent?.length || 0);
             
             console.log('[Basitune] Loaded AI song context');
         } catch (error) {
             console.error('[Basitune] Error fetching song context:', error);
             const contextDiv = document.getElementById('basitune-song-context');
-            setHTML(contextDiv, '');
+            setHTML(contextDiv, `<p class="basitune-placeholder">Could not load song context<br><small>${error}</small></p>`);
         }
     }
     
