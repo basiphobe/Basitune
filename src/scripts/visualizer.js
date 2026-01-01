@@ -337,6 +337,12 @@
                 // Once we take over audio routing, YouTube Music's autoplay breaks
                 // Listen for song end and manually advance to next track
                 video.addEventListener('ended', () => {
+                    // Only auto-advance when window is visible to prevent ghost playback
+                    if (!isWindowVisible) {
+                        console.log('[Basitune Visualizer] Song ended but window hidden, skipping auto-advance');
+                        return;
+                    }
+                    
                     console.log('[Basitune Visualizer] Song ended, auto-advancing to next track');
                     
                     const nextButton = document.querySelector('ytmusic-player-bar .next-button')
