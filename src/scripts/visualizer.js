@@ -250,6 +250,15 @@
     // Connect audio after video element is found
     function connectAudio(video, resolve, reject) {
             try {
+            // Intercept video.play() to log all play attempts
+            const originalPlay = video.play.bind(video);
+            video.play = function() {
+                console.log('[Basitune Visualizer] video.play() called at', Date.now(), 'ms');
+                console.log('[Basitune Visualizer] Call stack:', new Error().stack);
+                return originalPlay();
+            };
+            console.log('[Basitune Visualizer] video.play() interceptor installed');
+            
             // Create audio context only once
             if (!audioContext) {
                 audioContext = new (window.AudioContext || window.webkitAudioContext)();
@@ -337,6 +346,9 @@
                 // Once we take over audio routing, YouTube Music's autoplay breaks
                 // Listen for song end and manually advance to next track
                 video.addEventListener('ended', () => {
+                    console.log('[Basitune Visualizer] Song ended event fired at', Date.now(), 'ms');
+                    console.log('[Basitune Visualizer] Window visible:', isWindowVisible, 'Time since activity:', (Date.now() - lastActivityTime) / 60000, 'minutes');
+                    
                     // Only auto-advance when window is visible AND user is active
                     if (!isWindowVisible) {
                         console.log('[Basitune Visualizer] Song ended but window hidden, skipping auto-advance');
@@ -356,6 +368,7 @@
                         || document.querySelector('[aria-label="Next track"]');
                     
                     if (nextButton) {
+                        console.log('[Basitune Visualizer] Clicking next button');
                         nextButton.click();
                         
                         // YouTube Music loads the next track but doesn't auto-play it
@@ -365,6 +378,7 @@
                             const video = getVideoElement();
                             
                             if (video && video.paused) {
+                                console.log('[Basitune Visualizer] Attempting auto-play after next (attempt ' + (retryCount + 1) + ')');
                                 video.play()
                                     .catch(err => {
                                         console.warn('[Basitune Visualizer] Auto-play attempt', retryCount + 1, 'failed:', err.message);

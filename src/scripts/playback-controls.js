@@ -230,6 +230,10 @@
     // Playback control functions
     window.basitunePlayback = {
         play: function() {
+            // Log call stack to see what triggered this
+            const stack = new Error().stack;
+            console.log('[Basitune] play() called from:', stack);
+            
             const button = findPlayPauseButton();
             const video = getVideoElement();
             

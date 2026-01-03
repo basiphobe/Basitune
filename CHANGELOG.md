@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 - Auto-advance no longer triggers after 5 minutes of inactivity, fully preventing ghost playback when computer is unattended
+- Added comprehensive debug logging to track playback triggers and diagnose ghost playback issues
 
 ## [1.0.29] - 2026-01-01
 
