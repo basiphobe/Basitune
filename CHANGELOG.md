@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Fixed
+- Ghost playback: Intercept and block YouTube Music's internal video.play() calls during inactivity (>5 min) to prevent unwanted overnight playback
 - Auto-advance no longer triggers after 5 minutes of inactivity, fully preventing ghost playback when computer is unattended
 - Added comprehensive debug logging to track playback triggers and diagnose ghost playback issues
 

@@ -250,14 +250,28 @@
     // Connect audio after video element is found
     function connectAudio(video, resolve, reject) {
             try {
-            // Intercept video.play() to log all play attempts
+            // Intercept video.play() to block unwanted playback during inactivity
             const originalPlay = video.play.bind(video);
             video.play = function() {
-                console.log('[Basitune Visualizer] video.play() called at', Date.now(), 'ms');
-                console.log('[Basitune Visualizer] Call stack:', new Error().stack);
+                const now = Date.now();
+                const timeSinceActivity = now - lastActivityTime;
+                const inactivityThreshold = 5 * 60 * 1000; // 5 minutes
+                
+                console.log('[Basitune Visualizer] video.play() called at', now, 'ms');
+                console.log('[Basitune Visualizer] Time since last activity:', timeSinceActivity, 'ms');
+                console.log('[Basitune Visualizer] Window visible:', isWindowVisible);
+                
+                // Block play if inactive for >5min (prevents YouTube Music's auto-resume)
+                if (timeSinceActivity > inactivityThreshold) {
+                    console.warn('[Basitune Visualizer] BLOCKING video.play() - inactive for', Math.floor(timeSinceActivity / 60000), 'minutes');
+                    console.log('[Basitune Visualizer] Call stack:', new Error().stack);
+                    return Promise.resolve(); // Return resolved promise to match play() signature
+                }
+                
+                console.log('[Basitune Visualizer] Allowing video.play()');
                 return originalPlay();
             };
-            console.log('[Basitune Visualizer] video.play() interceptor installed');
+            console.log('[Basitune Visualizer] video.play() interceptor installed with inactivity protection');
             
             // Create audio context only once
             if (!audioContext) {
