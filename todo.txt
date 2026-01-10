@@ -1,0 +1,4 @@
+Clicking on visuazlier should play/pause.
+Lyrics are behind (they show for the last song played) -- maybe -- test this
+Add artist image work, links to website, etc.
+

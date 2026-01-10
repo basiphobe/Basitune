@@ -49,6 +49,7 @@ pub struct WindowState {
     pub x: i32,
     pub y: i32,
     pub maximized: bool,
+    pub monitor_index: Option<usize>, // Which monitor (0-indexed)
     pub sidebar_visible: bool,
     pub sidebar_width: u32,
     pub sidebar_font_size: u32,
@@ -62,6 +63,7 @@ impl Default for WindowState {
             x: 100,
             y: 100,
             maximized: false,
+            monitor_index: None,
             sidebar_visible: false,
             sidebar_width: 400,
             sidebar_font_size: 14,

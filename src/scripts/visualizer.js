@@ -154,7 +154,6 @@
     
     // Window visibility tracking
     let isWindowVisible = !document.hidden;
-    let lastActivityTime = Date.now();
     
     // Visualizer settings (configurable via UI)
     let visualizerStyle = 'bars';  // Current visualization style
@@ -250,28 +249,12 @@
     // Connect audio after video element is found
     function connectAudio(video, resolve, reject) {
             try {
-            // Intercept video.play() to block unwanted playback during inactivity
-            const originalPlay = video.play.bind(video);
-            video.play = function() {
-                const now = Date.now();
-                const timeSinceActivity = now - lastActivityTime;
-                const inactivityThreshold = 5 * 60 * 1000; // 5 minutes
-                
-                console.log('[Basitune Visualizer] video.play() called at', now, 'ms');
-                console.log('[Basitune Visualizer] Time since last activity:', timeSinceActivity, 'ms');
-                console.log('[Basitune Visualizer] Window visible:', isWindowVisible);
-                
-                // Block play if inactive for >5min (prevents YouTube Music's auto-resume)
-                if (timeSinceActivity > inactivityThreshold) {
-                    console.warn('[Basitune Visualizer] BLOCKING video.play() - inactive for', Math.floor(timeSinceActivity / 60000), 'minutes');
-                    console.log('[Basitune Visualizer] Call stack:', new Error().stack);
-                    return Promise.resolve(); // Return resolved promise to match play() signature
-                }
-                
-                console.log('[Basitune Visualizer] Allowing video.play()');
-                return originalPlay();
-            };
-            console.log('[Basitune Visualizer] video.play() interceptor installed with inactivity protection');
+            // Track play time to detect spurious pauses
+            let localLastPlayTime = 0;
+            
+            video.addEventListener('play', () => {
+                localLastPlayTime = Date.now();
+            }, { passive: true });
             
             // Create audio context only once
             if (!audioContext) {
@@ -326,13 +309,6 @@
                         return;
                     }
                     
-                    const timeSinceActivity = Date.now() - lastActivityTime;
-                    if (timeSinceActivity > 300000) { // 5 minutes
-                        // Skip volume changes after extended inactivity to prevent overnight issues
-                        console.log('[Basitune Visualizer] Skipping volume sync after long inactivity');
-                        return;
-                    }
-                    
                     if (video && gainNode) {
                         if (video.muted) {
                             gainNode.gain.value = 0;
@@ -347,6 +323,38 @@
                 
                 video.addEventListener('volumechange', syncVolumeFromVideo);
                 console.log('[Basitune Visualizer] Video volumechange listener attached for mute/unmute');
+                
+                // CRITICAL: Mute gainNode when video pauses to prevent ghost audio playback
+                // But ignore spurious pauses that happen right after play (YouTube Music bug after long runtime)
+                video.addEventListener('pause', () => {
+                    const timeSincePlay = Date.now() - localLastPlayTime;
+                    
+                    if (timeSincePlay < 2000) {
+                        console.warn('[Basitune Visualizer] Ignoring spurious pause', timeSincePlay, 'ms after play (YouTube Music bug)');
+                        return; // Don't mute - this is likely YouTube Music's broken state management
+                    }
+                    
+                    if (gainNode) {
+                        gainNode.gain.value = 0;
+                        console.log('[Basitune Visualizer] Video paused - muting gainNode to stop audio');
+                    }
+                });
+                
+                // Restore volume when video plays
+                video.addEventListener('play', () => {
+                    lastPlayTime = Date.now(); // Also update here for play events
+                    
+                    if (gainNode && video && !video.muted) {
+                        const ytVolumeSlider = document.querySelector('#volume-slider');
+                        if (ytVolumeSlider && ytVolumeSlider.value) {
+                            const newGain = parseInt(ytVolumeSlider.value) / 100;
+                            gainNode.gain.value = newGain;
+                            console.log('[Basitune Visualizer] Video playing - restoring gainNode volume to:', newGain);
+                        }
+                    }
+                });
+                
+                console.log('[Basitune Visualizer] Pause/play event listeners attached to sync gainNode');
             }
 
             // Connect video element to analyser only once
@@ -361,17 +369,11 @@
                 // Listen for song end and manually advance to next track
                 video.addEventListener('ended', () => {
                     console.log('[Basitune Visualizer] Song ended event fired at', Date.now(), 'ms');
-                    console.log('[Basitune Visualizer] Window visible:', isWindowVisible, 'Time since activity:', (Date.now() - lastActivityTime) / 60000, 'minutes');
+                    console.log('[Basitune Visualizer] Window visible:', isWindowVisible);
                     
-                    // Only auto-advance when window is visible AND user is active
+                    // Only skip auto-advance when window is hidden (user minimized/closed to tray)
                     if (!isWindowVisible) {
                         console.log('[Basitune Visualizer] Song ended but window hidden, skipping auto-advance');
-                        return;
-                    }
-                    
-                    const timeSinceActivity = Date.now() - lastActivityTime;
-                    if (timeSinceActivity > 300000) { // 5 minutes
-                        console.log('[Basitune Visualizer] Song ended but no recent activity (' + (timeSinceActivity / 60000).toFixed(1) + ' min), skipping auto-advance');
                         return;
                     }
                     
@@ -381,7 +383,7 @@
                         || document.querySelector('[aria-label="Next"]')
                         || document.querySelector('[aria-label="Next track"]');
                     
-                    if (nextButton) {
+                    if (nextButton && !nextButton.disabled && !nextButton.hasAttribute('disabled')) {
                         console.log('[Basitune Visualizer] Clicking next button');
                         nextButton.click();
                         
@@ -405,7 +407,11 @@
                         };
                         setTimeout(attemptPlay, 800);
                     } else {
-                        console.warn('[Basitune Visualizer] Next button not found');
+                        if (nextButton && (nextButton.disabled || nextButton.hasAttribute('disabled'))) {
+                            console.log('[Basitune Visualizer] Next button disabled - end of playlist/album, stopping playback');
+                        } else {
+                            console.warn('[Basitune Visualizer] Next button not found');
+                        }
                     }
                 });
                 
@@ -1180,24 +1186,12 @@
 
     console.log('[Basitune Visualizer] API exposed to window.basituneVisualizer');
     
-    // Setup window visibility and activity tracking
+    // Setup window visibility tracking (used for auto-advance logic)
     document.addEventListener('visibilitychange', () => {
         isWindowVisible = !document.hidden;
-        
-        // Reset activity time when window becomes visible
-        if (isWindowVisible) {
-            lastActivityTime = Date.now();
-        }
     });
     
-    // Track user activity to detect inactivity
-    ['mousedown', 'keydown', 'touchstart', 'wheel'].forEach(eventType => {
-        document.addEventListener(eventType, () => {
-            lastActivityTime = Date.now();
-        }, { passive: true });
-    });
-    
-    console.log('[Basitune Visualizer] Window visibility and activity tracking initialized');
+    console.log('[Basitune Visualizer] Window visibility tracking initialized');
     
     // Initialize audio context immediately for high-quality audio from start
     // Show loading overlay until audio is ready

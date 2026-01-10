@@ -9,6 +9,87 @@ use std::sync::atomic::{AtomicBool, Ordering};
 // Global flag to track if playback restoration has been attempted this session
 static PLAYBACK_RESTORED: AtomicBool = AtomicBool::new(false);
 
+// Save window state (position, size, maximized status)
+fn save_window_state(app: &tauri::AppHandle) {
+    if let Some(window) = app.get_webview_window("main") {
+        let is_maximized = window.is_maximized().unwrap_or(false);
+        
+        // Log ALL monitors at save time
+        let all_monitors_result = window.available_monitors();
+        if let Ok(ref all_monitors) = all_monitors_result {
+            println!("[Basitune] === SAVE: Available monitors ({}) ===", all_monitors.len());
+            for (idx, monitor) in all_monitors.iter().enumerate() {
+                let pos = monitor.position();
+                let size = monitor.size();
+                println!("[Basitune]   Monitor {}: {}x{} at ({}, {}) - Name: {:?}", 
+                         idx, size.width, size.height, pos.x, pos.y, monitor.name());
+            }
+        }
+        
+        // Find which monitor the window is on - extract owned values
+        let current_monitor = window.current_monitor().ok().flatten();
+        let (monitor_index, current_pos, current_size, current_name) = if let Some(ref mon) = current_monitor {
+            let pos = mon.position();
+            let size = mon.size();
+            let name = mon.name().map(|s| s.to_string());
+            
+            // Find index
+            let idx = if let Ok(ref all_monitors) = all_monitors_result {
+                all_monitors.iter().position(|m| {
+                    let m_pos = m.position();
+                    m_pos.x == pos.x && m_pos.y == pos.y
+                })
+            } else {
+                None
+            };
+            
+            (idx, Some(pos), Some(size), name)
+        } else {
+            (None, None, None, None)
+        };
+        
+        if let (Some(pos), Some(size)) = (current_pos, current_size) {
+            println!("[Basitune] === SAVE: Current monitor ===");
+            println!("[Basitune]   Index: {:?}", monitor_index);
+            println!("[Basitune]   Position: ({}, {})", pos.x, pos.y);
+            println!("[Basitune]   Size: {}x{}", size.width, size.height);
+            println!("[Basitune]   Name: {:?}", current_name);
+        }
+        
+        // For maximized windows, save the monitor's position
+        let (x, y, width, height) = if is_maximized {
+            if let (Some(pos), Some(size)) = (current_pos, current_size) {
+                (pos.x, pos.y, size.width, size.height)
+            } else {
+                let size = window.inner_size().unwrap_or(PhysicalSize::new(1920, 1080));
+                let pos = window.outer_position().unwrap_or(PhysicalPosition::new(0, 0));
+                (pos.x, pos.y, size.width, size.height)
+            }
+        } else {
+            let size = window.inner_size().unwrap_or(PhysicalSize::new(1920, 1080));
+            let pos = window.outer_position().unwrap_or(PhysicalPosition::new(0, 0));
+            (pos.x, pos.y, size.width, size.height)
+        };
+        
+        println!("[Basitune] Saving window state:");
+        println!("[Basitune]   Monitor index: {:?}", monitor_index);
+        println!("[Basitune]   Size: {}x{}", width, height);
+        println!("[Basitune]   Position: ({}, {})", x, y);
+        println!("[Basitune]   Maximized: {}", is_maximized);
+        
+        let state_manager: tauri::State<sidebar::WindowStateManager> = app.state();
+        state_manager.update_no_save(|state| {
+            state.width = width;
+            state.height = height;
+            state.x = x;
+            state.y = y;
+            state.maximized = is_maximized;
+            state.monitor_index = monitor_index;
+        });
+        state_manager.save_silent();
+    }
+}
+
 fn main() {
     // Initialize state
     let discord_state = discord::DiscordState::default();
@@ -191,13 +272,13 @@ fn main() {
                     match event.id().as_ref() {
                         "show_hide" => {
                             if let Some(window) = app.get_webview_window("main") {
-                                if window.is_visible().unwrap_or(false) {
-                                    let _ = window.hide();
-                                } else {
-                                    let _ = window.show();
-                                    let _ = window.set_focus();
-                                    let _ = window.unminimize();
-                                }
+                                // Bring window to front: show, focus, and unminimize
+                                // Note: On Linux, window managers prevent cross-workspace focus stealing
+                                // for security. If window is on a different desktop, this will trigger
+                                // an urgent hint (orange taskbar icon) instead of switching workspaces.
+                                let _ = window.show();
+                                let _ = window.set_focus();
+                                let _ = window.unminimize();
                             }
                         }
                         "play" => {
@@ -241,6 +322,9 @@ fn main() {
                             });
                         }
                         "quit" => {
+                            // Save window state before quitting
+                            save_window_state(&app);
+                            
                             // Save playback position before quitting
                             if let Some(window) = app.get_webview_window("main") {
                                 tauri::async_runtime::block_on(async move {
@@ -376,26 +460,118 @@ fn main() {
             println!("[Basitune] Applying window state: {}x{} at ({}, {}), maximized={}", 
                      state.width, state.height, state.x, state.y, state.maximized);
             
-            if state.maximized {
-                let _ = main_window.unmaximize();
-                std::thread::sleep(Duration::from_millis(50));
+            // Validate position is within screen bounds (important after display config changes)
+            // Skip validation for maximized windows since they'll maximize to current monitor anyway
+            let position_valid = if state.maximized {
+                println!("[Basitune] Window is maximized, skipping position validation");
+                true
+            } else if let Ok(monitors) = main_window.available_monitors() {
+                println!("[Basitune] Checking {} available monitor(s)", monitors.len());
                 
-                let _ = main_window.set_size(PhysicalSize::new(state.width, state.height));
-                if state.x >= 0 && state.y >= 0 {
-                    let _ = main_window.set_position(PhysicalPosition::new(state.x, state.y));
-                }
+                let is_valid = monitors.iter().any(|monitor| {
+                    let mon_pos = monitor.position();
+                    let mon_size = monitor.size();
+                    
+                    println!("[Basitune]   Monitor: {}x{} at ({}, {})", 
+                             mon_size.width, mon_size.height, mon_pos.x, mon_pos.y);
+                    
+                    // Check if saved position is within this monitor's bounds
+                    // Allow window to be partially off-screen (e.g., titlebar visible)
+                    let min_visible = 100; // At least 100px must be visible
+                    let valid = state.x + (state.width as i32) > mon_pos.x &&
+                                state.x + min_visible < mon_pos.x + (mon_size.width as i32) &&
+                                state.y + 50 > mon_pos.y && // Ensure titlebar visible
+                                state.y < mon_pos.y + (mon_size.height as i32);
+                    
+                    if valid {
+                        println!("[Basitune]     ✓ Position is valid on this monitor");
+                    }
+                    
+                    valid
+                });
                 
-                std::thread::sleep(Duration::from_millis(50));
-                let _ = main_window.maximize();
+                is_valid
             } else {
-                let _ = main_window.set_size(PhysicalSize::new(state.width, state.height));
-                if state.x >= 0 && state.y >= 0 {
-                    let _ = main_window.set_position(PhysicalPosition::new(state.x, state.y));
-                }
+                eprintln!("[Basitune] Failed to get monitor information");
+                false
+            };
+            
+            let is_off_screen = !position_valid;
+            
+            if is_off_screen {
+                println!("[Basitune] WARNING: Saved position ({}, {}) is off-screen, will use default position", state.x, state.y);
+            } else {
+                println!("[Basitune] Position validation passed");
             }
             
-            // Show the window
-            let _ = main_window.show();
+            if state.maximized {
+                // For maximized windows: use monitor index if available (Wayland-friendly)
+                println!("[Basitune] === RESTORE: Maximized window ===");
+                println!("[Basitune]   Saved monitor index: {:?}", state.monitor_index);
+                println!("[Basitune]   Saved position: ({}, {})", state.x, state.y);
+                
+                // Log ALL monitors at restore time
+                if let Ok(all_monitors) = main_window.available_monitors() {
+                    println!("[Basitune] === RESTORE: Available monitors ({}) ===", all_monitors.len());
+                    for (idx, monitor) in all_monitors.iter().enumerate() {
+                        let pos = monitor.position();
+                        let size = monitor.size();
+                        println!("[Basitune]   Monitor {}: {}x{} at ({}, {}) - Name: {:?}", 
+                                 idx, size.width, size.height, pos.x, pos.y, monitor.name());
+                    }
+                }
+                
+                let _ = main_window.unmaximize();
+                
+                // Wayland: Use monitor-specific sizing to hint window manager placement
+                // The WM is more likely to place/maximize on the monitor whose dimensions match
+                if let Some(monitor_idx) = state.monitor_index {
+                    if let Ok(monitors) = main_window.available_monitors() {
+                        if let Some(target_monitor) = monitors.into_iter().nth(monitor_idx) {
+                            let mon_size = target_monitor.size();
+                            let mon_name = target_monitor.name();
+                            println!("[Basitune] === RESTORE: Targeting monitor {} ===", monitor_idx);
+                            println!("[Basitune]   Size: {}x{}", mon_size.width, mon_size.height);
+                            println!("[Basitune]   Name: {:?}", mon_name);
+                            
+                            // Critical: Set window to EXACT monitor dimensions before showing
+                            // This gives Wayland compositor a strong hint about intended monitor
+                            let _ = main_window.set_size(PhysicalSize::new(mon_size.width, mon_size.height));
+                        } else {
+                            println!("[Basitune] Monitor index {} not found", monitor_idx);
+                            let _ = main_window.set_size(PhysicalSize::new(state.width, state.height));
+                        }
+                    }
+                } else {
+                    println!("[Basitune] No monitor index saved");
+                    let _ = main_window.set_size(PhysicalSize::new(state.width, state.height));
+                }
+                
+                println!("[Basitune] Showing window...");
+                let _ = main_window.show();
+                std::thread::sleep(Duration::from_millis(300));
+                
+                println!("[Basitune] Maximizing...");
+                let _ = main_window.maximize();
+                
+                // Verify final position
+                std::thread::sleep(Duration::from_millis(100));
+                if let Ok(Some(monitor)) = main_window.current_monitor() {
+                    let mon_pos = monitor.position();
+                    let mon_name = monitor.name();
+                    println!("[Basitune] === RESTORE: Final result ===");
+                    println!("[Basitune]   Window on monitor at ({}, {})", mon_pos.x, mon_pos.y);
+                    println!("[Basitune]   Monitor name: {:?}", mon_name);
+                }
+            } else {
+                let _ = main_window.set_size(PhysicalSize::new(state.width, state.height));
+                if state.x >= 0 && state.y >= 0 && position_valid {
+                    let _ = main_window.set_position(PhysicalPosition::new(state.x, state.y));
+                }
+                
+                // Show the window
+                let _ = main_window.show();
+            }
 
             // Handle window close event - either minimize to tray or save window state
             let app_handle = app.handle().clone();
@@ -413,23 +589,7 @@ fn main() {
                         api.prevent_close();
                     } else {
                         // Save window state before exiting
-                        if let Ok(size) = window_clone.inner_size() {
-                            if let Ok(position) = window_clone.outer_position() {
-                                let is_maximized = window_clone.is_maximized().unwrap_or(false);
-                                
-                                println!("[Basitune] Saving window state on close");
-                                
-                                let state_manager: tauri::State<sidebar::WindowStateManager> = app_handle.state();
-                                state_manager.update_no_save(|state| {
-                                    state.width = size.width;
-                                    state.height = size.height;
-                                    state.x = position.x;
-                                    state.y = position.y;
-                                    state.maximized = is_maximized;
-                                });
-                                state_manager.save_silent();
-                            }
-                        }
+                        save_window_state(&app_handle);
                     }
                 }
             });

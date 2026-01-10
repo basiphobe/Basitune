@@ -1,0 +1,943 @@
+[Basitune] Loaded cache with 463 artists, 1629 songs, 1980 lyrics
+[Basitune] Loaded cache with 463 artists, 1629 songs, 1980 lyrics
+[Basitune] Calling OpenAI for song context: Tension - Kerry King
+[Basitune] Loaded cache with 463 artists, 1629 songs, 1980 lyrics
+[Basitune] Loaded cache with 463 artists, 1629 songs, 1980 lyrics
+[Basitune] Loaded cache with 463 artists, 1629 songs, 1980 lyrics
+[Basitune] Loaded cache with 463 artists, 1629 songs, 1980 lyrics
+[Basitune] Calling OpenAI for song context: In The Constellation Of The Black Widow - Anaal Nathrakh
+Xlib:  extension "MIT-SCREEN-SAVER" missing on display ":1".
+[Basitune] Failed to get system idle time: Status not OK
+[Basitune] OpenAI response length: 1214 chars
+[Basitune] OpenAI response preview: "Tension" by Kerry King, known primarily for his work as the guitarist for Slayer, explores themes o
+[Basitune] OpenAI response length: 1427 chars
+[Basitune] OpenAI response preview: "In The Constellation Of The Black Widow" by Anaal Nathrakh is a potent exploration of darkness, des
+[Basitune] Loaded cache with 463 artists, 1629 songs, 1981 lyrics
+[Basitune] Loaded cache with 463 artists, 1629 songs, 1981 lyrics
+[Basitune] Loaded cache with 463 artists, 1629 songs, 1981 lyrics
+[Basitune] Calling OpenAI for song context: Sweet True Lies - Beast In Black
+[Basitune] Loaded cache with 463 artists, 1629 songs, 1981 lyrics
+[Basitune] Loaded cache with 463 artists, 1629 songs, 1981 lyrics
+[Basitune] Calling OpenAI for song context: Voices In My Head x Freaks x Love Parade - Voices In My Head x Freaks x Love Parade
+[Basitune] Loaded cache with 463 artists, 1629 songs, 1981 lyrics
+Xlib:  extension "MIT-SCREEN-SAVER" missing on display ":1".
+[Basitune] Failed to get system idle time: Status not OK
+[Basitune] OpenAI response length: 1384 chars
+[Basitune] OpenAI response preview: "Voices In My Head x Freaks x Love Parade" is a dynamic amalgamation of electronic beats and emotive
+[Basitune] OpenAI response length: 1359 chars
+[Basitune] OpenAI response preview: "Sweet True Lies" by Beast In Black melds powerful lyrics with a dynamic musical composition, typica
+[Basitune] Loaded cache with 463 artists, 1629 songs, 1982 lyrics
+[Basitune] Calling OpenAI for song context: Nightfall - Dark Funeral
+[Basitune] Loaded cache with 463 artists, 1629 songs, 1982 lyrics
+[Basitune] Loaded cache with 463 artists, 1629 songs, 1982 lyrics
+[Basitune] Loaded cache with 463 artists, 1629 songs, 1982 lyrics
+[Basitune] Loaded cache with 463 artists, 1629 songs, 1982 lyrics
+[Basitune] Calling OpenAI for song context: The Pulse of the Dead - Parasite Inc.
+[Basitune] Loaded cache with 463 artists, 1629 songs, 1982 lyrics
+Xlib:  extension "MIT-SCREEN-SAVER" missing on display ":1".
+[Basitune] Failed to get system idle time: Status not OK
+[Basitune] OpenAI response length: 1244 chars
+[Basitune] OpenAI response preview: "Nightfall" by Dark Funeral embodies a quintessential exploration of darkness and existential themes
+[Basitune] OpenAI response length: 1267 chars
+[Basitune] OpenAI response preview: "The Pulse of the Dead" by Parasite Inc. explores themes of existentialism, the struggle against an 
+[Basitune] Loaded cache with 463 artists, 1629 songs, 1983 lyrics
+[Basitune] Loaded cache with 463 artists, 1629 songs, 1983 lyrics
+[Basitune] Loaded cache with 463 artists, 1629 songs, 1983 lyrics
+[Basitune] Calling OpenAI for song context: Todos Somos Humanos - Anaal Nathrakh
+[Basitune] Loaded cache with 463 artists, 1629 songs, 1983 lyrics
+[Basitune] Calling OpenAI for song context: Purity - Fear Factory
+[Basitune] Loaded cache with 463 artists, 1629 songs, 1983 lyrics
+[Basitune] Loaded cache with 463 artists, 1629 songs, 1983 lyrics
+Xlib:  extension "MIT-SCREEN-SAVER" missing on display ":1".
+[Basitune] Failed to get system idle time: Status not OK
+[Basitune] OpenAI response length: 1519 chars
+[Basitune] OpenAI response preview: "Todos Somos Humanos" by Anaal Nathrakh embodies a powerful exploration of existential themes and th
+[Basitune] OpenAI response length: 1313 chars
+[Basitune] OpenAI response preview: "Purity," a track by Fear Factory from their 1995 album *Demanufacture*, showcases the band's signat
+[Basitune] Loaded cache with 463 artists, 1629 songs, 1984 lyrics
+[Basitune] Loaded cache with 463 artists, 1629 songs, 1984 lyrics
+[Basitune] Calling OpenAI for song context: Nihilism - Vended
+[Basitune] Loaded cache with 463 artists, 1629 songs, 1984 lyrics
+[Basitune] Loaded cache with 463 artists, 1629 songs, 1984 lyrics
+[Basitune] Calling OpenAI for song context: Not All Who Wander Are Lost - DevilDriver
+[Basitune] Loaded cache with 463 artists, 1629 songs, 1984 lyrics
+[Basitune] Loaded cache with 463 artists, 1629 songs, 1984 lyrics
+Xlib:  extension "MIT-SCREEN-SAVER" missing on display ":1".
+[Basitune] Failed to get system idle time: Status not OK
+[Basitune] OpenAI response length: 1404 chars
+[Basitune] OpenAI response preview: "Not All Who Wander Are Lost" by DevilDriver is a powerful metal track that explores themes of self-
+[Basitune] OpenAI response length: 1378 chars
+[Basitune] OpenAI response preview: "Nihilism" by Vended explores deep themes of existential despair, disillusionment, and the search fo
+[Basitune] Loaded cache with 463 artists, 1629 songs, 1985 lyrics
+[Basitune] Calling OpenAI for song context: Locust - Machine Head
+[Basitune] Loaded cache with 463 artists, 1629 songs, 1985 lyrics
+[Basitune] Loaded cache with 463 artists, 1629 songs, 1985 lyrics
+[Basitune] Loaded cache with 463 artists, 1629 songs, 1985 lyrics
+[Basitune] Calling OpenAI for song context: Consumed Illusion - Blood Red Throne
+[Basitune] Loaded cache with 463 artists, 1629 songs, 1985 lyrics
+[Basitune] Loaded cache with 463 artists, 1629 songs, 1985 lyrics
+Xlib:  extension "MIT-SCREEN-SAVER" missing on display ":1".
+[Basitune] Failed to get system idle time: Status not OK
+[Basitune] OpenAI response length: 1402 chars
+[Basitune] OpenAI response preview: "Locust" by Machine Head serves as a powerful commentary on themes of societal decay, personal strug
+[Basitune] OpenAI response length: 1288 chars
+[Basitune] OpenAI response preview: "Consumed Illusion" by Blood Red Throne embodies the relentless brutality and technical prowess char
+[Basitune] Loaded cache with 463 artists, 1629 songs, 1986 lyrics
+[Basitune] Loaded cache with 463 artists, 1629 songs, 1986 lyrics
+[Basitune] Loaded cache with 463 artists, 1629 songs, 1986 lyrics
+[Basitune] Calling OpenAI for song context: Drink - Alestorm
+[Basitune] Loaded cache with 463 artists, 1629 songs, 1986 lyrics
+[Basitune] Loaded cache with 463 artists, 1629 songs, 1986 lyrics
+[Basitune] Loaded cache with 463 artists, 1629 songs, 1986 lyrics
+[Basitune] Calling OpenAI for song context: Singularity - Anaal Nathrakh
+Xlib:  extension "MIT-SCREEN-SAVER" missing on display ":1".
+[Basitune] Failed to get system idle time: Status not OK
+[Basitune] OpenAI response length: 1442 chars
+[Basitune] OpenAI response preview: "Drink" by Alestorm is a raucous anthem that encapsulates the band’s signature blend of pirate-the
+[Basitune] OpenAI response length: 1499 chars
+[Basitune] OpenAI response preview: "Singularity" by Anaal Nathrakh encapsulates a powerful fusion of extreme metal’s intensity with p
+[Basitune] Loaded cache with 463 artists, 1629 songs, 1987 lyrics
+[Basitune] Loaded cache with 463 artists, 1629 songs, 1987 lyrics
+[Basitune] Loaded cache with 463 artists, 1629 songs, 1987 lyrics
+[Basitune] Calling OpenAI for song context: Carnal Forge - Carcass
+[Basitune] Loaded cache with 463 artists, 1629 songs, 1987 lyrics
+[Basitune] Calling OpenAI for song context: The Hills Have Eyes - The Acacia Strain
+[Basitune] Loaded cache with 463 artists, 1629 songs, 1987 lyrics
+[Basitune] Loaded cache with 463 artists, 1629 songs, 1987 lyrics
+Xlib:  extension "MIT-SCREEN-SAVER" missing on display ":1".
+[Basitune] Failed to get system idle time: Status not OK
+[Basitune] OpenAI response length: 1453 chars
+[Basitune] OpenAI response preview: "The Hills Have Eyes" by The Acacia Strain is a powerful exploration of horror and existential dread
+[Basitune] OpenAI response length: 1382 chars
+[Basitune] OpenAI response preview: "Carnal Forge," a standout track from Carcass’s 1993 album *Heartwork*, serves as a quintessential
+[Basitune] Loaded cache with 463 artists, 1629 songs, 1988 lyrics
+[Basitune] Loaded cache with 463 artists, 1629 songs, 1988 lyrics
+[Basitune] Loaded cache with 463 artists, 1629 songs, 1988 lyrics
+[Basitune] Calling OpenAI for song context: The Wrong Time - Obituary
+[Basitune] Loaded cache with 463 artists, 1629 songs, 1988 lyrics
+[Basitune] Loaded cache with 463 artists, 1629 songs, 1988 lyrics
+[Basitune] Calling OpenAI for song context: Beyond Words - Anaal Nathrakh
+[Basitune] Loaded cache with 463 artists, 1629 songs, 1988 lyrics
+Xlib:  extension "MIT-SCREEN-SAVER" missing on display ":1".
+[Basitune] Failed to get system idle time: Status not OK
+[Basitune] OpenAI response length: 1325 chars
+[Basitune] OpenAI response preview: "Beyond Words" by Anaal Nathrakh delves deep into themes of existential despair, human suffering, an
+[Basitune] OpenAI response length: 1398 chars
+[Basitune] OpenAI response preview: "The Wrong Time" by Obituary exemplifies the band's signature blend of death metal intensity and poi
+[Basitune] Loaded cache with 464 artists, 1629 songs, 1988 lyrics
+[Basitune] Loaded cache with 464 artists, 1629 songs, 1988 lyrics
+[Basitune] Calling OpenAI for song context: Spiritual Lies - Sinsaenum
+[Basitune] Loaded cache with 464 artists, 1629 songs, 1988 lyrics
+[Basitune] Loaded cache with 464 artists, 1629 songs, 1988 lyrics
+[Basitune] Calling OpenAI for song context: Die Havarie - Kanonenfieber
+[Basitune] Loaded cache with 464 artists, 1629 songs, 1988 lyrics
+[Basitune] Loaded cache with 464 artists, 1629 songs, 1988 lyrics
+Xlib:  extension "MIT-SCREEN-SAVER" missing on display ":1".
+[Basitune] Failed to get system idle time: Status not OK
+[Basitune] OpenAI response length: 1326 chars
+[Basitune] OpenAI response preview: "Spiritual Lies" by Sinsaenum delves into themes of disillusionment, inner turmoil, and the struggle
+[Basitune] OpenAI response length: 1286 chars
+[Basitune] OpenAI response preview: "Die Havarie" by Kanonenfieber explores deep themes of war, tragedy, and the human cost associated w
+[Basitune] Loaded cache with 464 artists, 1629 songs, 1989 lyrics
+[Basitune] Calling OpenAI for song context: Mystery - Dynazty
+[Basitune] Loaded cache with 464 artists, 1629 songs, 1989 lyrics
+[Basitune] Loaded cache with 464 artists, 1629 songs, 1989 lyrics
+[Basitune] Loaded cache with 464 artists, 1629 songs, 1989 lyrics
+[Basitune] Loaded cache with 464 artists, 1629 songs, 1989 lyrics
+[Basitune] Calling OpenAI for song context: Hold Your Children Close and Pray for Oblivion - Anaal Nathrakh
+[Basitune] Loaded cache with 464 artists, 1629 songs, 1989 lyrics
+Xlib:  extension "MIT-SCREEN-SAVER" missing on display ":1".
+[Basitune] Failed to get system idle time: Status not OK
+[Basitune] OpenAI response length: 1217 chars
+[Basitune] OpenAI response preview: “Mystery” by Dynazty is a powerful anthem that delves into themes of love, longing, and the elus
+[Basitune] OpenAI response length: 1299 chars
+[Basitune] OpenAI response preview: "Hold Your Children Close and Pray for Oblivion" by Anaal Nathrakh encapsulates the band's signature
+[Basitune] Loaded cache with 464 artists, 1629 songs, 1990 lyrics
+[Basitune] Calling OpenAI for song context: It Dwells In Me - All That Remains
+[Basitune] Loaded cache with 464 artists, 1629 songs, 1990 lyrics
+[Basitune] Loaded cache with 464 artists, 1629 songs, 1990 lyrics
+[Basitune] Loaded cache with 464 artists, 1629 songs, 1990 lyrics
+[Basitune] Calling OpenAI for song context: Brotherhood of the Snake - Testament
+[Basitune] Loaded cache with 464 artists, 1629 songs, 1990 lyrics
+[Basitune] Loaded cache with 464 artists, 1629 songs, 1990 lyrics
+Xlib:  extension "MIT-SCREEN-SAVER" missing on display ":1".
+[Basitune] Failed to get system idle time: Status not OK
+[Basitune] OpenAI response length: 1249 chars
+[Basitune] OpenAI response preview: "It Dwells In Me" by All That Remains delves into themes of internal struggle, identity, and the bat
+[Basitune] OpenAI response length: 1472 chars
+[Basitune] OpenAI response preview: "Brotherhood of the Snake" is a powerful track by Testament, encapsulating themes of unity, struggle
+[Basitune] Loaded cache with 464 artists, 1629 songs, 1991 lyrics
+[Basitune] Loaded cache with 464 artists, 1629 songs, 1991 lyrics
+[Basitune] Calling OpenAI for song context: Scissors - Jinjer
+[Basitune] Loaded cache with 464 artists, 1629 songs, 1991 lyrics
+[Basitune] Loaded cache with 464 artists, 1629 songs, 1991 lyrics
+[Basitune] Loaded cache with 464 artists, 1629 songs, 1991 lyrics
+[Basitune] Loaded cache with 464 artists, 1629 songs, 1991 lyrics
+[Basitune] Calling OpenAI for song context: More Of Fire Than Blood - Anaal Nathrakh
+Xlib:  extension "MIT-SCREEN-SAVER" missing on display ":1".
+[Basitune] Failed to get system idle time: Status not OK
+[Basitune] OpenAI response length: 1342 chars
+[Basitune] OpenAI response preview: "More of Fire Than Blood" by Anaal Nathrakh exemplifies the band's unique blend of black metal, grin
+[Basitune] OpenAI response length: 1428 chars
+[Basitune] OpenAI response preview: "Scissors" by Jinjer explores deep emotional and psychological themes, centering on the struggles of
+[Basitune] Loaded cache with 464 artists, 1629 songs, 1992 lyrics
+[Basitune] Loaded cache with 464 artists, 1629 songs, 1992 lyrics
+[Basitune] Loaded cache with 464 artists, 1629 songs, 1992 lyrics
+[Basitune] Calling OpenAI for song context: Reign of Terror - Rhapsody Of Fire
+[Basitune] Loaded cache with 464 artists, 1629 songs, 1992 lyrics
+[Basitune] Loaded cache with 464 artists, 1629 songs, 1992 lyrics
+[Basitune] Calling OpenAI for song context: Any Means Necessary - Hammerfall
+[Basitune] Loaded cache with 464 artists, 1629 songs, 1992 lyrics
+Xlib:  extension "MIT-SCREEN-SAVER" missing on display ":1".
+[Basitune] Failed to get system idle time: Status not OK
+[Basitune] OpenAI response length: 1329 chars
+[Basitune] OpenAI response preview: "Reign of Terror" by Rhapsody of Fire exemplifies the band's signature blend of symphonic metal and 
+[Basitune] OpenAI response length: 1407 chars
+[Basitune] OpenAI response preview: "Any Means Necessary" by Hammerfall is a powerful anthem that embodies themes of determination, resi
+[Basitune] Loaded cache with 464 artists, 1629 songs, 1993 lyrics
+[Basitune] Calling OpenAI for song context: Lamb to the Slaughter - Viscera
+[Basitune] Loaded cache with 464 artists, 1629 songs, 1993 lyrics
+[Basitune] Loaded cache with 464 artists, 1629 songs, 1993 lyrics
+[Basitune] Loaded cache with 464 artists, 1629 songs, 1993 lyrics
+[Basitune] Loaded cache with 464 artists, 1629 songs, 1993 lyrics
+[Basitune] Calling OpenAI for song context: The Age of Starlight Ends - Anaal Nathrakh
+[Basitune] Loaded cache with 464 artists, 1629 songs, 1993 lyrics
+Xlib:  extension "MIT-SCREEN-SAVER" missing on display ":1".
+[Basitune] Failed to get system idle time: Status not OK
+[Basitune] OpenAI response length: 1324 chars
+[Basitune] OpenAI response preview: "Lamb to the Slaughter" by Viscera showcases a powerful blend of visceral themes and compelling musi
+[Basitune] OpenAI response length: 1469 chars
+[Basitune] OpenAI response preview: "The Age of Starlight Ends" by Anaal Nathrakh encapsulates a profound exploration of existential des
+[Basitune] Loaded cache with 464 artists, 1629 songs, 1994 lyrics
+[Basitune] Loaded cache with 464 artists, 1629 songs, 1994 lyrics
+[Basitune] Loaded cache with 464 artists, 1629 songs, 1994 lyrics
+[Basitune] Calling OpenAI for song context: The Pale King - Testament
+[Basitune] Loaded cache with 464 artists, 1629 songs, 1994 lyrics
+[Basitune] Calling OpenAI for song context: Through Eyes of Glass - Forbidden
+[Basitune] Loaded cache with 464 artists, 1629 songs, 1994 lyrics
+[Basitune] Loaded cache with 464 artists, 1629 songs, 1994 lyrics
+Xlib:  extension "MIT-SCREEN-SAVER" missing on display ":1".
+[Basitune] Failed to get system idle time: Status not OK
+[Basitune] OpenAI response length: 1359 chars
+[Basitune] OpenAI response preview: "Through Eyes of Glass" by Forbidden is a powerful track that encapsulates the themes of perception,
+[Basitune] OpenAI response length: 1262 chars
+[Basitune] OpenAI response preview: "The Pale King" by Testament encapsulates themes of existential struggle and introspection, explorin
+Xlib:  extension "MIT-SCREEN-SAVER" missing on display ":1".
+[Basitune] Failed to get system idle time: Status not OK
+[Basitune] Loaded cache with 464 artists, 1629 songs, 1995 lyrics
+[Basitune] Calling OpenAI for song context: Rise of the Fallen - Soulfly
+[Basitune] Loaded cache with 464 artists, 1629 songs, 1995 lyrics
+[Basitune] Loaded cache with 464 artists, 1629 songs, 1995 lyrics
+[Basitune] Loaded cache with 464 artists, 1629 songs, 1995 lyrics
+[Basitune] Loaded cache with 464 artists, 1629 songs, 1995 lyrics
+[Basitune] Calling OpenAI for song context: Cede to Thunder - Sinsaenum
+[Basitune] Loaded cache with 464 artists, 1629 songs, 1995 lyrics
+Xlib:  extension "MIT-SCREEN-SAVER" missing on display ":1".
+[Basitune] Failed to get system idle time: Status not OK
+[Basitune] OpenAI response length: 1217 chars
+[Basitune] OpenAI response preview: "Cede to Thunder" by Sinsaenum is a powerful track that embodies themes of chaos, struggle, and empo
+[Basitune] OpenAI response length: 1331 chars
+[Basitune] OpenAI response preview: "Rise of the Fallen" by Soulfly is a track that encapsulates themes of resilience, struggle, and the
+[Basitune] Loaded cache with 464 artists, 1629 songs, 1996 lyrics
+[Basitune] Loaded cache with 464 artists, 1629 songs, 1996 lyrics
+[Basitune] Loaded cache with 464 artists, 1629 songs, 1996 lyrics
+[Basitune] Calling OpenAI for song context: The Realm of Chaos (feat. Heidi Shepherd) - Infected Rain
+[Basitune] Loaded cache with 464 artists, 1629 songs, 1996 lyrics
+[Basitune] Loaded cache with 464 artists, 1629 songs, 1996 lyrics
+[Basitune] Calling OpenAI for song context: Trial By Fire - Judas Priest
+[Basitune] Loaded cache with 464 artists, 1629 songs, 1996 lyrics
+Xlib:  extension "MIT-SCREEN-SAVER" missing on display ":1".
+[Basitune] Failed to get system idle time: Status not OK
+Xlib:  extension "MIT-SCREEN-SAVER" missing on display ":1".
+[Basitune] Failed to get system idle time: Status not OK
+[Basitune] OpenAI response length: 1280 chars
+[Basitune] OpenAI response preview: "Trial By Fire" by Judas Priest is a powerful track from their 1990 album *Painkiller*. The song emb
+[Basitune] OpenAI response length: 1459 chars
+[Basitune] OpenAI response preview: "The Realm of Chaos," featuring Heidi Shepherd, is a powerful track by the Moldovan metal band Infec
+[Basitune] Loaded cache with 464 artists, 1629 songs, 1997 lyrics
+[Basitune] Loaded cache with 464 artists, 1629 songs, 1997 lyrics
+[Basitune] Calling OpenAI for song context: Idol - Anaal Nathrakh
+[Basitune] Loaded cache with 464 artists, 1629 songs, 1997 lyrics
+[Basitune] Loaded cache with 464 artists, 1629 songs, 1997 lyrics
+[Basitune] Loaded cache with 464 artists, 1629 songs, 1997 lyrics
+[Basitune] Calling OpenAI for song context: 邪神の婚礼、儀は愛と知る。 - Imperial Circus Dead Decadence
+[Basitune] Loaded cache with 464 artists, 1629 songs, 1997 lyrics
+Xlib:  extension "MIT-SCREEN-SAVER" missing on display ":1".
+[Basitune] Failed to get system idle time: Status not OK
+[Basitune] OpenAI response length: 1479 chars
+[Basitune] OpenAI response preview: Anaal Nathrakh's song "Idol" exemplifies the band's signature blend of extreme metal, industrial ele
+[Basitune] OpenAI response length: 1431 chars
+[Basitune] OpenAI response preview: "邪神の婚礼、儀は愛と知る。" (translated as "The Wedding of the Evil God, The Rite is K
+[Basitune] Loaded cache with 464 artists, 1629 songs, 1998 lyrics
+[Basitune] Calling OpenAI for song context: Make the Demons Obey - Make the Demons Obey
+[Basitune] Loaded cache with 464 artists, 1629 songs, 1998 lyrics
+[Basitune] Loaded cache with 464 artists, 1629 songs, 1998 lyrics
+[Basitune] Loaded cache with 464 artists, 1629 songs, 1998 lyrics
+[Basitune] Loaded cache with 464 artists, 1629 songs, 1998 lyrics
+[Basitune] Calling OpenAI for song context: Eyes of the Executioner - Carnifex
+[Basitune] Loaded cache with 464 artists, 1629 songs, 1998 lyrics
+Xlib:  extension "MIT-SCREEN-SAVER" missing on display ":1".
+[Basitune] Failed to get system idle time: Status not OK
+[Basitune] OpenAI response length: 1293 chars
+[Basitune] OpenAI response preview: "Make the Demons Obey" by the band of the same name presents a compelling exploration of inner confl
+[Basitune] OpenAI response length: 1275 chars
+[Basitune] OpenAI response preview: "Eyes of the Executioner" by Carnifex is a visceral exploration of themes surrounding death, despair
+[Basitune] Loaded cache with 464 artists, 1629 songs, 1999 lyrics
+[Basitune] Loaded cache with 464 artists, 1629 songs, 1999 lyrics
+[Basitune] Loaded cache with 464 artists, 1629 songs, 1999 lyrics
+[Basitune] Calling OpenAI for song context: The Joystream - Anaal Nathrakh
+[Basitune] Loaded cache with 464 artists, 1629 songs, 1999 lyrics
+[Basitune] Calling OpenAI for song context: The New Messiah - Rotting Christ
+[Basitune] Loaded cache with 464 artists, 1629 songs, 1999 lyrics
+[Basitune] Loaded cache with 464 artists, 1629 songs, 1999 lyrics
+Xlib:  extension "MIT-SCREEN-SAVER" missing on display ":1".
+[Basitune] Failed to get system idle time: Status not OK
+Xlib:  extension "MIT-SCREEN-SAVER" missing on display ":1".
+[Basitune] Failed to get system idle time: Status not OK
+[Basitune] OpenAI response length: 1444 chars
+[Basitune] OpenAI response preview: "The Joystream" by Anaal Nathrakh encapsulates the band's signature blend of extreme metal, incorpor
+[Basitune] OpenAI response length: 1338 chars
+[Basitune] OpenAI response preview: "The New Messiah" by Rotting Christ delves into themes of despair, disillusionment, and the struggle
+[Basitune] Loaded cache with 464 artists, 1629 songs, 2000 lyrics
+[Basitune] Calling OpenAI for song context: Inhaling Mental Chaos - Darkane
+[Basitune] Loaded cache with 464 artists, 1629 songs, 2000 lyrics
+[Basitune] Loaded cache with 464 artists, 1629 songs, 2000 lyrics
+[Basitune] Loaded cache with 464 artists, 1629 songs, 2000 lyrics
+[Basitune] Loaded cache with 464 artists, 1629 songs, 2000 lyrics
+[Basitune] Calling OpenAI for song context: Repentless - Slayer
+[Basitune] Loaded cache with 464 artists, 1629 songs, 2000 lyrics
+Xlib:  extension "MIT-SCREEN-SAVER" missing on display ":1".
+[Basitune] Failed to get system idle time: Status not OK
+Xlib:  extension "MIT-SCREEN-SAVER" missing on display ":1".
+[Basitune] Failed to get system idle time: Status not OK
+[Basitune] OpenAI response length: 1316 chars
+[Basitune] OpenAI response preview: "Inhaling Mental Chaos" by Darkane is a compelling exploration of psychological struggle and the com
+[Basitune] OpenAI response length: 1477 chars
+[Basitune] OpenAI response preview: "Repentless" by Slayer serves as a powerful anthem that encapsulates the band's enduring themes of a
+[Basitune] Loaded cache with 464 artists, 1629 songs, 2001 lyrics
+[Basitune] Loaded cache with 464 artists, 1629 songs, 2001 lyrics
+[Basitune] Calling OpenAI for song context: Between Shit and Piss We Are Born - Anaal Nathrakh
+[Basitune] Loaded cache with 464 artists, 1629 songs, 2001 lyrics
+[Basitune] Loaded cache with 464 artists, 1629 songs, 2001 lyrics
+[Basitune] Loaded cache with 464 artists, 1629 songs, 2001 lyrics
+[Basitune] Calling OpenAI for song context: Children of the Next Level - Testament
+[Basitune] Loaded cache with 464 artists, 1629 songs, 2001 lyrics
+Xlib:  extension "MIT-SCREEN-SAVER" missing on display ":1".
+[Basitune] Failed to get system idle time: Status not OK
+Xlib:  extension "MIT-SCREEN-SAVER" missing on display ":1".
+[Basitune] Failed to get system idle time: Status not OK
+[Basitune] OpenAI response length: 1317 chars
+[Basitune] OpenAI response preview: "Between Shit and Piss We Are Born" by Anaal Nathrakh is a ferocious exploration of the human condit
+[Basitune] OpenAI response length: 1529 chars
+[Basitune] OpenAI response preview: "Children of the Next Level" by Testament is a compelling exploration of themes surrounding societal
+[Basitune] Loaded cache with 464 artists, 1629 songs, 2002 lyrics
+[Basitune] Calling OpenAI for song context: A Photic Doom - Cattle Decapitation
+[Basitune] Loaded cache with 464 artists, 1629 songs, 2002 lyrics
+[Basitune] Loaded cache with 464 artists, 1629 songs, 2002 lyrics
+[Basitune] Loaded cache with 464 artists, 1629 songs, 2002 lyrics
+[Basitune] Calling OpenAI for song context: In Place of your Halo - Bleed From Within
+[Basitune] Loaded cache with 464 artists, 1629 songs, 2002 lyrics
+[Basitune] Loaded cache with 464 artists, 1629 songs, 2002 lyrics
+Xlib:  extension "MIT-SCREEN-SAVER" missing on display ":1".
+[Basitune] Failed to get system idle time: Status not OK
+Xlib:  extension "MIT-SCREEN-SAVER" missing on display ":1".
+[Basitune] Failed to get system idle time: Status not OK
+[Basitune] OpenAI response length: 1497 chars
+[Basitune] OpenAI response preview: "A Photic Doom" by Cattle Decapitation showcases the band's signature blend of extreme metal with in
+[Basitune] OpenAI response length: 1232 chars
+[Basitune] OpenAI response preview: "In Place of Your Halo" by Bleed From Within is a powerful exploration of themes such as loss, disil
+[Basitune] Loaded cache with 464 artists, 1629 songs, 2003 lyrics
+[Basitune] Calling OpenAI for song context: Dominus - War Of Ages
+[Basitune] Loaded cache with 464 artists, 1629 songs, 2003 lyrics
+[Basitune] Loaded cache with 464 artists, 1629 songs, 2003 lyrics
+[Basitune] Loaded cache with 464 artists, 1629 songs, 2003 lyrics
+[Basitune] Loaded cache with 464 artists, 1629 songs, 2003 lyrics
+[Basitune] Calling OpenAI for song context: Struck Dead - Trivium
+[Basitune] Loaded cache with 464 artists, 1629 songs, 2003 lyrics
+Xlib:  extension "MIT-SCREEN-SAVER" missing on display ":1".
+[Basitune] Failed to get system idle time: Status not OK
+Xlib:  extension "MIT-SCREEN-SAVER" missing on display ":1".
+[Basitune] Failed to get system idle time: Status not OK
+[Basitune] OpenAI response length: 1324 chars
+[Basitune] OpenAI response preview: "Dominus" by War of Ages encapsulates powerful themes of struggle, perseverance, and divine strength
+[Basitune] OpenAI response length: 1283 chars
+[Basitune] OpenAI response preview: "Struck Dead" by Trivium is a compelling exploration of themes such as despair, betrayal, and the em
+[Basitune] Loaded cache with 464 artists, 1629 songs, 2004 lyrics
+[Basitune] Loaded cache with 464 artists, 1629 songs, 2004 lyrics
+[Basitune] Calling OpenAI for song context: Hammer Smashed Face - Thy Art Is Murder
+[Basitune] Loaded cache with 464 artists, 1629 songs, 2004 lyrics
+[Basitune] Loaded cache with 464 artists, 1629 songs, 2004 lyrics
+[Basitune] Calling OpenAI for song context: Morphine Waltz - Fleshgod Apocalypse
+[Basitune] Loaded cache with 464 artists, 1629 songs, 2004 lyrics
+[Basitune] Loaded cache with 464 artists, 1629 songs, 2004 lyrics
+Xlib:  extension "MIT-SCREEN-SAVER" missing on display ":1".
+[Basitune] Failed to get system idle time: Status not OK
+Xlib:  extension "MIT-SCREEN-SAVER" missing on display ":1".
+[Basitune] Failed to get system idle time: Status not OK
+[Basitune] OpenAI response length: 1565 chars
+[Basitune] OpenAI response preview: "Hammer Smashed Face" by Thy Art Is Murder is emblematic of the band's brutal deathcore style, combi
+[Basitune] OpenAI response length: 1371 chars
+[Basitune] OpenAI response preview: "Morphine Waltz" by Fleshgod Apocalypse presents a striking blend of orchestral elements with extrem
+[Basitune] Loaded cache with 464 artists, 1629 songs, 2005 lyrics
+[Basitune] Loaded cache with 464 artists, 1629 songs, 2005 lyrics
+[Basitune] Calling OpenAI for song context: Apocalyptic Premonition - Analepsy
+[Basitune] Loaded cache with 464 artists, 1629 songs, 2005 lyrics
+[Basitune] Loaded cache with 464 artists, 1629 songs, 2005 lyrics
+[Basitune] Loaded cache with 464 artists, 1629 songs, 2005 lyrics
+[Basitune] Calling OpenAI for song context: Father Hog - Gorepig
+[Basitune] Loaded cache with 464 artists, 1629 songs, 2005 lyrics
+Xlib:  extension "MIT-SCREEN-SAVER" missing on display ":1".
+[Basitune] Failed to get system idle time: Status not OK
+Xlib:  extension "MIT-SCREEN-SAVER" missing on display ":1".
+[Basitune] Failed to get system idle time: Status not OK
+[Basitune] OpenAI response length: 1283 chars
+[Basitune] OpenAI response preview: "Father Hog" by Gorepig embodies a visceral exploration of themes such as existential despair, the g
+[Basitune] OpenAI response length: 1295 chars
+[Basitune] OpenAI response preview: "Apocalyptic Premonition" by Analepsy embodies a powerful commentary on themes of existential despai
+[Basitune] Loaded cache with 464 artists, 1629 songs, 2006 lyrics
+[Basitune] Calling OpenAI for song context: The Road To Haifa Pier - Unleashed
+[Basitune] Loaded cache with 464 artists, 1629 songs, 2006 lyrics
+[Basitune] Loaded cache with 464 artists, 1629 songs, 2006 lyrics
+[Basitune] Loaded cache with 464 artists, 1629 songs, 2006 lyrics
+[Basitune] Loaded cache with 464 artists, 1629 songs, 2006 lyrics
+[Basitune] Calling OpenAI for song context: Blacklist - Exodus
+[Basitune] Loaded cache with 464 artists, 1629 songs, 2006 lyrics
+Xlib:  extension "MIT-SCREEN-SAVER" missing on display ":1".
+[Basitune] Failed to get system idle time: Status not OK
+Xlib:  extension "MIT-SCREEN-SAVER" missing on display ":1".
+[Basitune] Failed to get system idle time: Status not OK
+[Basitune] OpenAI response length: 1394 chars
+[Basitune] OpenAI response preview: "The Road to Haifa Pier" by Unleashed embodies a profound exploration of conflict, displacement, and
+[Basitune] OpenAI response length: 1237 chars
+[Basitune] OpenAI response preview: "Blacklist" by Exodus is a potent reflection on themes of identity, exclusion, and the struggle agai
+Xlib:  extension "MIT-SCREEN-SAVER" missing on display ":1".
+[Basitune] Failed to get system idle time: Status not OK
+Xlib:  extension "MIT-SCREEN-SAVER" missing on display ":1".
+[Basitune] Failed to get system idle time: Status not OK
+Xlib:  extension "MIT-SCREEN-SAVER" missing on display ":1".
+[Basitune] Failed to get system idle time: Status not OK
+[Basitune] Loaded cache with 464 artists, 1629 songs, 2007 lyrics
+[Basitune] Loaded cache with 464 artists, 1629 songs, 2007 lyrics
+[Basitune] Loaded cache with 464 artists, 1629 songs, 2007 lyrics
+[Basitune] Calling OpenAI for song context: Death of Me - Biohazard
+[Basitune] Loaded cache with 464 artists, 1629 songs, 2007 lyrics
+[Basitune] Loaded cache with 464 artists, 1629 songs, 2007 lyrics
+[Basitune] Calling OpenAI for song context: Eaten - Bloodbath
+[Basitune] Loaded cache with 464 artists, 1629 songs, 2007 lyrics
+Xlib:  extension "MIT-SCREEN-SAVER" missing on display ":1".
+[Basitune] Failed to get system idle time: Status not OK
+Xlib:  extension "MIT-SCREEN-SAVER" missing on display ":1".
+[Basitune] Failed to get system idle time: Status not OK
+[Basitune] OpenAI response length: 1373 chars
+[Basitune] OpenAI response preview: "Death of Me" by Biohazard is a potent exploration of internal struggle and existential crisis, capt
+[Basitune] OpenAI response length: 1357 chars
+[Basitune] OpenAI response preview: "Eaten" by Bloodbath is a track that encapsulates the band's quintessential approach to death metal,
+[Basitune] Loaded cache with 464 artists, 1629 songs, 2008 lyrics
+[Basitune] Loaded cache with 464 artists, 1629 songs, 2008 lyrics
+[Basitune] Loaded cache with 464 artists, 1629 songs, 2008 lyrics
+[Basitune] Calling OpenAI for song context: From The Cradle To The Grave - HAVOK
+[Basitune] Loaded cache with 464 artists, 1629 songs, 2008 lyrics
+[Basitune] Loaded cache with 464 artists, 1629 songs, 2008 lyrics
+[Basitune] Loaded cache with 464 artists, 1629 songs, 2008 lyrics
+[Basitune] Calling OpenAI for song context: Bury Me With My Screams - Trivium
+Xlib:  extension "MIT-SCREEN-SAVER" missing on display ":1".
+[Basitune] Failed to get system idle time: Status not OK
+Xlib:  extension "MIT-SCREEN-SAVER" missing on display ":1".
+[Basitune] Failed to get system idle time: Status not OK
+[Basitune] OpenAI response length: 1497 chars
+[Basitune] OpenAI response preview: "From The Cradle To The Grave" by HAVOK explores profound themes of existentialism, the passage of t
+[Basitune] OpenAI response length: 1442 chars
+[Basitune] OpenAI response preview: "Bury Me With My Screams" by Trivium is a powerful ballad that encapsulates themes of struggle, desp
+[Basitune] Loaded cache with 464 artists, 1629 songs, 2009 lyrics
+[Basitune] Calling OpenAI for song context: At War With My Soul - Fleshgod Apocalypse
+[Basitune] Loaded cache with 464 artists, 1629 songs, 2009 lyrics
+[Basitune] Loaded cache with 464 artists, 1629 songs, 2009 lyrics
+[Basitune] Loaded cache with 464 artists, 1629 songs, 2009 lyrics
+[Basitune] Loaded cache with 464 artists, 1629 songs, 2009 lyrics
+[Basitune] Calling OpenAI for song context: Lifted - Suicide Silence
+[Basitune] Loaded cache with 464 artists, 1629 songs, 2009 lyrics
+Xlib:  extension "MIT-SCREEN-SAVER" missing on display ":1".
+[Basitune] Failed to get system idle time: Status not OK
+Xlib:  extension "MIT-SCREEN-SAVER" missing on display ":1".
+[Basitune] Failed to get system idle time: Status not OK
+[Basitune] OpenAI response length: 1369 chars
+[Basitune] OpenAI response preview: “At War With My Soul” by Fleshgod Apocalypse encapsulates a profound exploration of internal con
+[Basitune] OpenAI response length: 1463 chars
+[Basitune] OpenAI response preview: “Lifted” by Suicide Silence serves as a poignant exploration of themes related to grief, loss, a
+[Basitune] Loaded cache with 464 artists, 1629 songs, 2010 lyrics
+[Basitune] Loaded cache with 464 artists, 1629 songs, 2010 lyrics
+[Basitune] Loaded cache with 464 artists, 1629 songs, 2010 lyrics
+[Basitune] Calling OpenAI for song context: Kid Of Darkness - Slaughter To Prevail
+[Basitune] Loaded cache with 464 artists, 1629 songs, 2010 lyrics
+[Basitune] Loaded cache with 464 artists, 1629 songs, 2010 lyrics
+[Basitune] Calling OpenAI for song context: Plague In The Guise Of Flesh - Extermination Dismemberment
+[Basitune] Loaded cache with 464 artists, 1629 songs, 2010 lyrics
+Xlib:  extension "MIT-SCREEN-SAVER" missing on display ":1".
+[Basitune] Failed to get system idle time: Status not OK
+Xlib:  extension "MIT-SCREEN-SAVER" missing on display ":1".
+[Basitune] Failed to get system idle time: Status not OK
+[Basitune] OpenAI response length: 1313 chars
+[Basitune] OpenAI response preview: "Plague In The Guise Of Flesh" by Extermination Dismemberment is a visceral exploration of themes su
+[Basitune] OpenAI response length: 1354 chars
+[Basitune] OpenAI response preview: "Kid Of Darkness" by Slaughter To Prevail delves into themes of identity, inner turmoil, and the str
+[Basitune] Loaded cache with 464 artists, 1629 songs, 2011 lyrics
+[Basitune] Calling OpenAI for song context: Pisces - Jinjer
+[Basitune] Loaded cache with 464 artists, 1629 songs, 2011 lyrics
+[Basitune] Loaded cache with 464 artists, 1629 songs, 2011 lyrics
+[Basitune] Loaded cache with 464 artists, 1629 songs, 2011 lyrics
+[Basitune] Calling OpenAI for song context: The Resurrection of Kariba - Carach Angren
+[Basitune] Loaded cache with 464 artists, 1629 songs, 2011 lyrics
+[Basitune] Loaded cache with 464 artists, 1629 songs, 2011 lyrics
+Xlib:  extension "MIT-SCREEN-SAVER" missing on display ":1".
+[Basitune] Failed to get system idle time: Status not OK
+[Basitune] OpenAI response length: 1418 chars
+[Basitune] OpenAI response preview: "Pisces" by Jinjer is a compelling exploration of inner turmoil and the complexity of human emotions
+[Basitune] OpenAI response length: 1630 chars
+[Basitune] OpenAI response preview: "The Resurrection of Kariba" by Carach Angren is a compelling composition that intertwines themes of
+[Basitune] Loaded cache with 464 artists, 1629 songs, 2012 lyrics
+[Basitune] Loaded cache with 464 artists, 1629 songs, 2012 lyrics
+[Basitune] Loaded cache with 464 artists, 1629 songs, 2012 lyrics
+[Basitune] Calling OpenAI for song context: Covering Fire - HAVOK
+[Basitune] Loaded cache with 464 artists, 1629 songs, 2012 lyrics
+[Basitune] Loaded cache with 464 artists, 1629 songs, 2012 lyrics
+[Basitune] Calling OpenAI for song context: Bloodclock - Fleshgod Apocalypse
+[Basitune] Loaded cache with 464 artists, 1629 songs, 2012 lyrics
+Xlib:  extension "MIT-SCREEN-SAVER" missing on display ":1".
+[Basitune] Failed to get system idle time: Status not OK
+[Basitune] OpenAI response length: 1259 chars
+[Basitune] OpenAI response preview: "Bloodclock" by Fleshgod Apocalypse is a powerful composition that encapsulates themes of mortality,
+[Basitune] OpenAI response length: 1386 chars
+[Basitune] OpenAI response preview: "Covering Fire" by HAVOK is a powerful thrash metal track that encapsulates themes of conflict, rebe
+[Basitune] Loaded cache with 464 artists, 1629 songs, 2013 lyrics
+[Basitune] Loaded cache with 464 artists, 1629 songs, 2013 lyrics
+[Basitune] Loaded cache with 464 artists, 1629 songs, 2013 lyrics
+[Basitune] Calling OpenAI for song context: Enemy of God - Kreator
+[Basitune] Loaded cache with 464 artists, 1629 songs, 2013 lyrics
+[Basitune] Loaded cache with 464 artists, 1629 songs, 2013 lyrics
+[Basitune] Loaded cache with 464 artists, 1629 songs, 2013 lyrics
+[Basitune] Calling OpenAI for song context: You Only Live Once - Suicide Silence
+[Basitune] Loaded cache with 464 artists, 1629 songs, 2013 lyrics
+Xlib:  extension "MIT-SCREEN-SAVER" missing on display ":1".
+[Basitune] Failed to get system idle time: Status not OK
+[Basitune] OpenAI response length: 1349 chars
+[Basitune] OpenAI response preview: "You Only Live Once" by Suicide Silence is emblematic of the band's signature blend of brutal metalc
+[Basitune] OpenAI response length: 1352 chars
+[Basitune] OpenAI response preview: "Enemy of God" by Kreator is a powerful thrash metal anthem that delves into themes of social betray
+[Basitune] Loaded cache with 464 artists, 1629 songs, 2014 lyrics
+[Basitune] Loaded cache with 464 artists, 1629 songs, 2014 lyrics
+[Basitune] Loaded cache with 464 artists, 1629 songs, 2014 lyrics
+[Basitune] Calling OpenAI for song context: Cryogenic Rebirth - Analepsy
+[Basitune] Loaded cache with 464 artists, 1629 songs, 2014 lyrics
+[Basitune] Loaded cache with 464 artists, 1629 songs, 2014 lyrics
+[Basitune] Calling OpenAI for song context: Sphinx - Gojira
+[Basitune] Loaded cache with 464 artists, 1629 songs, 2014 lyrics
+Xlib:  extension "MIT-SCREEN-SAVER" missing on display ":1".
+[Basitune] Failed to get system idle time: Status not OK
+Xlib:  extension "MIT-SCREEN-SAVER" missing on display ":1".
+[Basitune] Failed to get system idle time: Status not OK
+[Basitune] OpenAI response length: 1339 chars
+[Basitune] OpenAI response preview: "Sphinx" by Gojira is a compelling track that encapsulates the band's signature blend of progressive
+[Basitune] OpenAI response length: 1468 chars
+[Basitune] OpenAI response preview: "Cryogenic Rebirth" by Analepsy explores themes of resurrection, existentialism, and the interplay b
+[Basitune] Loaded cache with 464 artists, 1630 songs, 2014 lyrics
+[Basitune] Calling OpenAI for song context: Repulsive Demise - Sanguisugabogg
+[Basitune] Loaded cache with 464 artists, 1630 songs, 2014 lyrics
+[Basitune] Loaded cache with 464 artists, 1630 songs, 2014 lyrics
+[Basitune] Loaded cache with 464 artists, 1630 songs, 2014 lyrics
+[Basitune] Loaded cache with 464 artists, 1630 songs, 2014 lyrics
+[Basitune] Loaded cache with 464 artists, 1630 songs, 2014 lyrics
+[Basitune] Calling OpenAI for song context: Give Me Liberty…Or Give Me Death - HAVOK
+Xlib:  extension "MIT-SCREEN-SAVER" missing on display ":1".
+[Basitune] Failed to get system idle time: Status not OK
+Xlib:  extension "MIT-SCREEN-SAVER" missing on display ":1".
+[Basitune] Failed to get system idle time: Status not OK
+[Basitune] OpenAI response length: 1320 chars
+[Basitune] OpenAI response preview: “Give Me Liberty…Or Give Me Death” by HAVOK is a potent exploration of themes centered around 
+[Basitune] OpenAI response length: 1260 chars
+[Basitune] OpenAI response preview: "Repulsive Demise" by Sanguisugabogg encapsulates the raw intensity and visceral themes characterist
+[Basitune] Loaded cache with 465 artists, 1630 songs, 2014 lyrics
+[Basitune] Calling OpenAI for song context: Are You Dead Yet? - Children of Bodom
+[Basitune] Loaded cache with 465 artists, 1630 songs, 2014 lyrics
+[Basitune] Loaded cache with 465 artists, 1630 songs, 2014 lyrics
+[Basitune] Loaded cache with 465 artists, 1630 songs, 2014 lyrics
+[Basitune] Loaded cache with 465 artists, 1630 songs, 2014 lyrics
+[Basitune] Loaded cache with 465 artists, 1630 songs, 2014 lyrics
+[Basitune] Calling OpenAI for song context: Ligature Marks - Meshuggah
+Xlib:  extension "MIT-SCREEN-SAVER" missing on display ":1".
+[Basitune] Failed to get system idle time: Status not OK
+Xlib:  extension "MIT-SCREEN-SAVER" missing on display ":1".
+[Basitune] Failed to get system idle time: Status not OK
+[Basitune] OpenAI response length: 1345 chars
+[Basitune] OpenAI response preview: "Are You Dead Yet?" by Children of Bodom is a track that showcases the band's signature fusion of me
+[Basitune] OpenAI response length: 1290 chars
+[Basitune] OpenAI response preview: "Ligature Marks" by Meshuggah is a compelling exploration of the psychological turmoil associated wi
+Xlib:  extension "MIT-SCREEN-SAVER" missing on display ":1".
+[Basitune] Failed to get system idle time: Status not OK
+[Basitune] Loaded cache with 465 artists, 1630 songs, 2015 lyrics
+[Basitune] Loaded cache with 465 artists, 1630 songs, 2015 lyrics
+[Basitune] Loaded cache with 465 artists, 1630 songs, 2015 lyrics
+[Basitune] Calling OpenAI for song context: Per Aspera Ad Astra - Fleshgod Apocalypse
+[Basitune] Loaded cache with 465 artists, 1630 songs, 2015 lyrics
+[Basitune] Loaded cache with 465 artists, 1630 songs, 2015 lyrics
+[Basitune] Calling OpenAI for song context: Another World - Gojira
+[Basitune] Loaded cache with 465 artists, 1630 songs, 2015 lyrics
+Xlib:  extension "MIT-SCREEN-SAVER" missing on display ":1".
+[Basitune] Failed to get system idle time: Status not OK
+Xlib:  extension "MIT-SCREEN-SAVER" missing on display ":1".
+[Basitune] Failed to get system idle time: Status not OK
+[Basitune] OpenAI response length: 1361 chars
+[Basitune] OpenAI response preview: "Another World" by Gojira encapsulates the band's thematic preoccupations with environmentalism, exi
+[Basitune] OpenAI response length: 1452 chars
+[Basitune] OpenAI response preview: "Per Aspera Ad Astra" by Fleshgod Apocalypse is a captivating blend of symphonic and death metal, em
+[Basitune] Loaded cache with 465 artists, 1630 songs, 2016 lyrics
+[Basitune] Loaded cache with 465 artists, 1630 songs, 2016 lyrics
+[Basitune] Calling OpenAI for song context: Ten Thousand Ways to Die - Obituary
+[Basitune] Loaded cache with 465 artists, 1630 songs, 2016 lyrics
+[Basitune] Loaded cache with 465 artists, 1630 songs, 2016 lyrics
+[Basitune] Calling OpenAI for song context: Engorged Absorption (Instrumental Version) - Analepsy
+[Basitune] Loaded cache with 465 artists, 1630 songs, 2016 lyrics
+[Basitune] Loaded cache with 465 artists, 1630 songs, 2016 lyrics
+Xlib:  extension "MIT-SCREEN-SAVER" missing on display ":1".
+[Basitune] Failed to get system idle time: Status not OK
+Xlib:  extension "MIT-SCREEN-SAVER" missing on display ":1".
+[Basitune] Failed to get system idle time: Status not OK
+[Basitune] OpenAI response length: 1234 chars
+[Basitune] OpenAI response preview: "Engorged Absorption (Instrumental Version)" by Analepsy showcases a distinctive approach within the
+[Basitune] OpenAI response length: 1539 chars
+[Basitune] OpenAI response preview: "Ten Thousand Ways to Die" by Obituary epitomizes the band's signature blend of death metal intensit
+[Basitune] Loaded cache with 465 artists, 1630 songs, 2017 lyrics
+[Basitune] Loaded cache with 465 artists, 1630 songs, 2017 lyrics
+[Basitune] Calling OpenAI for song context: Hordes of Chaos (A Necrologue for the Elite) - Kreator
+[Basitune] Loaded cache with 465 artists, 1630 songs, 2017 lyrics
+[Basitune] Loaded cache with 465 artists, 1630 songs, 2017 lyrics
+[Basitune] Calling OpenAI for song context: Chapter for Not Being Hung Upside Down on a Stake in the Underworld and Made to Eat Feces by the Four Apes - Nile
+[Basitune] Loaded cache with 465 artists, 1630 songs, 2017 lyrics
+[Basitune] Loaded cache with 465 artists, 1630 songs, 2017 lyrics
+Xlib:  extension "MIT-SCREEN-SAVER" missing on display ":1".
+[Basitune] Failed to get system idle time: Status not OK
+Xlib:  extension "MIT-SCREEN-SAVER" missing on display ":1".
+[Basitune] Failed to get system idle time: Status not OK
+[Basitune] OpenAI response length: 1398 chars
+[Basitune] OpenAI response preview: "Hordes of Chaos (A Necrologue for the Elite)" by Kreator delves into themes of social disillusionme
+[Basitune] OpenAI response length: 1590 chars
+[Basitune] OpenAI response preview: "Chapter for Not Being Hung Upside Down on a Stake in the Underworld and Made to Eat Feces by the Fo
+[Basitune] Loaded cache with 465 artists, 1630 songs, 2018 lyrics
+[Basitune] Calling OpenAI for song context: Laid to Rest - Lamb of God
+[Basitune] Loaded cache with 465 artists, 1630 songs, 2018 lyrics
+[Basitune] Loaded cache with 465 artists, 1630 songs, 2018 lyrics
+[Basitune] Loaded cache with 465 artists, 1630 songs, 2018 lyrics
+[Basitune] Loaded cache with 465 artists, 1630 songs, 2018 lyrics
+[Basitune] Loaded cache with 465 artists, 1630 songs, 2018 lyrics
+Xlib:  extension "MIT-SCREEN-SAVER" missing on display ":1".
+[Basitune] Failed to get system idle time: Status not OK
+Xlib:  extension "MIT-SCREEN-SAVER" missing on display ":1".
+[Basitune] Failed to get system idle time: Status not OK
+[Basitune] OpenAI response length: 1370 chars
+[Basitune] OpenAI response preview: "Laid to Rest," a standout track by Lamb of God from their 2004 album *Ashes of the Wake*, is a powe
+[Basitune] Loaded cache with 465 artists, 1630 songs, 2019 lyrics
+[Basitune] Loaded cache with 465 artists, 1630 songs, 2019 lyrics
+[Basitune] Loaded cache with 465 artists, 1630 songs, 2019 lyrics
+[Basitune] Calling OpenAI for song context: Monnalisa - Fleshgod Apocalypse
+[Basitune] Loaded cache with 465 artists, 1630 songs, 2019 lyrics
+[Basitune] Loaded cache with 465 artists, 1630 songs, 2019 lyrics
+[Basitune] Loaded cache with 465 artists, 1630 songs, 2019 lyrics
+[Basitune] Calling OpenAI for song context: Seven Words - Xentrix
+Xlib:  extension "MIT-SCREEN-SAVER" missing on display ":1".
+[Basitune] Failed to get system idle time: Status not OK
+Xlib:  extension "MIT-SCREEN-SAVER" missing on display ":1".
+[Basitune] Failed to get system idle time: Status not OK
+[Basitune] OpenAI response length: 1446 chars
+[Basitune] OpenAI response preview: "Monnalisa" by Fleshgod Apocalypse is a compelling fusion of symphonic metal and operatic elements t
+[Basitune] OpenAI response length: 1468 chars
+[Basitune] OpenAI response preview: "Seven Words" by Xentrix is a poignant exploration of themes related to communication, isolation, an
+[Basitune] Loaded cache with 465 artists, 1630 songs, 2020 lyrics
+[Basitune] Loaded cache with 465 artists, 1630 songs, 2020 lyrics
+[Basitune] Loaded cache with 465 artists, 1630 songs, 2020 lyrics
+[Basitune] Calling OpenAI for song context: The Ascension - Bloodbath
+[Basitune] Loaded cache with 465 artists, 1630 songs, 2020 lyrics
+[Basitune] Loaded cache with 465 artists, 1630 songs, 2020 lyrics
+[Basitune] Loaded cache with 465 artists, 1630 songs, 2020 lyrics
+[Basitune] Calling OpenAI for song context: Holy Diver - Killswitch Engage
+Xlib:  extension "MIT-SCREEN-SAVER" missing on display ":1".
+[Basitune] Failed to get system idle time: Status not OK
+Xlib:  extension "MIT-SCREEN-SAVER" missing on display ":1".
+[Basitune] Failed to get system idle time: Status not OK
+[Basitune] OpenAI response length: 1315 chars
+[Basitune] OpenAI response preview: "Holy Diver," originally by Dio and covered by Killswitch Engage, embodies themes of struggle, redem
+[Basitune] OpenAI response length: 1367 chars
+[Basitune] OpenAI response preview: "The Ascension" by Bloodbath is a compelling exploration of mortality, existential dread, and the in
+[Basitune] Loaded cache with 465 artists, 1630 songs, 2021 lyrics
+[Basitune] Loaded cache with 465 artists, 1630 songs, 2021 lyrics
+[Basitune] Loaded cache with 465 artists, 1630 songs, 2021 lyrics
+[Basitune] Calling OpenAI for song context: The Pursuit of Vikings - Amon Amarth
+[Basitune] Loaded cache with 465 artists, 1630 songs, 2021 lyrics
+[Basitune] Calling OpenAI for song context: Damned Religion - Artillery
+[Basitune] Loaded cache with 465 artists, 1630 songs, 2021 lyrics
+[Basitune] Loaded cache with 465 artists, 1630 songs, 2021 lyrics
+Xlib:  extension "MIT-SCREEN-SAVER" missing on display ":1".
+[Basitune] Failed to get system idle time: Status not OK
+Xlib:  extension "MIT-SCREEN-SAVER" missing on display ":1".
+[Basitune] Failed to get system idle time: Status not OK
+[Basitune] OpenAI response length: 1291 chars
+[Basitune] OpenAI response preview: "Damned Religion" by Artillery is a track that delves into the complex relationship between faith an
+[Basitune] OpenAI response length: 1440 chars
+[Basitune] OpenAI response preview: "The Pursuit of Vikings" by Amon Amarth exemplifies the band's signature style of blending melodic d
+[Basitune] Loaded cache with 465 artists, 1630 songs, 2022 lyrics
+[Basitune] Loaded cache with 465 artists, 1630 songs, 2022 lyrics
+[Basitune] Loaded cache with 465 artists, 1630 songs, 2022 lyrics
+[Basitune] Calling OpenAI for song context: Locus of Dawning - Analepsy
+[Basitune] Loaded cache with 465 artists, 1630 songs, 2022 lyrics
+[Basitune] Loaded cache with 465 artists, 1630 songs, 2022 lyrics
+[Basitune] Calling OpenAI for song context: No - Fleshgod Apocalypse
+[Basitune] Loaded cache with 465 artists, 1630 songs, 2022 lyrics
+Xlib:  extension "MIT-SCREEN-SAVER" missing on display ":1".
+[Basitune] Failed to get system idle time: Status not OK
+[Basitune] OpenAI response length: 1586 chars
+[Basitune] OpenAI response preview: Fleshgod Apocalypse's song "No" delves deep into themes of existential despair and societal disillus
+[Basitune] OpenAI response length: 1222 chars
+[Basitune] OpenAI response preview: "Locus of Dawning" by Analepsy is a striking example of the modern death metal genre, characterized 
+[Basitune] Loaded cache with 465 artists, 1630 songs, 2023 lyrics
+[Basitune] Loaded cache with 465 artists, 1630 songs, 2023 lyrics
+[Basitune] Calling OpenAI for song context: Born For One Thing - Gojira
+[Basitune] Loaded cache with 465 artists, 1630 songs, 2023 lyrics
+[Basitune] Loaded cache with 465 artists, 1630 songs, 2023 lyrics
+[Basitune] Calling OpenAI for song context: Reject Yourself - Killswitch Engage
+[Basitune] Loaded cache with 465 artists, 1630 songs, 2023 lyrics
+[Basitune] Loaded cache with 465 artists, 1630 songs, 2023 lyrics
+Xlib:  extension "MIT-SCREEN-SAVER" missing on display ":1".
+[Basitune] Failed to get system idle time: Status not OK
+Xlib:  extension "MIT-SCREEN-SAVER" missing on display ":1".
+[Basitune] Failed to get system idle time: Status not OK
+[Basitune] OpenAI response length: 1340 chars
+[Basitune] OpenAI response preview: "Born For One Thing" by Gojira is a powerful track that encapsulates the band's signature blend of h
+[Basitune] OpenAI response length: 1370 chars
+[Basitune] OpenAI response preview: "Reject Yourself" by Killswitch Engage is a powerful anthem that delves into themes of self-empowerm
+[Basitune] Loaded cache with 465 artists, 1630 songs, 2024 lyrics
+[Basitune] Loaded cache with 465 artists, 1630 songs, 2024 lyrics
+[Basitune] Calling OpenAI for song context: Aftershock (feat. Tre Watson) - Pentakill
+[Basitune] Loaded cache with 465 artists, 1630 songs, 2024 lyrics
+[Basitune] Loaded cache with 465 artists, 1630 songs, 2024 lyrics
+[Basitune] Loaded cache with 465 artists, 1630 songs, 2024 lyrics
+[Basitune] Calling OpenAI for song context: Crawling over Corpses - Benediction
+[Basitune] Loaded cache with 465 artists, 1630 songs, 2024 lyrics
+Xlib:  extension "MIT-SCREEN-SAVER" missing on display ":1".
+[Basitune] Failed to get system idle time: Status not OK
+Xlib:  extension "MIT-SCREEN-SAVER" missing on display ":1".
+[Basitune] Failed to get system idle time: Status not OK
+[Basitune] OpenAI response length: 1225 chars
+[Basitune] OpenAI response preview: "Aftershock," featuring Tre Watson, is a powerful addition to Pentakill's discography, weaving theme
+[Basitune] OpenAI response length: 1362 chars
+[Basitune] OpenAI response preview: "Crawling Over Corpses" by Benediction exemplifies the band's unique blend of death metal and grindc
+[Basitune] Loaded cache with 465 artists, 1630 songs, 2025 lyrics
+[Basitune] Loaded cache with 465 artists, 1630 songs, 2025 lyrics
+[Basitune] Calling OpenAI for song context: Only Pain - Gojira
+[Basitune] Loaded cache with 465 artists, 1630 songs, 2025 lyrics
+[Basitune] Loaded cache with 465 artists, 1630 songs, 2025 lyrics
+[Basitune] Calling OpenAI for song context: Moonshield - In Flames
+[Basitune] Loaded cache with 465 artists, 1630 songs, 2025 lyrics
+[Basitune] Loaded cache with 465 artists, 1630 songs, 2025 lyrics
+Xlib:  extension "MIT-SCREEN-SAVER" missing on display ":1".
+[Basitune] Failed to get system idle time: Status not OK
+Xlib:  extension "MIT-SCREEN-SAVER" missing on display ":1".
+[Basitune] Failed to get system idle time: Status not OK
+[Basitune] OpenAI response length: 1425 chars
+[Basitune] OpenAI response preview: "Only Pain" by Gojira encapsulates the band's signature blend of heavy, progressive metal with profo
+[Basitune] OpenAI response length: 1391 chars
+[Basitune] OpenAI response preview: "Moonshield" by In Flames is a track from their 1997 album *The Jester Race*, which is notable for i
+[Basitune] Loaded cache with 465 artists, 1630 songs, 2026 lyrics
+[Basitune] Calling OpenAI for song context: Cesspool of Ignorance - Signs of the Swarm
+[Basitune] Loaded cache with 465 artists, 1630 songs, 2026 lyrics
+[Basitune] Loaded cache with 465 artists, 1630 songs, 2026 lyrics
+[Basitune] Loaded cache with 465 artists, 1630 songs, 2026 lyrics
+[Basitune] Loaded cache with 465 artists, 1630 songs, 2026 lyrics
+[Basitune] Loaded cache with 465 artists, 1630 songs, 2026 lyrics
+[Basitune] Calling OpenAI for song context: Till Death Do Us Part - Fleshgod Apocalypse
+Xlib:  extension "MIT-SCREEN-SAVER" missing on display ":1".
+[Basitune] Failed to get system idle time: Status not OK
+Xlib:  extension "MIT-SCREEN-SAVER" missing on display ":1".
+[Basitune] Failed to get system idle time: Status not OK
+[Basitune] OpenAI response length: 1345 chars
+[Basitune] OpenAI response preview: "Cesspool of Ignorance" by Signs of the Swarm is a powerful exploration of themes such as societal d
+[Basitune] OpenAI response length: 1532 chars
+[Basitune] OpenAI response preview: Fleshgod Apocalypse's "Till Death Do Us Part" serves as a powerful exploration of themes surrounding
+[Basitune] Loaded cache with 465 artists, 1630 songs, 2027 lyrics
+[Basitune] Calling OpenAI for song context: Upon My Cross I Crawl - Artillery
+[Basitune] Loaded cache with 465 artists, 1630 songs, 2027 lyrics
+[Basitune] Loaded cache with 465 artists, 1630 songs, 2027 lyrics
+[Basitune] Loaded cache with 465 artists, 1630 songs, 2027 lyrics
+[Basitune] Loaded cache with 465 artists, 1630 songs, 2027 lyrics
+[Basitune] Calling OpenAI for song context: Hyperstate - Fractal Gates
+[Basitune] Loaded cache with 465 artists, 1630 songs, 2027 lyrics
+Xlib:  extension "MIT-SCREEN-SAVER" missing on display ":1".
+[Basitune] Failed to get system idle time: Status not OK
+Xlib:  extension "MIT-SCREEN-SAVER" missing on display ":1".
+[Basitune] Failed to get system idle time: Status not OK
+[Basitune] OpenAI response length: 1176 chars
+[Basitune] OpenAI response preview: "Hyperstate" by Fractal Gates delves into themes of existentialism, introspection, and the search fo
+[Basitune] OpenAI response length: 1272 chars
+[Basitune] OpenAI response preview: "Upon My Cross I Crawl" by Artillery is a powerful, introspective track that delves into themes of s
+[Basitune] Loaded cache with 465 artists, 1630 songs, 2028 lyrics
+[Basitune] Loaded cache with 465 artists, 1630 songs, 2028 lyrics
+[Basitune] Loaded cache with 465 artists, 1630 songs, 2028 lyrics
+[Basitune] Calling OpenAI for song context: L'enfant sauvage - Gojira
+[Basitune] Loaded cache with 465 artists, 1630 songs, 2028 lyrics
+[Basitune] Calling OpenAI for song context: Epilogue - Fleshgod Apocalypse
+[Basitune] Loaded cache with 465 artists, 1630 songs, 2028 lyrics
+[Basitune] Loaded cache with 465 artists, 1630 songs, 2028 lyrics
+Xlib:  extension "MIT-SCREEN-SAVER" missing on display ":1".
+[Basitune] Failed to get system idle time: Status not OK
+Xlib:  extension "MIT-SCREEN-SAVER" missing on display ":1".
+[Basitune] Failed to get system idle time: Status not OK
+[Basitune] OpenAI response length: 1365 chars
+[Basitune] OpenAI response preview: "L'enfant sauvage," the title track from Gojira's 2012 album, explores themes of primal instinct, en
+[Basitune] OpenAI response length: 1486 chars
+[Basitune] OpenAI response preview: "Epilogue" by Fleshgod Apocalypse serves as a poignant closing piece that encapsulates the overarchi
+[Basitune] Loaded cache with 465 artists, 1630 songs, 2029 lyrics
+[Basitune] Loaded cache with 465 artists, 1630 songs, 2029 lyrics
+[Basitune] Calling OpenAI for song context: Laodicea - War Of Ages
+[Basitune] Loaded cache with 465 artists, 1630 songs, 2029 lyrics
+[Basitune] Loaded cache with 465 artists, 1630 songs, 2029 lyrics
+[Basitune] Calling OpenAI for song context: Terror Form - Organectomy
+[Basitune] Loaded cache with 465 artists, 1630 songs, 2029 lyrics
+[Basitune] Loaded cache with 465 artists, 1630 songs, 2029 lyrics
+Xlib:  extension "MIT-SCREEN-SAVER" missing on display ":1".
+[Basitune] Failed to get system idle time: Status not OK
+[Basitune] OpenAI response length: 1386 chars
+[Basitune] OpenAI response preview: "Laodicea" by War of Ages presents a powerful exploration of themes such as spiritual indifference, 
+[Basitune] OpenAI response length: 1380 chars
+[Basitune] OpenAI response preview: "Terror Form" by Organectomy is a visceral exploration of themes surrounding existential dread, alie
+[Basitune] Loaded cache with 465 artists, 1630 songs, 2030 lyrics
+[Basitune] Loaded cache with 465 artists, 1630 songs, 2030 lyrics
+[Basitune] Loaded cache with 465 artists, 1630 songs, 2030 lyrics
+[Basitune] Calling OpenAI for song context: Depths of Agony (Instrumental) - Analepsy
+[Basitune] Loaded cache with 465 artists, 1630 songs, 2030 lyrics
+[Basitune] Calling OpenAI for song context: The Forsaking - Fleshgod Apocalypse
+[Basitune] Loaded cache with 465 artists, 1630 songs, 2030 lyrics
+[Basitune] Loaded cache with 465 artists, 1630 songs, 2030 lyrics
+Xlib:  extension "MIT-SCREEN-SAVER" missing on display ":1".
+[Basitune] Failed to get system idle time: Status not OK
+Xlib:  extension "MIT-SCREEN-SAVER" missing on display ":1".
+[Basitune] Failed to get system idle time: Status not OK
+[Basitune] OpenAI response length: 1315 chars
+[Basitune] OpenAI response preview: "Depths of Agony (Instrumental)" by Analepsy plunges listeners into a haunting soundscape, character
+[Basitune] OpenAI response length: 1304 chars
+[Basitune] OpenAI response preview: "The Forsaking" by Fleshgod Apocalypse delves into themes of existential despair, betrayal, and the 
+[Basitune] Loaded cache with 465 artists, 1631 songs, 2030 lyrics
+[Basitune] Loaded cache with 465 artists, 1631 songs, 2030 lyrics
+[Basitune] Loaded cache with 465 artists, 1631 songs, 2030 lyrics
+[Basitune] Calling OpenAI for song context: Circle With Me - Spiritbox
+[Basitune] Loaded cache with 465 artists, 1631 songs, 2030 lyrics
+[Basitune] Calling OpenAI for song context: Trash All over You - Lost Society
+[Basitune] Loaded cache with 465 artists, 1631 songs, 2030 lyrics
+[Basitune] Loaded cache with 465 artists, 1631 songs, 2030 lyrics
+Xlib:  extension "MIT-SCREEN-SAVER" missing on display ":1".
+[Basitune] Failed to get system idle time: Status not OK
+[Basitune] OpenAI response length: 1351 chars
+[Basitune] OpenAI response preview: "Circle With Me" by Spiritbox presents a captivating exploration of themes such as isolation, commun
+[Basitune] OpenAI response length: 1366 chars
+[Basitune] OpenAI response preview: "Trash All Over You" by Lost Society is a high-energy thrash metal track that captures the band's si
+[Basitune] Loaded cache with 465 artists, 1631 songs, 2031 lyrics
+[Basitune] Loaded cache with 465 artists, 1631 songs, 2031 lyrics
+[Basitune] Loaded cache with 465 artists, 1631 songs, 2031 lyrics
+[Basitune] Calling OpenAI for song context: Mercy of Ignorance - Artillery
+[Basitune] Loaded cache with 465 artists, 1631 songs, 2031 lyrics
+[Basitune] Calling OpenAI for song context: We’ll Be Back - Megadeth
+[Basitune] Loaded cache with 465 artists, 1631 songs, 2031 lyrics
+[Basitune] Loaded cache with 465 artists, 1631 songs, 2031 lyrics
+Xlib:  extension "MIT-SCREEN-SAVER" missing on display ":1".
+[Basitune] Failed to get system idle time: Status not OK
+Xlib:  extension "MIT-SCREEN-SAVER" missing on display ":1".
+[Basitune] Failed to get system idle time: Status not OK
+[Basitune] OpenAI response length: 1307 chars
+[Basitune] OpenAI response preview: "Mercy of Ignorance" by Artillery is a powerful track that exemplifies the band's blend of thrash me
+[Basitune] OpenAI response length: 1343 chars
+[Basitune] OpenAI response preview: "We’ll Be Back" by Megadeth is a track that encapsulates the band's signature thrash metal style w
+[Basitune] Loaded cache with 465 artists, 1631 songs, 2032 lyrics
+[Basitune] Calling OpenAI for song context: VIKING - Slaughter To Prevail
+[Basitune] Loaded cache with 465 artists, 1631 songs, 2032 lyrics
+[Basitune] Loaded cache with 465 artists, 1631 songs, 2032 lyrics
+[Basitune] Loaded cache with 465 artists, 1631 songs, 2032 lyrics
+[Basitune] Loaded cache with 465 artists, 1631 songs, 2032 lyrics
+[Basitune] Calling OpenAI for song context: Oroborus - Gojira
+[Basitune] Loaded cache with 465 artists, 1631 songs, 2032 lyrics
+Xlib:  extension "MIT-SCREEN-SAVER" missing on display ":1".
+[Basitune] Failed to get system idle time: Status not OK
+[Basitune] OpenAI response length: 1230 chars
+[Basitune] OpenAI response preview: "VIKING" by Slaughter to Prevail is a powerful track characterized by its aggressive instrumentation
+[Basitune] OpenAI response length: 1428 chars
+[Basitune] OpenAI response preview: "Oroborus" by Gojira presents a deep exploration of themes related to cyclical existence, regenerati
+[Basitune] Loaded cache with 465 artists, 1631 songs, 2033 lyrics
+[Basitune] Loaded cache with 465 artists, 1631 songs, 2033 lyrics
+[Basitune] Calling OpenAI for song context: 512 - Lamb of God
+[Basitune] Loaded cache with 465 artists, 1631 songs, 2033 lyrics
+[Basitune] Loaded cache with 465 artists, 1631 songs, 2033 lyrics
+[Basitune] Loaded cache with 465 artists, 1631 songs, 2033 lyrics
+[Basitune] Calling OpenAI for song context: Nightcrawler's - Signs of the Swarm
+[Basitune] Loaded cache with 465 artists, 1631 songs, 2033 lyrics
+Xlib:  extension "MIT-SCREEN-SAVER" missing on display ":1".
+[Basitune] Failed to get system idle time: Status not OK
+Xlib:  extension "MIT-SCREEN-SAVER" missing on display ":1".
+[Basitune] Failed to get system idle time: Status not OK
+[Basitune] OpenAI response length: 1493 chars
+[Basitune] OpenAI response preview: "512" by Lamb of God is a powerful and introspective track that epitomizes the band's signature blen
+[Basitune] OpenAI response length: 1367 chars
+[Basitune] OpenAI response preview: "Nightcrawler's" by Signs of the Swarm presents a compelling exploration of existential dread and th
+[Basitune] Loaded cache with 465 artists, 1631 songs, 2034 lyrics
+[Basitune] Loaded cache with 465 artists, 1631 songs, 2034 lyrics
+[Basitune] Loaded cache with 465 artists, 1631 songs, 2034 lyrics
+[Basitune] Calling OpenAI for song context: I Speak Astronomy - Jinjer
+[Basitune] Loaded cache with 465 artists, 1631 songs, 2034 lyrics
+[Basitune] Loaded cache with 465 artists, 1631 songs, 2034 lyrics
+[Basitune] Loaded cache with 465 artists, 1631 songs, 2034 lyrics
+[Basitune] Calling OpenAI for song context: The Shooting Star - Gojira
+Xlib:  extension "MIT-SCREEN-SAVER" missing on display ":1".
+[Basitune] Failed to get system idle time: Status not OK
+[Basitune] OpenAI response length: 1156 chars
+[Basitune] OpenAI response preview: "I Speak Astronomy" by Jinjer showcases the band's unique blend of progressive metal and heavy groov
+[Basitune] OpenAI response length: 1341 chars
+[Basitune] OpenAI response preview: "The Shooting Star" by Gojira is a poignant exploration of environmental themes and existential refl
+[Basitune] Loaded cache with 465 artists, 1631 songs, 2035 lyrics
+[Basitune] Loaded cache with 465 artists, 1631 songs, 2035 lyrics
+[Basitune] Calling OpenAI for song context: Shepherd of Fire - Avenged Sevenfold
+[Basitune] Loaded cache with 465 artists, 1631 songs, 2035 lyrics
+[Basitune] Loaded cache with 465 artists, 1631 songs, 2035 lyrics
+[Basitune] Calling OpenAI for song context: A.U.M. - Archspire
+[Basitune] Loaded cache with 465 artists, 1631 songs, 2035 lyrics
+[Basitune] Loaded cache with 465 artists, 1631 songs, 2035 lyrics
+Xlib:  extension "MIT-SCREEN-SAVER" missing on display ":1".
+[Basitune] Failed to get system idle time: Status not OK
+[Basitune] OpenAI response length: 1347 chars
+[Basitune] OpenAI response preview: "Shepherd of Fire" by Avenged Sevenfold offers a compelling exploration of themes such as mortality,
+[Basitune] OpenAI response length: 1239 chars
+[Basitune] OpenAI response preview: "A.U.M." by Archspire is a track that showcases the band’s intricate approach to technical death m
+[Basitune] Loaded cache with 465 artists, 1631 songs, 2036 lyrics
+[Basitune] Loaded cache with 465 artists, 1631 songs, 2036 lyrics
+[Basitune] Calling OpenAI for song context: Worship and Forget - Fleshgod Apocalypse
+[Basitune] Loaded cache with 465 artists, 1631 songs, 2036 lyrics
+[Basitune] Loaded cache with 465 artists, 1631 songs, 2036 lyrics
+[Basitune] Calling OpenAI for song context: Pray - Gojira
+[Basitune] Loaded cache with 465 artists, 1631 songs, 2036 lyrics
+[Basitune] Loaded cache with 465 artists, 1631 songs, 2036 lyrics
+Xlib:  extension "MIT-SCREEN-SAVER" missing on display ":1".
+[Basitune] Failed to get system idle time: Status not OK
+Xlib:  extension "MIT-SCREEN-SAVER" missing on display ":1".
+[Basitune] Failed to get system idle time: Status not OK
+[Basitune] OpenAI response length: 1215 chars
+[Basitune] OpenAI response preview: "Worship and Forget" by Fleshgod Apocalypse is a compelling composition that delves into themes of f
+[Basitune] OpenAI response length: 1402 chars
+[Basitune] OpenAI response preview: "Pray" by Gojira is a compelling track that delves into themes of existential struggle, the human co
+[Basitune] Loaded cache with 465 artists, 1631 songs, 2037 lyrics
+[Basitune] Loaded cache with 465 artists, 1631 songs, 2037 lyrics
+[Basitune] Calling OpenAI for song context: 10.000 Devils - Artillery
+[Basitune] Loaded cache with 465 artists, 1631 songs, 2037 lyrics
+[Basitune] Loaded cache with 465 artists, 1631 songs, 2037 lyrics
+[Basitune] Calling OpenAI for song context: Dying of Everything - Obituary
+[Basitune] Loaded cache with 465 artists, 1631 songs, 2037 lyrics
+[Basitune] Loaded cache with 465 artists, 1631 songs, 2037 lyrics
+Xlib:  extension "MIT-SCREEN-SAVER" missing on display ":1".
+[Basitune] Failed to get system idle time: Status not OK
+[Basitune] OpenAI response length: 1382 chars
+[Basitune] OpenAI response preview: "10,000 Devils" by Artillery is a potent exploration of inner turmoil and existential struggle, enca
+[Basitune] OpenAI response length: 1491 chars
+[Basitune] OpenAI response preview: "Dying of Everything" by Obituary is a powerful representation of the band's distinctive style, merg
+

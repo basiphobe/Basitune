@@ -21,6 +21,13 @@
     let isResizing = false;
     let lastSearchResults = null; // Store last search results for "Go Back"
     let ttPolicy = null; // Trusted Types policy (if available)
+    
+    // Pre-loaded cache data (loaded immediately on script init)
+    let preloadedArtistInfo = null;
+    let preloadedSongContext = null;
+    let preloadedLyrics = null;
+    let preloadedFromArtist = null;
+    let preloadedFromTitle = null;
 
     // Safely set innerHTML while respecting Trusted Types
     function setHTML(element, html) {
@@ -2324,6 +2331,21 @@
 
             const bioDiv = document.getElementById('basitune-artist-bio');
             
+            // Check if we have pre-loaded data for this artist
+            if (preloadedArtistInfo && preloadedFromArtist === artist) {
+                console.log('[Basitune] Using pre-loaded artist info for:', artist);
+                const expandableBio = makeExpandable(bioDiv, preloadedArtistInfo, 400);
+                setHTML(bioDiv, `<h4></h4><p></p>`);
+                const h4 = bioDiv.querySelector('h4');
+                const p = bioDiv.querySelector('p');
+                setText(h4, artist);
+                setHTML(p, expandableBio);
+                // Clear pre-loaded data after use
+                preloadedArtistInfo = null;
+                preloadedFromArtist = null;
+                return;
+            }
+            
             setHTML(bioDiv, `
                 <div class="basitune-loading">
                     <div class="basitune-spinner"></div>
@@ -2368,6 +2390,20 @@
 
             const contextDiv = document.getElementById('basitune-song-context');
             
+            // Check if we have pre-loaded data for this song
+            if (preloadedSongContext && preloadedFromTitle === title && preloadedFromArtist === artist) {
+                console.log('[Basitune] Using pre-loaded song context for:', title);
+                const expandableContext = makeExpandable(contextDiv, preloadedSongContext, 250);
+                setHTML(contextDiv, `<h5></h5><p></p>`);
+                const ctxH5 = contextDiv.querySelector('h5');
+                const ctxP = contextDiv.querySelector('p');
+                setText(ctxH5, `About "${title}"`);
+                setHTML(ctxP, expandableContext);
+                // Clear pre-loaded data after use
+                preloadedSongContext = null;
+                return;
+            }
+            
             setHTML(contextDiv, `
                 <h5></h5>
                 <div class="basitune-loading">
@@ -2408,6 +2444,38 @@
             }
 
             const lyricsDiv = document.getElementById('basitune-lyrics-content');
+            
+            // Check if we have pre-loaded lyrics for this song
+            if (preloadedLyrics && preloadedFromTitle === title && preloadedFromArtist === artist) {
+                console.log('[Basitune] Using pre-loaded lyrics for:', title);
+                // Display lyrics (only show Go Back button if we have search results to go back to)
+                if (lastSearchResults) {
+                    setHTML(lyricsDiv, `
+                        <div style="margin-bottom: 12px;">
+                            <button id="basitune-go-back" style="
+                                padding: 6px 12px;
+                                background: rgba(255, 255, 255, 0.1);
+                                border: 1px solid rgba(255, 255, 255, 0.2);
+                                border-radius: 6px;
+                                color: rgba(255, 255, 255, 0.9);
+                                font-size: 13px;
+                                cursor: pointer;
+                            ">← Go Back</button>
+                        </div>
+                        <pre style="white-space: pre-wrap; word-wrap: break-word; line-height: 1.6; font-family: 'Roboto', sans-serif; font-size: ${sidebarFontSize}px;">${escapeHtml(preloadedLyrics)}</pre>
+                    `);
+                    const goBackBtn = lyricsDiv.querySelector('#basitune-go-back');
+                    if (goBackBtn) {
+                        goBackBtn.addEventListener('click', showSearchResults);
+                    }
+                } else {
+                    setHTML(lyricsDiv, `<pre style="white-space: pre-wrap; word-wrap: break-word; line-height: 1.6; font-family: 'Roboto', sans-serif; font-size: ${sidebarFontSize}px;">${escapeHtml(preloadedLyrics)}</pre>`);
+                }
+                // Clear pre-loaded lyrics after use
+                preloadedLyrics = null;
+                preloadedFromTitle = null;
+                return;
+            }
             
             setHTML(lyricsDiv, `
                 <div class="basitune-loading">
@@ -2827,6 +2895,7 @@
         if (songInfo) {
             currentArtist = songInfo.artist;
             currentTitle = songInfo.title;
+            // Fetch functions will check for pre-loaded data and use it instantly
             fetchArtistInfo(currentArtist);
             fetchSongContext(currentTitle, currentArtist);
             fetchLyrics(currentTitle, currentArtist);
@@ -2963,6 +3032,40 @@
             }
         }, 500);
     }
+    
+    // Pre-load cached content immediately on script load (async)
+    (async function preloadCache() {
+        try {
+            if (!window.__TAURI__?.core?.invoke) {
+                console.debug('[Basitune] Tauri not ready yet for pre-loading');
+                return;
+            }
+            
+            const lastPlayback = await window.__TAURI__.core.invoke('get_playback_position');
+            if (lastPlayback) {
+                console.log('[Basitune] Pre-loading cache for:', lastPlayback.artist, '-', lastPlayback.title);
+                currentArtist = lastPlayback.artist;
+                currentTitle = lastPlayback.title;
+                preloadedFromArtist = lastPlayback.artist;
+                preloadedFromTitle = lastPlayback.title;
+                
+                // Fetch all three content types from cache (returns instantly from DB)
+                const [artistInfo, songContext, lyrics] = await Promise.all([
+                    window.__TAURI__.core.invoke('get_artist_info', { artist: lastPlayback.artist }).catch(() => null),
+                    window.__TAURI__.core.invoke('get_song_context', { title: lastPlayback.title, artist: lastPlayback.artist }).catch(() => null),
+                    window.__TAURI__.core.invoke('get_lyrics', { title: lastPlayback.title, artist: lastPlayback.artist }).catch(() => null)
+                ]);
+                
+                preloadedArtistInfo = artistInfo;
+                preloadedSongContext = songContext;
+                preloadedLyrics = lyrics;
+                
+                console.log('[Basitune] Cache pre-loaded:', !!artistInfo, !!songContext, !!lyrics);
+            }
+        } catch (error) {
+            console.debug('[Basitune] No cached playback to pre-load:', error);
+        }
+    })();
     
     init();
     console.log('[Basitune] Sidebar script loaded');

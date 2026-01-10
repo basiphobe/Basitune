@@ -7,10 +7,27 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Performance
+- **Instant sidebar content loading**: Pre-load artist info, song context, and lyrics from cache on app startup
+  - Cache data loads asynchronously immediately when sidebar script initializes
+  - Content appears instantly when sidebar opens instead of waiting for YouTube Music to load
+  - Eliminates multi-second delay for displaying cached information
+
+### Changed
+- **Ghost playback prevention**: Implemented app window activity tracking instead of OS-level idle detection
+  - Tracks user input events (mouse, keyboard, scroll) within app window
+  - Monitors active playback events (timeupdate, play, volumechange) to detect music playing
+  - Blocks video.play() after 30 minutes of combined inactivity (no input AND no playback)
+  - Moved interceptor logic from visualizer.js to playback-controls.js for better separation of concerns
+  - Allows all-day music listening while preventing overnight ghost playback
+
 ### Fixed
-- Ghost playback: Intercept and block YouTube Music's internal video.play() calls during inactivity (>5 min) to prevent unwanted overnight playback
-- Auto-advance no longer triggers after 5 minutes of inactivity, fully preventing ghost playback when computer is unattended
-- Added comprehensive debug logging to track playback triggers and diagnose ghost playback issues
+- Ghost playback: Block video.play() when system idle >30min (prevents overnight ghost playback without disrupting normal music listening)
+- Playback after long runtime: Ignore spurious pause events within 2s of play (fixes YouTube Music's broken state management causing no-sound playback)
+- Auto-advance: Check if next button is disabled before clicking (prevents infinite loop on last song when autoplay is off)
+- Ghost audio playback: Mute gainNode when video pauses to prevent AudioContext from playing sound when video.paused = true
+- Auto-advance: Only skip when window hidden (allows normal listening without mouse/keyboard activity)
+- Added pause/play interceptors with full stack trace logging for diagnostics
 
 ## [1.0.29] - 2026-01-01
 
