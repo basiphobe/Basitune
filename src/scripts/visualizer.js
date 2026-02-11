@@ -11,7 +11,7 @@
 // Critical patterns:
 // - createMediaElementSource() can only be called once per video element (permanent audio routing)
 // - GainNode matches YouTube Music's volume slider to maintain consistent volume
-// - Auto-advance workaround: Web Audio API breaks YouTube Music's native autoplay, so we manually click next button + video.play()
+// - YouTube Music handles its own playback - we only provide visualization
 
 (function() {
     'use strict';
@@ -127,15 +127,8 @@
         return loadingOverlay;
     };
     
-    // Try to create immediately if body exists, otherwise wait
-    if (document.body) {
-        loadingOverlay = createLoadingOverlay();
-    } else {
-        // Body doesn't exist yet, wait for DOMContentLoaded
-        document.addEventListener('DOMContentLoaded', () => {
-            loadingOverlay = createLoadingOverlay();
-        });
-    }
+    // Don't create overlay on page load - only when visualizer is explicitly started
+    // (Overlay creation removed since we don't auto-initialize audio anymore)
 
     // Web Audio API state
     let audioContext = null;
@@ -249,12 +242,8 @@
     // Connect audio after video element is found
     function connectAudio(video, resolve, reject) {
             try {
-            // Track play time to detect spurious pauses
-            let localLastPlayTime = 0;
-            
-            video.addEventListener('play', () => {
-                localLastPlayTime = Date.now();
-            }, { passive: true });
+            // Notify other scripts that video element is ready
+            window.dispatchEvent(new CustomEvent('basitune:video-ready', { detail: { video } }));
             
             // Create audio context only once
             if (!audioContext) {
@@ -311,12 +300,16 @@
                     
                     if (video && gainNode) {
                         if (video.muted) {
-                            gainNode.gain.value = 0;
-                            console.log('[Basitune Visualizer] Muted');
+                            if (gainNode.gain.value !== 0) {
+                                gainNode.gain.value = 0;
+                                console.log('[Basitune Visualizer] Muted');
+                            }
                         } else if (ytVolumeSlider && ytVolumeSlider.value) {
                             const newGain = parseInt(ytVolumeSlider.value) / 100;
-                            gainNode.gain.value = newGain;
-                            console.log('[Basitune Visualizer] Unmuted, volume restored to:', newGain);
+                            if (Math.abs(gainNode.gain.value - newGain) > 0.01) { // Only update if changed
+                                gainNode.gain.value = newGain;
+                                console.log('[Basitune Visualizer] Unmuted, volume restored to:', newGain);
+                            }
                         }
                     }
                 };
@@ -324,25 +317,9 @@
                 video.addEventListener('volumechange', syncVolumeFromVideo);
                 console.log('[Basitune Visualizer] Video volumechange listener attached for mute/unmute');
                 
-                // CRITICAL: Mute gainNode when video pauses to prevent ghost audio playback
-                // But ignore spurious pauses that happen right after play (YouTube Music bug after long runtime)
-                video.addEventListener('pause', () => {
-                    const timeSincePlay = Date.now() - localLastPlayTime;
-                    
-                    if (timeSincePlay < 2000) {
-                        console.warn('[Basitune Visualizer] Ignoring spurious pause', timeSincePlay, 'ms after play (YouTube Music bug)');
-                        return; // Don't mute - this is likely YouTube Music's broken state management
-                    }
-                    
-                    if (gainNode) {
-                        gainNode.gain.value = 0;
-                        console.log('[Basitune Visualizer] Video paused - muting gainNode to stop audio');
-                    }
-                });
-                
                 // Restore volume when video plays
                 video.addEventListener('play', () => {
-                    lastPlayTime = Date.now(); // Also update here for play events
+                    console.log('[Basitune Visualizer] Play event - video.paused:', video.paused, 'gainNode.gain.value:', gainNode?.gain.value);
                     
                     if (gainNode && video && !video.muted) {
                         const ytVolumeSlider = document.querySelector('#volume-slider');
@@ -365,58 +342,53 @@
                 gainNode.connect(audioContext.destination);
                 isAudioConnected = true;
                 
-                // Once we take over audio routing, YouTube Music's autoplay breaks
-                // Listen for song end and manually advance to next track
-                video.addEventListener('ended', () => {
-                    console.log('[Basitune Visualizer] Song ended event fired at', Date.now(), 'ms');
-                    console.log('[Basitune Visualizer] Window visible:', isWindowVisible);
-                    
-                    // Only skip auto-advance when window is hidden (user minimized/closed to tray)
-                    if (!isWindowVisible) {
-                        console.log('[Basitune Visualizer] Song ended but window hidden, skipping auto-advance');
-                        return;
-                    }
-                    
-                    console.log('[Basitune Visualizer] Song ended, auto-advancing to next track');
-                    
-                    const nextButton = document.querySelector('ytmusic-player-bar .next-button')
-                        || document.querySelector('[aria-label="Next"]')
-                        || document.querySelector('[aria-label="Next track"]');
-                    
-                    if (nextButton && !nextButton.disabled && !nextButton.hasAttribute('disabled')) {
-                        console.log('[Basitune Visualizer] Clicking next button');
-                        nextButton.click();
-                        
-                        // YouTube Music loads the next track but doesn't auto-play it
-                        // Wait for track to load, then start playback with retry logic
-                        let retryCount = 0;
-                        const attemptPlay = () => {
-                            const video = getVideoElement();
-                            
-                            if (video && video.paused) {
-                                console.log('[Basitune Visualizer] Attempting auto-play after next (attempt ' + (retryCount + 1) + ')');
-                                video.play()
-                                    .catch(err => {
-                                        console.warn('[Basitune Visualizer] Auto-play attempt', retryCount + 1, 'failed:', err.message);
-                                        if (retryCount < 3) {
-                                            retryCount++;
-                                            setTimeout(attemptPlay, 300);
-                                        }
-                                    });
-                            }
-                        };
-                        setTimeout(attemptPlay, 800);
-                    } else {
-                        if (nextButton && (nextButton.disabled || nextButton.hasAttribute('disabled'))) {
-                            console.log('[Basitune Visualizer] Next button disabled - end of playlist/album, stopping playback');
-                        } else {
-                            console.warn('[Basitune Visualizer] Next button not found');
-                        }
-                    }
-                });
+                // Let YouTube Music handle its own playback - don't interfere
                 
                 console.log('[Basitune Visualizer] Audio routing established');
             }
+            
+            // CRITICAL: Monitor for alternate audio sources bypassing our gainNode
+            setInterval(() => {
+                const destNodeCount = audioContext.destination.numberOfInputs;
+                const destConnections = audioContext.destination.channelCount;
+                
+                // Check if there are other nodes connected to destination besides our gainNode
+                if (destNodeCount > 0) {
+                    console.warn('[Basitune Audio Monitor] AudioContext.destination has', destNodeCount, 
+                                 'inputs, channelCount:', destConnections);
+                }
+                
+                // Monitor video element src changes (detect if YouTube swaps video elements)
+                if (video && video.src) {
+                    if (!window.__basituneLastVideoSrc) {
+                        window.__basituneLastVideoSrc = video.src;
+                    } else if (video.src !== window.__basituneLastVideoSrc) {
+                        console.warn('[Basitune Audio Monitor] VIDEO SRC CHANGED!');
+                        console.warn('[Basitune Audio Monitor] Old:', window.__basituneLastVideoSrc);
+                        console.warn('[Basitune Audio Monitor] New:', video.src);
+                        window.__basituneLastVideoSrc = video.src;
+                    }
+                }
+            }, 30000); // Check every 30 seconds
+
+            // Monitor AudioContext state changes
+            audioContext.addEventListener('statechange', () => {
+                console.log('[Basitune Visualizer] AudioContext state changed to:', audioContext.state);
+            });
+            
+            // Monitor gainNode value changes to detect if something else is changing it
+            let lastGainValue = gainNode.gain.value;
+            setInterval(() => {
+                if (gainNode.gain.value !== lastGainValue) {
+                    console.warn('[Basitune Audio Monitor] GainNode changed!', 
+                                 'Was:', lastGainValue, 'Now:', gainNode.gain.value);
+                    console.warn('[Basitune Audio Monitor] Change stack:', new Error().stack);
+                    lastGainValue = gainNode.gain.value;
+                }
+            }, 10000); // Check every 10 seconds
+            
+            // Removed redundant AudioContext monitoring that was causing UI freeze
+            // Ghost playback is now prevented by the play() interceptor in playback-controls.js
 
             // Wait for audio context to reach 'running' state
             const waitForRunning = () => {
@@ -481,9 +453,19 @@
             return;
         }
         
-        // Ensure audio is connected (should already be if music is playing)
+        // Initialize or reconnect audio routing
         if (!isAudioConnected) {
             await initializeAudioContext();
+        } else if (sourceNode && analyser && gainNode) {
+            // Reconnect if nodes exist but are disconnected
+            sourceNode.disconnect();
+            analyser.disconnect();
+            gainNode.disconnect();
+            
+            sourceNode.connect(analyser);
+            analyser.connect(gainNode);
+            gainNode.connect(audioContext.destination);
+            console.log('[Basitune Visualizer] Reconnected audio routing');
         }
 
         // Resume audio context if suspended
@@ -510,6 +492,21 @@
             cancelAnimationFrame(animationId);
             animationId = null;
         }
+
+        // Disconnect audio routing to restore native YouTube Music audio
+        if (sourceNode) {
+            sourceNode.disconnect();
+            console.log('[Basitune Visualizer] Disconnected audio routing');
+        }
+        if (analyser) {
+            analyser.disconnect();
+        }
+        if (gainNode) {
+            gainNode.disconnect();
+        }
+        
+        // Note: We don't close AudioContext or null out nodes to allow re-enabling visualizer
+        // But audio now flows directly from video element to speakers
 
         // Clear canvas
         if (canvas && canvasCtx) {
@@ -1170,6 +1167,8 @@
         updateSettings,
         resetToDefaults,
         isActive: () => isVisualizerActive,
+        getAudioContext: () => audioContext,
+        get gainNode() { return gainNode; },
         getSettings: () => ({
             style: visualizerStyle,
             color: barColor,
@@ -1193,66 +1192,9 @@
     
     console.log('[Basitune Visualizer] Window visibility tracking initialized');
     
-    // Initialize audio context immediately for high-quality audio from start
-    // Show loading overlay until audio is ready
-    const startTime = Date.now();
-    const MIN_LOADING_TIME = 2000; // Minimum 2 seconds display
-    
-    console.log('[Basitune Visualizer] DEBUG: Scheduling audio init in 1000ms');
-    
-    setTimeout(() => {
-        console.log('[Basitune Visualizer] DEBUG: Starting audio initialization...');
-        
-        // Ensure overlay is created if it wasn't already
-        const overlay = ensureOverlay();
-        console.log('[Basitune Visualizer] DEBUG: Loading overlay exists:', !!overlay);
-        console.log('[Basitune Visualizer] DEBUG: Loading overlay in DOM:', overlay?.parentNode !== null);
-        
-        initializeAudioContext()
-            .then(() => {
-                const elapsed = Date.now() - startTime;
-                const remainingTime = Math.max(0, MIN_LOADING_TIME - elapsed);
-                
-                console.log('[Basitune Visualizer] DEBUG: Audio ready. Elapsed:', elapsed, 'ms, Remaining:', remainingTime, 'ms');
-                
-                // Wait for minimum display time before hiding
-                setTimeout(() => {
-                    console.log('[Basitune Visualizer] DEBUG: Hiding loading overlay');
-                    // Fade out loading overlay
-                    const currentOverlay = ensureOverlay();
-                    if (currentOverlay) {
-                        currentOverlay.style.opacity = '0';
-                        console.log('[Basitune Visualizer] DEBUG: Overlay opacity set to 0');
-                        setTimeout(() => {
-                            if (currentOverlay.parentNode) {
-                                currentOverlay.parentNode.removeChild(currentOverlay);
-                                console.log('[Basitune Visualizer] DEBUG: Overlay removed from DOM');
-                            }
-                        }, 500);
-                    }
-                    
-                    // Signal to Rust backend that audio is ready for playback restore
-                    if (window.__TAURI_INTERNALS__) {
-                        window.__TAURI_INTERNALS__.invoke('audio_context_ready').catch(() => {
-                            // Command may not exist yet, that's OK
-                        });
-                    }
-                }, remainingTime);
-            })
-            .catch(err => {
-                console.error('[Basitune Visualizer] DEBUG: Failed to initialize audio:', err);
-                // Hide overlay even on error
-                const currentOverlay = ensureOverlay();
-                if (currentOverlay && currentOverlay.parentNode) {
-                    currentOverlay.style.opacity = '0';
-                    setTimeout(() => {
-                        if (currentOverlay.parentNode) {
-                            currentOverlay.parentNode.removeChild(currentOverlay);
-                        }
-                    }, 500);
-                }
-            });
-    }, 100); // Start almost immediately
+    // Don't initialize audio routing automatically - only when visualizer is actually started
+    // This prevents AudioContext suspension issues when visualizer is not in use
+    console.log('[Basitune Visualizer] Audio routing disabled - will initialize only when visualizer is enabled');
 })();
 
 

@@ -230,12 +230,6 @@ pub fn save_playback_position(app: tauri::AppHandle, artist: String, title: Stri
     fs::write(&config_path, json)
         .map_err(|e| format!("Failed to write config file: {}", e))?;
     
-    println!("[Basitune] Saved playback position: {} - {} at {:.1}s (playing: {})", 
-             config.last_song_artist.as_ref().unwrap(),
-             config.last_song_title.as_ref().unwrap(),
-             position_seconds,
-             was_playing);
-    
     Ok(())
 }
 

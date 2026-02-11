@@ -11,26 +11,18 @@ pub struct WindowStateManager {
 impl WindowStateManager {
     pub fn new(app_handle: tauri::AppHandle) -> Self {
         let state_path = Self::get_state_path(&app_handle);
-        println!("[Basitune] Loading window state from: {:?}", state_path);
         
         let loaded_state = match fs::read_to_string(&state_path) {
             Ok(contents) => {
                 match serde_json::from_str::<crate::config::WindowState>(&contents) {
-                    Ok(state) => {
-                        println!("[Basitune] Loaded window state:");
-                        println!("[Basitune]   Size: {}x{}", state.width, state.height);
-                        println!("[Basitune]   Position: ({}, {})", state.x, state.y);
-                        println!("[Basitune]   Maximized: {}", state.maximized);
-                        state
-                    }
+                    Ok(state) => state,
                     Err(e) => {
                         eprintln!("[Basitune] Failed to parse window state: {}", e);
                         crate::config::WindowState::default()
                     }
                 }
             }
-            Err(e) => {
-                println!("[Basitune] No saved window state found: {}", e);
+            Err(_) => {
                 crate::config::WindowState::default()
             }
         };
@@ -69,20 +61,14 @@ impl WindowStateManager {
     fn save_to_disk(&self, state: &crate::config::WindowState) {
         let state_path = Self::get_state_path(&self.app_handle);
         
-        println!("[Basitune] Saving window state to: {:?}", state_path);
-        println!("[Basitune]   Size: {}x{}", state.width, state.height);
-        println!("[Basitune]   Position: ({}, {})", state.x, state.y);
-        println!("[Basitune]   Maximized: {}", state.maximized);
-        
         // Ensure directory exists
         if let Some(parent) = state_path.parent() {
             let _ = fs::create_dir_all(parent);
         }
         
         if let Ok(json) = serde_json::to_string_pretty(state) {
-            match fs::write(&state_path, json) {
-                Ok(_) => println!("[Basitune] Window state saved successfully"),
-                Err(e) => eprintln!("[Basitune] Failed to save window state: {}", e),
+            if let Err(e) = fs::write(&state_path, json) {
+                eprintln!("[Basitune] Failed to save window state: {}", e);
             }
         } else {
             eprintln!("[Basitune] Failed to serialize window state");

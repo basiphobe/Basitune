@@ -29,6 +29,10 @@
     let preloadedFromArtist = null;
     let preloadedFromTitle = null;
 
+    // Track in-flight requests to prevent duplicates
+    let pendingSongContext = null;
+    let lastSongContextKey = null;
+
     // Safely set innerHTML while respecting Trusted Types
     function setHTML(element, html) {
         if (!element) return;
@@ -1030,11 +1034,25 @@
             }
             
             /* Constrain YouTube's fixed-position elements to respect the sidebar
-             * These elements use position:fixed and would otherwise span the full viewport */
-            ytmusic-nav-bar,
-            ytmusic-player-bar {
+             * These elements use position:fixed and would otherwise span the full viewport
+             * 
+             * CRITICAL FIX FOR PROGRESS BAR SKIP BUG:
+             * Do NOT constrain player bar width! When width is constrained, YouTube Music's
+             * progress bar calculation breaks - it treats the shortened visual width as 100%,
+             * causing premature "ended" events and auto-skip to next track.
+             * 
+             * Instead, let player bar maintain full width and extend behind sidebar.
+             * Sidebar's higher z-index ensures it appears on top.
+             */
+            ytmusic-nav-bar {
                 max-width: calc(100vw - var(--sidebar-width, 380px)) !important;
                 width: calc(100vw - var(--sidebar-width, 380px)) !important;
+            }
+            
+            /* Player bar: NO width constraints - let it maintain full viewport width
+             * This preserves YouTube Music's internal progress calculations */
+            ytmusic-player-bar {
+                /* Width intentionally not constrained - see comment above */
             }
             
             /* Constrain main content areas to prevent horizontal overflow */
@@ -2390,6 +2408,22 @@
 
             const contextDiv = document.getElementById('basitune-song-context');
             
+            // Create unique key for this song
+            const songKey = `${artist}|${title}`;
+            
+            // If there's already a pending request for this exact song, reuse it
+            if (pendingSongContext && lastSongContextKey === songKey) {
+                console.log('[Basitune] Reusing pending song context request for:', title);
+                const context = await pendingSongContext;
+                const expandableContext = makeExpandable(contextDiv, context, 250);
+                setHTML(contextDiv, `<h5></h5><p></p>`);
+                const ctxH5 = contextDiv.querySelector('h5');
+                const ctxP = contextDiv.querySelector('p');
+                setText(ctxH5, `About "${title}"`);
+                setHTML(ctxP, expandableContext);
+                return;
+            }
+            
             // Check if we have pre-loaded data for this song
             if (preloadedSongContext && preloadedFromTitle === title && preloadedFromArtist === artist) {
                 console.log('[Basitune] Using pre-loaded song context for:', title);
@@ -2416,8 +2450,16 @@
             
             console.log('[Basitune] Fetching AI song context for:', title, '-', artist);
             
+            // Store the promise to deduplicate concurrent requests
+            lastSongContextKey = songKey;
+            pendingSongContext = window.__TAURI__.core.invoke('get_song_context', { title, artist });
+            
             // Call Tauri command
-            const context = await window.__TAURI__.core.invoke('get_song_context', { title, artist });
+            const context = await pendingSongContext;
+            
+            // Clear pending request
+            pendingSongContext = null;
+            lastSongContextKey = null;
             
             // Display song context with read more functionality
             const expandableContext = makeExpandable(contextDiv, context, 250);
@@ -2429,6 +2471,10 @@
             
             console.log('[Basitune] Loaded AI song context');
         } catch (error) {
+            // Clear pending request on error
+            pendingSongContext = null;
+            lastSongContextKey = null;
+            
             console.error('[Basitune] Error fetching song context:', error);
             const contextDiv = document.getElementById('basitune-song-context');
             setHTML(contextDiv, `<p class="basitune-placeholder">Could not load song context<br><small>${error}</small></p>`);

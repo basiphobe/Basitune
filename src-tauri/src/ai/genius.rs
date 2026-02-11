@@ -33,7 +33,7 @@ pub struct GeniusArtist {
 
 #[tauri::command]
 pub async fn get_lyrics(title: String, artist: String, app: tauri::AppHandle) -> Result<String, String> {
-    use crate::cache::{load_cache, save_cache};
+    use crate::cache::{load_cache, update_lyrics};
     use crate::utils::{normalize_string, clean_song_title, clean_lyrics_with_regex};
     use crate::config::get_genius_token;
     use crate::ai::openai::format_lyrics_with_ai;
@@ -61,9 +61,6 @@ pub async fn get_lyrics(title: String, artist: String, app: tauri::AppHandle) ->
         }
         // If it looks like prose, fall through to re-fetch with filtering
     }
-    
-    // Need mutable cache for writing
-    let mut cache = cache;
     
     // Clean up title - remove extra info like (Acoustic), (Remastered), dates, etc. for better matching
     let clean_title = clean_song_title(&title);
@@ -177,9 +174,8 @@ pub async fn get_lyrics(title: String, artist: String, app: tauri::AppHandle) ->
         }
     };
     
-    // Save to cache
-    cache.lyrics.insert(cache_key, result.clone());
-    save_cache(&app, &cache);
+    // Save to cache atomically
+    update_lyrics(&app, cache_key, result.clone());
     
     Ok(result)
 }

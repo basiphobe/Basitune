@@ -146,6 +146,5 @@ pub fn update_tray_tooltip(title: String, artist: String, app: tauri::AppHandle)
 
 #[tauri::command]
 pub fn audio_context_ready() -> Result<(), String> {
-    println!("[Basitune] Audio context ready signal received");
     Ok(())
 }

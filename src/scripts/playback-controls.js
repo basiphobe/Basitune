@@ -1,6 +1,5 @@
 // YouTube Music Playback Controls
 // Provides functions to control playback from the system tray
-// Also implements ghost playback prevention via activity tracking
 
 (function() {
     'use strict';
@@ -9,24 +8,6 @@
     window.__basitunePlaybackControlsInitialized = true;
     
     console.log('[Basitune] Playback controls initialized');
-    
-    // ===== Activity Tracking for Ghost Playback Prevention =====
-    let lastActivityTime = Date.now();
-    let lastPlayTime = 0; // Track when play() was last called
-    
-    function resetActivityTimer(source) {
-        const now = Date.now();
-        const previousInactiveSeconds = Math.floor((now - lastActivityTime) / 1000);
-        lastActivityTime = now;
-        console.log(`[Basitune Activity] Timer reset by: ${source} (was inactive for ${previousInactiveSeconds}s)`);
-    }
-    
-    // Listen for user input events
-    document.addEventListener('mousemove', () => resetActivityTimer('mousemove'), { passive: true });
-    document.addEventListener('mousedown', () => resetActivityTimer('mousedown'), { passive: true });
-    document.addEventListener('keydown', () => resetActivityTimer('keydown'), { passive: true });
-    document.addEventListener('touchstart', () => resetActivityTimer('touchstart'), { passive: true });
-    document.addEventListener('wheel', () => resetActivityTimer('wheel'), { passive: true });
     
     // Monitor playback state and notify Rust for tray menu updates
     let lastPlaybackState = "none";
@@ -458,64 +439,7 @@
         }
     };
     
-    // ===== Video Play/Pause Interceptors for Ghost Playback Prevention =====
-    // Wait for video element and install interceptors
-    function installPlaybackInterceptors() {
-        const video = getVideoElement();
-        if (!video) {
-            setTimeout(installPlaybackInterceptors, 100);
-            return;
-        }
-        
-        // Check if already installed
-        if (video.__basituneInterceptorsInstalled) {
-            return;
-        }
-        video.__basituneInterceptorsInstalled = true;
-        
-        const originalPlay = video.play.bind(video);
-        const originalPause = video.pause.bind(video);
-        
-        video.play = function() {
-            const now = Date.now();
-            lastPlayTime = now;
-            
-            console.log('[Basitune Playback] video.play() called at', now, 'ms');
-            console.log('[Basitune Playback] Window visible:', isWindowVisible);
-            console.log('[Basitune Playback] Call stack:', new Error().stack);
-            
-            // Check activity time (local, not OS-level)
-            const inactiveSeconds = Math.floor((now - lastActivityTime) / 1000);
-            const inactiveMinutes = Math.floor(inactiveSeconds / 60);
-            console.log('[Basitune Playback] Inactive for:', inactiveSeconds, 'seconds (', inactiveMinutes, 'minutes)');
-            
-            // Block play if inactive >30min (prevents overnight ghost playback)
-            if (inactiveSeconds > 1800) { // 30 minutes
-                console.warn('[Basitune Playback] BLOCKING video.play() - inactive for', inactiveMinutes, 'minutes');
-                return Promise.resolve(); // Return resolved promise to avoid errors
-            }
-            
-            console.log('[Basitune Playback] Allowing video.play()');
-            resetActivityTimer('video.play()');
-            return originalPlay();
-        };
-        
-        video.pause = function() {
-            console.log('[Basitune Playback] video.pause() called at', Date.now(), 'ms');
-            console.log('[Basitune Playback] Call stack:', new Error().stack);
-            return originalPause();
-        };
-        
-        // Listen for playback activity to reset timer
-        video.addEventListener('play', () => resetActivityTimer('play event'), { passive: true });
-        video.addEventListener('timeupdate', () => resetActivityTimer('timeupdate'), { passive: true });
-        video.addEventListener('volumechange', () => resetActivityTimer('volumechange'), { passive: true });
-        
-        console.log('[Basitune Playback] Interceptors installed on video element');
-    }
-    
-    // Install interceptors when script loads
-    installPlaybackInterceptors();
+
     
     console.log('[Basitune] Playback controls ready. Use window.basitunePlayback to control playback.');
     console.log('[Basitune] Available methods: play(), pause(), togglePlayPause(), stop(), next(), previous(), isPlaying(), getStatus(), getCurrentPlaybackState(), restorePlaybackPosition(), debug()');

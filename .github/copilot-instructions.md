@@ -21,6 +21,8 @@ Questions and uncertainty:
 - If clarification is needed, ask clear questions and then stop.
 - Do not ask questions mid-response and continue anyway.
 - If something is unclear or unknown, say “I don’t know yet” and explain how we could find out.
+- Do search the web for the latest information relative to the current task to make sure the process is up to date.
+- Do cite sources.
 
 Tone:
 - Assume technical competence but limited cognitive bandwidth.

@@ -14,26 +14,15 @@ fn save_window_state(app: &tauri::AppHandle) {
     if let Some(window) = app.get_webview_window("main") {
         let is_maximized = window.is_maximized().unwrap_or(false);
         
-        // Log ALL monitors at save time
-        let all_monitors_result = window.available_monitors();
-        if let Ok(ref all_monitors) = all_monitors_result {
-            println!("[Basitune] === SAVE: Available monitors ({}) ===", all_monitors.len());
-            for (idx, monitor) in all_monitors.iter().enumerate() {
-                let pos = monitor.position();
-                let size = monitor.size();
-                println!("[Basitune]   Monitor {}: {}x{} at ({}, {}) - Name: {:?}", 
-                         idx, size.width, size.height, pos.x, pos.y, monitor.name());
-            }
-        }
-        
         // Find which monitor the window is on - extract owned values
         let current_monitor = window.current_monitor().ok().flatten();
-        let (monitor_index, current_pos, current_size, current_name) = if let Some(ref mon) = current_monitor {
+        let (monitor_index, current_pos, current_size, _current_name) = if let Some(ref mon) = current_monitor {
             let pos = mon.position();
             let size = mon.size();
             let name = mon.name().map(|s| s.to_string());
             
             // Find index
+            let all_monitors_result = window.available_monitors();
             let idx = if let Ok(ref all_monitors) = all_monitors_result {
                 all_monitors.iter().position(|m| {
                     let m_pos = m.position();
@@ -47,14 +36,6 @@ fn save_window_state(app: &tauri::AppHandle) {
         } else {
             (None, None, None, None)
         };
-        
-        if let (Some(pos), Some(size)) = (current_pos, current_size) {
-            println!("[Basitune] === SAVE: Current monitor ===");
-            println!("[Basitune]   Index: {:?}", monitor_index);
-            println!("[Basitune]   Position: ({}, {})", pos.x, pos.y);
-            println!("[Basitune]   Size: {}x{}", size.width, size.height);
-            println!("[Basitune]   Name: {:?}", current_name);
-        }
         
         // For maximized windows, save the monitor's position
         let (x, y, width, height) = if is_maximized {
@@ -70,12 +51,6 @@ fn save_window_state(app: &tauri::AppHandle) {
             let pos = window.outer_position().unwrap_or(PhysicalPosition::new(0, 0));
             (pos.x, pos.y, size.width, size.height)
         };
-        
-        println!("[Basitune] Saving window state:");
-        println!("[Basitune]   Monitor index: {:?}", monitor_index);
-        println!("[Basitune]   Size: {}x{}", width, height);
-        println!("[Basitune]   Position: ({}, {})", x, y);
-        println!("[Basitune]   Maximized: {}", is_maximized);
         
         let state_manager: tauri::State<sidebar::WindowStateManager> = app.state();
         state_manager.update_no_save(|state| {
@@ -109,26 +84,18 @@ fn main() {
 
             if let Err(e) = window.eval(sidebar_script) {
                 eprintln!("[Basitune] Failed to inject sidebar: {}", e);
-            } else {
-                println!("[Basitune] Sidebar injected via on_page_load");
             }
 
             if let Err(e) = window.eval(diagnostics_script) {
                 eprintln!("[Basitune] Failed to inject audio diagnostics: {}", e);
-            } else {
-                println!("[Basitune] Audio diagnostics injected via on_page_load");
             }
 
             if let Err(e) = window.eval(playback_script) {
                 eprintln!("[Basitune] Failed to inject playback controls: {}", e);
-            } else {
-                println!("[Basitune] Playback controls injected via on_page_load");
             }
 
             if let Err(e) = window.eval(visualizer_script) {
                 eprintln!("[Basitune] Failed to inject visualizer: {}", e);
-            } else {
-                println!("[Basitune] Visualizer injected via on_page_load");
             }
 
             // Attempt to restore playback position
@@ -138,7 +105,6 @@ fn main() {
                 tauri::async_runtime::spawn(async move {
                     // Only restore once per app session (not on page reloads)
                     if PLAYBACK_RESTORED.swap(true, Ordering::SeqCst) {
-                        println!("[Basitune] Skipping restoration - already attempted this session");
                         return;
                     }
                     
@@ -147,8 +113,6 @@ fn main() {
                     
                     // Get saved playback position
                     if let Ok(Some(saved)) = config::get_playback_position(app_handle.clone()) {
-                        println!("[Basitune] Restoring playback: {} - {} at {:.1}s", 
-                                 saved.artist, saved.title, saved.position_seconds);
                         
                         // Check if auto-play is enabled in settings
                         let config = config::load_config(&app_handle);

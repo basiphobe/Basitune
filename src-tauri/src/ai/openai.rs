@@ -69,14 +69,14 @@ pub async fn call_openai(prompt: String, max_tokens: u32, app_handle: &tauri::Ap
 
 #[tauri::command]
 pub async fn get_artist_info(artist: String, app: tauri::AppHandle) -> Result<String, String> {
-    use crate::cache::{load_cache, save_cache};
+    use crate::cache::{load_cache, update_artist_info};
     use crate::utils::normalize_string;
 
     // Create cache key (normalized artist name)
     let cache_key = normalize_string(&artist);
     
     // Try to load from cache
-    let mut cache = load_cache(&app);
+    let cache = load_cache(&app);
     
     if let Some(cached_info) = cache.artist_info.get(&cache_key) {
         // Reject empty cached values (from previous API failures)
@@ -92,16 +92,15 @@ pub async fn get_artist_info(artist: String, app: tauri::AppHandle) -> Result<St
     
     let result = call_openai(prompt, 500, &app).await?;
     
-    // Save to cache
-    cache.artist_info.insert(cache_key, result.clone());
-    save_cache(&app, &cache);
+    // Save to cache atomically
+    update_artist_info(&app, cache_key, result.clone());
     
     Ok(result)
 }
 
 #[tauri::command]
 pub async fn get_song_context(title: String, artist: String, app: tauri::AppHandle) -> Result<String, String> {
-    use crate::cache::{load_cache, save_cache};
+    use crate::cache::{load_cache, update_song_context};
     use crate::utils::normalize_string;
 
     // Create cache key (normalized artist + title)
@@ -111,7 +110,7 @@ pub async fn get_song_context(title: String, artist: String, app: tauri::AppHand
     );
     
     // Try to load from cache
-    let mut cache = load_cache(&app);
+    let cache = load_cache(&app);
     
     if let Some(cached_context) = cache.song_context.get(&cache_key) {
         // Reject empty cached values (from previous API failures)
@@ -125,14 +124,10 @@ pub async fn get_song_context(title: String, artist: String, app: tauri::AppHand
         title, artist
     );
     
-    println!("[Basitune] Calling OpenAI for song context: {} - {}", title, artist);
     let result = call_openai(prompt, 500, &app).await?;
-    println!("[Basitune] OpenAI response length: {} chars", result.len());
-    println!("[Basitune] OpenAI response preview: {}", if result.len() > 100 { &result[..100] } else { &result });
     
-    // Save to cache
-    cache.song_context.insert(cache_key, result.clone());
-    save_cache(&app, &cache);
+    // Save to cache atomically
+    update_song_context(&app, cache_key, result.clone());
     
     Ok(result)
 }
