@@ -34,7 +34,7 @@ pub async fn call_openai(prompt: String, max_tokens: u32, app_handle: &tauri::Ap
             role: "user".to_string(),
             content: prompt,
         }],
-        max_tokens: max_tokens,
+        max_tokens,
     };
     
     let client = reqwest::Client::builder()

@@ -287,7 +287,7 @@ fn main() {
                         }
                         "quit" => {
                             // Save window state before quitting
-                            save_window_state(&app);
+                            save_window_state(app);
                             
                             // Save playback position before quitting
                             if let Some(window) = app.get_webview_window("main") {
