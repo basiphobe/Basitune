@@ -31,6 +31,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Lyrics search failing on typographic punctuation**: Songs with curly apostrophes (e.g., "A Mother's Prayer") now match correctly instead of showing "Couldn't find exact match"
 - **Robust lyrics matching engine**: Replaced simple string-contains matching with a 4-tier scoring system (normalized Unicode, contains-based, punctuation-stripped, word-overlap) and removed blind fallback that could grab unrelated songs
 
+### CI/CD
+- **Updated GitHub Actions to Node 24**: Bumped `actions/checkout` v4→v6, `actions/setup-node` v4→v6, `actions/github-script` v7→v9, `actions/upload-artifact` v4→v7 to resolve Node.js 20 deprecation warnings
+
 ## [1.0.29] - 2026-01-01
 
 ### Added
