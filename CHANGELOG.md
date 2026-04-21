@@ -28,6 +28,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Ghost audio playback: Mute gainNode when video pauses to prevent AudioContext from playing sound when video.paused = true
 - Auto-advance: Only skip when window hidden (allows normal listening without mouse/keyboard activity)
 - Added pause/play interceptors with full stack trace logging for diagnostics
+- **Lyrics search failing on typographic punctuation**: Songs with curly apostrophes (e.g., "A Mother's Prayer") now match correctly instead of showing "Couldn't find exact match"
+- **Robust lyrics matching engine**: Replaced simple string-contains matching with a 4-tier scoring system (normalized Unicode, contains-based, punctuation-stripped, word-overlap) and removed blind fallback that could grab unrelated songs
 
 ## [1.0.29] - 2026-01-01
 
