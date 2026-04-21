@@ -34,7 +34,7 @@ pub struct GeniusArtist {
 #[tauri::command]
 pub async fn get_lyrics(title: String, artist: String, app: tauri::AppHandle) -> Result<String, String> {
     use crate::cache::{load_cache, update_lyrics};
-    use crate::utils::{normalize_string, clean_song_title, clean_lyrics_with_regex};
+    use crate::utils::{normalize_string, clean_song_title, clean_lyrics_with_regex, match_score};
     use crate::config::get_genius_token;
     use crate::ai::openai::format_lyrics_with_ai;
 
@@ -96,8 +96,8 @@ pub async fn get_lyrics(title: String, artist: String, app: tauri::AppHandle) ->
         .await
         .map_err(|e| format!("Failed to parse search results: {}", e))?;
     
-    // Find best matching result that is actually a song
-    let best_match = search_result
+    // Find best matching result that is actually a song, using scored matching
+    let song_hits: Vec<_> = search_result
         .response
         .hits
         .iter()
@@ -113,31 +113,23 @@ pub async fn get_lyrics(title: String, artist: String, app: tauri::AppHandle) ->
                 }
             }
         })
-        .find(|hit| {
-            // Check if artist name matches (case-insensitive, approximate)
-            let result_artist = hit.result.primary_artist.name.to_lowercase();
-            let search_artist = artist.to_lowercase();
-            
-            // Check if title matches (case-insensitive, approximate)
-            let result_title = hit.result.title.to_lowercase();
-            let search_title = clean_title.to_lowercase();
-            
-            // Artist must contain or match closely
-            let artist_match = result_artist.contains(&search_artist) || search_artist.contains(&result_artist);
-            
-            // Title must contain the main words (not just be mentioned in a playlist)
-            let title_match = result_title.contains(&search_title) || search_title.contains(&result_title);
-            
-            artist_match && title_match
+        .collect();
+
+    // Score each song hit and pick the best match above a threshold
+    let best_match = song_hits
+        .iter()
+        .map(|hit| {
+            let score = match_score(
+                &clean_title,
+                &artist,
+                &hit.result.title,
+                &hit.result.primary_artist.name,
+            );
+            (*hit, score)
         })
-        .or_else(|| {
-            // Fallback: get first result that is explicitly type="song"
-            search_result.response.hits.iter()
-                .find(|hit| match &hit.result.result_type {
-                    Some(t) => t == "song",
-                    None => false, // Don't accept unknown types in fallback
-                })
-        })
+        .filter(|(_, score)| *score >= 0.3)
+        .max_by(|(_, a), (_, b)| a.partial_cmp(b).unwrap_or(std::cmp::Ordering::Equal))
+        .map(|(hit, _)| hit)
         .ok_or("No results found")?;
     
     let song_url = &best_match.result.url;
