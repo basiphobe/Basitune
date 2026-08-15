@@ -1,3 +1,5 @@
+
+
 # Basitune
 
 A lightweight, cross-platform desktop wrapper for YouTube Music built with Tauri.
@@ -188,7 +190,7 @@ This generates all required icon files from the included `icon.svg`. You can rep
 npm run dev
 ```
 
-This will start the application in development mode with hot-reload enabled.
+This will start the application in development mode without file watching. Use `npm run dev:watch` for hot-reload.
 
 **Note:** Make sure your `.env` file is configured or environment variables are set before running.
 
